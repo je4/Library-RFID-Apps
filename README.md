@@ -284,7 +284,7 @@ func OnIncomingRawEvent(rawEvt *wsbrokerclient.Event) error {
 | `rfid:device_metadata_response` | `DeviceMetadataResponse` | Antwort mit Geräte-ID, Typ und Initialisierungsbericht |
 | `rfid:write_tag` | `WriteTagRequest` | Befehl zum Schreiben von ISO 28560-2 Metadaten und AFI |
 | `rfid:write_tag_response` | `WriteTagResponse` | Statusmeldung des Schreibvorgangs |
-| `rfid:rfid_write_afi` / `rfid:write_afi` | `WriteAFIRequest` | Befehl zum Setzen des AFI-Sicherheitsstatus |
+| `rfid:write_afi` | `WriteAFIRequest` | Befehl zum Setzen des AFI-Sicherheitsstatus |
 | `rfid:write_afi_response` | `WriteAFIResponse` | Statusmeldung des AFI-Schreibvorgangs |
 
 ---
