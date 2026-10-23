@@ -1,0 +1,31 @@
+module github.com/je4/Library-RFID-Apps
+
+go 1.27.2
+
+require (
+	emperror.dev/errors v0.8.1 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
+	github.com/BurntSushi/toml v1.6.0 // indirect
+	github.com/beevik/ntp v1.6.0 // indirect
+	github.com/coder/websocket v1.8.15 // indirect
+	github.com/google/certificate-transparency-go v1.3.3 // indirect
+	github.com/je4/trustutil/v2 v2.0.31 // indirect
+	github.com/je4/utils/v2 v2.0.71 // indirect
+	github.com/je4/wsbrokerclient v0.0.0-20261023125705-5862b9fcd84e // indirect
+	github.com/mattn/go-colorable v0.1.16 // indirect
+	github.com/mattn/go-isatty v0.0.24 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rs/zerolog v1.35.1 // indirect
+	github.com/smallstep/certinfo v1.17.0 // indirect
+	go.step.sm/crypto v0.91.0 // indirect
+	go.ub.unibas.ch/cloud/certloader/v2 v2.0.26 // indirect
+	go.ub.unibas.ch/cloud/minivaultclient v1.0.7 // indirect
+	go.uber.org/multierr v1.11.0 // indirect
+	golang.org/x/crypto v0.58.0 // indirect
+	golang.org/x/exp v0.0.0-20261013213113-2ab7f3cbc5fb // indirect
+	golang.org/x/net v0.61.0 // indirect
+	golang.org/x/sys v0.49.0 // indirect
+	golang.org/x/text v0.43.0 // indirect
+	google.golang.org/protobuf v1.36.12 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
+)

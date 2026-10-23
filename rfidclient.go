@@ -1,0 +1,66 @@
+// Package rfidclient provides a high-level, production-ready Go client library
+// for communicating with rfid-headless RFID reader/writer daemons via wsbrokerclient.
+package rfidclient
+
+import (
+	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/wsbrokerclient"
+)
+
+// Re-exported types from pkg/rfidclient for streamlined root import.
+type (
+	Client                 = rfidclient.Client
+	RFIDClient             = rfidclient.RFIDClient
+	Option                 = rfidclient.Option
+	BaseRFIDPayload        = rfidclient.BaseRFIDPayload
+	TagReadEvent           = rfidclient.TagReadEvent
+	TagsClearedEvent       = rfidclient.TagsClearedEvent
+	DeviceMetadataRequest  = rfidclient.DeviceMetadataRequest
+	DeviceMetadataResponse = rfidclient.DeviceMetadataResponse
+	WriteTagRequest        = rfidclient.WriteTagRequest
+	WriteTagResponse       = rfidclient.WriteTagResponse
+	WriteAFIRequest        = rfidclient.WriteAFIRequest
+	WriteAFIResponse       = rfidclient.WriteAFIResponse
+
+	TagReadHandler          = rfidclient.TagReadHandler
+	TagsClearedHandler      = rfidclient.TagsClearedHandler
+	DeviceMetadataHandler   = rfidclient.DeviceMetadataHandler
+	WriteTagResponseHandler = rfidclient.WriteTagResponseHandler
+	WriteAFIResponseHandler = rfidclient.WriteAFIResponseHandler
+	AnyRFIDEventHandler     = rfidclient.AnyRFIDEventHandler
+)
+
+// Re-exported event constants.
+const (
+	EventTagRead                = rfidclient.EventTagRead
+	EventTagsCleared            = rfidclient.EventTagsCleared
+	EventGetDeviceMetadata      = rfidclient.EventGetDeviceMetadata
+	EventDeviceMetadata         = rfidclient.EventDeviceMetadata
+	EventDeviceMetadataResponse = rfidclient.EventDeviceMetadataResponse
+	EventWriteTag               = rfidclient.EventWriteTag
+	EventWriteTagResponse       = rfidclient.EventWriteTagResponse
+	EventWriteAFI               = rfidclient.EventWriteAFI
+	EventWriteAFIAlt            = rfidclient.EventWriteAFIAlt
+	EventWriteAFIResponse       = rfidclient.EventWriteAFIResponse
+)
+
+// Re-exported constructors and options.
+var (
+	New                      = rfidclient.New
+	NewFromConfig            = rfidclient.NewFromConfig
+	WithDefaultTarget        = rfidclient.WithDefaultTarget
+	WithDefaultTimeout       = rfidclient.WithDefaultTimeout
+	WithLogger               = rfidclient.WithLogger
+	WithChannels             = rfidclient.WithChannels
+	WithClientName           = rfidclient.WithClientName
+	NewDeviceMetadataRequest = rfidclient.NewDeviceMetadataRequest
+	NewWriteTagRequest       = rfidclient.NewWriteTagRequest
+	NewWriteAFIRequest       = rfidclient.NewWriteAFIRequest
+	ParseRFIDPayload         = rfidclient.ParseRFIDPayload
+	ParseEvent               = rfidclient.ParseEvent
+)
+
+// DefaultWSBrokerConfig returns standard WSBroker configuration with defaults.
+func DefaultWSBrokerConfig() wsbrokerclient.Config {
+	return wsbrokerclient.DefaultConfig()
+}

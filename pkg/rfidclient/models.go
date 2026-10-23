@@ -1,0 +1,672 @@
+package rfidclient
+
+import (
+	"encoding/json"
+	"fmt"
+	"strings"
+	"time"
+
+	"emperror.dev/errors"
+	"github.com/je4/wsbrokerclient"
+)
+
+// Standard RFID event identifiers exchanged with rfid-headless.
+const (
+	EventTagRead                = "rfid:tag_read"
+	EventTagsCleared            = "rfid:tags_cleared"
+	EventGetDeviceMetadata      = "rfid:get_device_metadata"
+	EventDeviceMetadata         = "rfid:device_metadata"
+	EventDeviceMetadataResponse = "rfid:device_metadata_response"
+	EventWriteTag               = "rfid:write_tag"
+	EventWriteTagResponse       = "rfid:write_tag_response"
+	EventWriteAFI               = "rfid:rfid_write_afi"
+	EventWriteAFIAlt            = "rfid:write_afi"
+	EventWriteAFIResponse       = "rfid:write_afi_response"
+)
+
+// BaseRFIDPayload represents common fields included in RFID event payloads.
+type BaseRFIDPayload struct {
+	Event     string `json:"event"`
+	Session   string `json:"session,omitempty"`
+	Timestamp int64  `json:"timestamp,omitempty"`
+	ClientID  string `json:"clientId,omitempty"`
+}
+
+// Time converts the millisecond epoch timestamp to a standard time.Time.
+func (p *BaseRFIDPayload) Time() time.Time {
+	if p.Timestamp <= 0 {
+		return time.Time{}
+	}
+	return time.UnixMilli(p.Timestamp)
+}
+
+// TagReadEvent represents an RFID tag scan event (ISO 15693 / ISO 28560-2).
+type TagReadEvent struct {
+	BaseRFIDPayload
+	UID        string `json:"uid"`
+	ItemID     string `json:"itemId"`
+	ISIL       string `json:"isil,omitempty"`
+	Country    string `json:"country,omitempty"`
+	CRCOk      bool   `json:"crcOk"`
+	IsCRCValid bool   `json:"isCrcValid"`
+	CRC        string `json:"crc,omitempty"`
+	TagName    string `json:"tagName,omitempty"`
+	Raw        string `json:"raw,omitempty"`
+	Parts      *int   `json:"parts,omitempty"`
+	PartNo     *int   `json:"partNo,omitempty"`
+	UsageType  *int   `json:"usageType,omitempty"`
+	Version    *int   `json:"version,omitempty"`
+}
+
+// IsCRCValidStatus returns true if the CRC validation was successful.
+func (e *TagReadEvent) IsCRCValidStatus() bool {
+	if e.CRCOk || e.IsCRCValid {
+		return true
+	}
+	return strings.EqualFold(e.CRC, "OK")
+}
+
+// GetParts returns the number of total parts, defaulting to 1 if unset.
+func (e *TagReadEvent) GetParts() int {
+	if e.Parts != nil {
+		return *e.Parts
+	}
+	return 1
+}
+
+// GetPartNo returns the 1-based part index, defaulting to 1 if unset.
+func (e *TagReadEvent) GetPartNo() int {
+	if e.PartNo != nil {
+		return *e.PartNo
+	}
+	return 1
+}
+
+// GetUsageType returns the ISO 28560 usage type, defaulting to 1 (circulating item) if unset.
+func (e *TagReadEvent) GetUsageType() int {
+	if e.UsageType != nil {
+		return *e.UsageType
+	}
+	return 1
+}
+
+// IsMultiPart returns true if this item is part of a multi-part set (parts > 1).
+func (e *TagReadEvent) IsMultiPart() bool {
+	return e.GetParts() > 1
+}
+
+// Summary returns a concise human-readable description of the tag read.
+func (e *TagReadEvent) Summary() string {
+	crcStatus := "ERROR"
+	if e.IsCRCValidStatus() {
+		crcStatus = "OK"
+	}
+	return fmt.Sprintf("[TAG READ] UID: %s | ItemID: %s | ISIL: %s | Country: %s | CRC: %s",
+		e.UID, e.ItemID, e.ISIL, e.Country, crcStatus)
+}
+
+// UnmarshalJSON custom unmarshaler supporting field aliases from diverse reader drivers and historical payloads.
+func (e *TagReadEvent) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event       string `json:"event"`
+		Session     string `json:"session"`
+		Timestamp   int64  `json:"timestamp"`
+		ClientID    string `json:"clientId"`
+		UID         string `json:"uid"`
+		ItemID      string `json:"itemId"`
+		ImtemID     string `json:"imtemId"`
+		PrimaryItem string `json:"primaryItemId"`
+		Barcode     string `json:"barcode"`
+		ISIL        string `json:"isil"`
+		Country     string `json:"country"`
+		CRCOk       bool   `json:"crcOk"`
+		IsCrcValid  bool   `json:"isCrcValid"`
+		CRC         string `json:"crc"`
+		TagName     string `json:"tagName"`
+		Raw         string `json:"raw"`
+		Parts       *int   `json:"parts"`
+		PartNo      *int   `json:"partNo"`
+		PartnoAlt   *int   `json:"partno"`
+		PartNumber  *int   `json:"partNumber"`
+		UsageType   *int   `json:"usageType"`
+		TypeOfUsage *int   `json:"typeOfUsage"`
+		Version     *int   `json:"version"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	e.Event = raw.Event
+	e.Session = raw.Session
+	e.Timestamp = raw.Timestamp
+	e.ClientID = raw.ClientID
+	e.UID = raw.UID
+
+	if raw.ItemID != "" {
+		e.ItemID = raw.ItemID
+	} else if raw.ImtemID != "" {
+		e.ItemID = raw.ImtemID
+	} else if raw.PrimaryItem != "" {
+		e.ItemID = raw.PrimaryItem
+	} else if raw.Barcode != "" {
+		e.ItemID = raw.Barcode
+	}
+
+	e.ISIL = raw.ISIL
+	e.Country = raw.Country
+	e.CRCOk = raw.CRCOk || raw.IsCrcValid
+	e.IsCRCValid = raw.IsCrcValid || raw.CRCOk
+	e.CRC = raw.CRC
+	e.TagName = raw.TagName
+	e.Raw = raw.Raw
+	e.Parts = raw.Parts
+
+	if raw.PartNo != nil {
+		e.PartNo = raw.PartNo
+	} else if raw.PartnoAlt != nil {
+		e.PartNo = raw.PartnoAlt
+	} else if raw.PartNumber != nil {
+		e.PartNo = raw.PartNumber
+	}
+
+	if raw.UsageType != nil {
+		e.UsageType = raw.UsageType
+	} else if raw.TypeOfUsage != nil {
+		e.UsageType = raw.TypeOfUsage
+	}
+
+	e.Version = raw.Version
+	return nil
+}
+
+// TagsClearedEvent represents a reader cleared event (all RFID tags removed from reader field).
+type TagsClearedEvent struct {
+	BaseRFIDPayload
+	Status    string `json:"status"`
+	TotalTags int    `json:"totalTags"`
+}
+
+// Summary returns a concise human-readable description of the tags cleared event.
+func (e *TagsClearedEvent) Summary() string {
+	return "[READER CLEARED] All RFID tags removed from reader field"
+}
+
+// DeviceMetadataRequest represents a query for reader hardware status and metadata.
+type DeviceMetadataRequest struct {
+	Event string `json:"event"`
+}
+
+// NewDeviceMetadataRequest creates a new query request for reader hardware metadata.
+func NewDeviceMetadataRequest() DeviceMetadataRequest {
+	return DeviceMetadataRequest{
+		Event: EventGetDeviceMetadata,
+	}
+}
+
+// DeviceMetadataResponse represents reader hardware metadata and initialization diagnostics.
+type DeviceMetadataResponse struct {
+	BaseRFIDPayload
+	Status          string `json:"status"`
+	DeviceID        string `json:"deviceId"`
+	DeviceType      string `json:"deviceType"`
+	InitDescription string `json:"initDescription"`
+	Description     string `json:"description,omitempty"`
+}
+
+// IsSuccess returns true if the status equals "ok".
+func (r *DeviceMetadataResponse) IsSuccess() bool {
+	return strings.EqualFold(r.Status, "ok")
+}
+
+// GetDescription returns the full init diagnostic report / device description.
+func (r *DeviceMetadataResponse) GetDescription() string {
+	if r.InitDescription != "" {
+		return r.InitDescription
+	}
+	return r.Description
+}
+
+// Summary returns a concise human-readable description of the device metadata.
+func (r *DeviceMetadataResponse) Summary() string {
+	desc := r.GetDescription()
+	if len(desc) > 60 {
+		desc = desc[:57] + "..."
+	}
+	return fmt.Sprintf("[DEVICE METADATA] Status: %s | ID: %s | Type: %s | Description: %s",
+		r.Status, r.DeviceID, r.DeviceType, desc)
+}
+
+// UnmarshalJSON custom unmarshaler supporting field aliases for device metadata.
+func (r *DeviceMetadataResponse) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event               string `json:"event"`
+		Session             string `json:"session"`
+		Timestamp           int64  `json:"timestamp"`
+		ClientID            string `json:"clientId"`
+		Status              string `json:"status"`
+		DeviceID            string `json:"deviceId"`
+		DeviceIDAlt1        string `json:"deviceID"`
+		DeviceIDAlt2        string `json:"Device ID"`
+		DeviceIDAlt3        string `json:"device_id"`
+		DeviceType          string `json:"deviceType"`
+		DeviceTypeAlt1      string `json:"Device Type"`
+		DeviceTypeAlt2      string `json:"device_type"`
+		InitDescription     string `json:"initDescription"`
+		Description         string `json:"description"`
+		CompleteDescription string `json:"completeDescription"`
+		InitDescAlt1        string `json:"Komplettbeschreibung aus dem init"`
+		InitDescAlt2        string `json:"init_description"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.Event = raw.Event
+	r.Session = raw.Session
+	r.Timestamp = raw.Timestamp
+	r.ClientID = raw.ClientID
+	r.Status = raw.Status
+	if r.Status == "" {
+		r.Status = "ok"
+	}
+
+	if raw.DeviceID != "" {
+		r.DeviceID = raw.DeviceID
+	} else if raw.DeviceIDAlt1 != "" {
+		r.DeviceID = raw.DeviceIDAlt1
+	} else if raw.DeviceIDAlt2 != "" {
+		r.DeviceID = raw.DeviceIDAlt2
+	} else if raw.DeviceIDAlt3 != "" {
+		r.DeviceID = raw.DeviceIDAlt3
+	}
+
+	if raw.DeviceType != "" {
+		r.DeviceType = raw.DeviceType
+	} else if raw.DeviceTypeAlt1 != "" {
+		r.DeviceType = raw.DeviceTypeAlt1
+	} else if raw.DeviceTypeAlt2 != "" {
+		r.DeviceType = raw.DeviceTypeAlt2
+	}
+
+	if raw.InitDescription != "" {
+		r.InitDescription = raw.InitDescription
+	} else if raw.CompleteDescription != "" {
+		r.InitDescription = raw.CompleteDescription
+	} else if raw.InitDescAlt1 != "" {
+		r.InitDescription = raw.InitDescAlt1
+	} else if raw.InitDescAlt2 != "" {
+		r.InitDescription = raw.InitDescAlt2
+	} else if raw.Description != "" {
+		r.InitDescription = raw.Description
+	}
+	r.Description = r.InitDescription
+
+	return nil
+}
+
+// WriteTagRequest represents a command to write ISO 28560-2 library metadata and optional AFI to an RFID tag.
+type WriteTagRequest struct {
+	Event     string `json:"event"`
+	UID       string `json:"uid,omitempty"`
+	ItemID    string `json:"itemId"`
+	ISIL      string `json:"isil,omitempty"`
+	Country   string `json:"country,omitempty"`
+	Parts     int    `json:"parts,omitempty"`
+	PartNo    int    `json:"partno,omitempty"`
+	UsageType int    `json:"usageType,omitempty"`
+	AFI       string `json:"afi,omitempty"`
+}
+
+// NewWriteTagRequest creates a new WriteTagRequest with sensible defaults.
+func NewWriteTagRequest(itemID string, uid ...string) WriteTagRequest {
+	var targetUID string
+	if len(uid) > 0 {
+		targetUID = uid[0]
+	}
+	return WriteTagRequest{
+		Event:     EventWriteTag,
+		UID:       targetUID,
+		ItemID:    itemID,
+		Parts:     1,
+		PartNo:    1,
+		UsageType: 1,
+	}
+}
+
+// Validate checks whether the write tag request contains mandatory fields.
+func (r *WriteTagRequest) Validate() error {
+	if strings.TrimSpace(r.ItemID) == "" {
+		return errors.New("write tag request: itemId must not be empty")
+	}
+	if r.Parts <= 0 {
+		r.Parts = 1
+	}
+	if r.PartNo <= 0 {
+		r.PartNo = 1
+	}
+	if r.UsageType <= 0 {
+		r.UsageType = 1
+	}
+	return nil
+}
+
+// WriteTagResponse represents the result of an RFID tag write operation.
+type WriteTagResponse struct {
+	BaseRFIDPayload
+	Status    string `json:"status"`
+	UID       string `json:"uid,omitempty"`
+	ItemID    string `json:"itemId,omitempty"`
+	ISIL      string `json:"isil,omitempty"`
+	Country   string `json:"country,omitempty"`
+	Parts     int    `json:"parts,omitempty"`
+	PartNo    int    `json:"partNo,omitempty"`
+	UsageType int    `json:"usageType,omitempty"`
+	AFI       string `json:"afi,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
+// IsSuccess returns true if the write was successful (status == "ok").
+func (r *WriteTagResponse) IsSuccess() bool {
+	return strings.EqualFold(r.Status, "ok")
+}
+
+// GetError returns the error description if write failed.
+func (r *WriteTagResponse) GetError() string {
+	if r.Error != "" {
+		return r.Error
+	}
+	if !r.IsSuccess() {
+		return r.Message
+	}
+	return ""
+}
+
+// Summary returns a concise human-readable description of the write tag result.
+func (r *WriteTagResponse) Summary() string {
+	if r.IsSuccess() {
+		afiStr := ""
+		if r.AFI != "" {
+			afiStr = " | AFI: " + r.AFI
+		}
+		return fmt.Sprintf("[WRITE TAG] Status: OK | UID: %s | ItemID: %s | ISIL: %s | Country: %s%s",
+			r.UID, r.ItemID, r.ISIL, r.Country, afiStr)
+	}
+	errText := r.GetError()
+	return fmt.Sprintf("[WRITE TAG ERROR] UID: %s | Error: %s", r.UID, errText)
+}
+
+// UnmarshalJSON custom unmarshaler supporting field aliases for write tag response.
+func (r *WriteTagResponse) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event       string `json:"event"`
+		Session     string `json:"session"`
+		Timestamp   int64  `json:"timestamp"`
+		ClientID    string `json:"clientId"`
+		Status      string `json:"status"`
+		UID         string `json:"uid"`
+		UIDAlt      string `json:"UID"`
+		ItemID      string `json:"itemId"`
+		ImtemID     string `json:"imtemId"`
+		PrimaryItem string `json:"primaryItemId"`
+		Barcode     string `json:"barcode"`
+		ISIL        string `json:"isil"`
+		ISILAlt     string `json:"ISIL"`
+		Country     string `json:"country"`
+		CountryAlt  string `json:"countryOfOwnerLib"`
+		Parts       int    `json:"parts"`
+		PartNo      int    `json:"partNo"`
+		PartnoAlt   int    `json:"partno"`
+		PartNumber  int    `json:"partNumber"`
+		UsageType   int    `json:"usageType"`
+		TypeOfUsage int    `json:"typeOfUsage"`
+		AFI         string `json:"afi"`
+		AFIAlt      string `json:"AFI"`
+		Message     string `json:"message"`
+		Error       string `json:"error"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.Event = raw.Event
+	r.Session = raw.Session
+	r.Timestamp = raw.Timestamp
+	r.ClientID = raw.ClientID
+	r.Status = raw.Status
+
+	if raw.UID != "" {
+		r.UID = raw.UID
+	} else if raw.UIDAlt != "" {
+		r.UID = raw.UIDAlt
+	}
+
+	if raw.ItemID != "" {
+		r.ItemID = raw.ItemID
+	} else if raw.ImtemID != "" {
+		r.ItemID = raw.ImtemID
+	} else if raw.PrimaryItem != "" {
+		r.ItemID = raw.PrimaryItem
+	} else if raw.Barcode != "" {
+		r.ItemID = raw.Barcode
+	}
+
+	if raw.ISIL != "" {
+		r.ISIL = raw.ISIL
+	} else if raw.ISILAlt != "" {
+		r.ISIL = raw.ISILAlt
+	}
+
+	if raw.Country != "" {
+		r.Country = raw.Country
+	} else if raw.CountryAlt != "" {
+		r.Country = raw.CountryAlt
+	}
+
+	r.Parts = raw.Parts
+
+	if raw.PartNo != 0 {
+		r.PartNo = raw.PartNo
+	} else if raw.PartnoAlt != 0 {
+		r.PartNo = raw.PartnoAlt
+	} else if raw.PartNumber != 0 {
+		r.PartNo = raw.PartNumber
+	}
+
+	if raw.UsageType != 0 {
+		r.UsageType = raw.UsageType
+	} else if raw.TypeOfUsage != 0 {
+		r.UsageType = raw.TypeOfUsage
+	}
+
+	if raw.AFI != "" {
+		r.AFI = raw.AFI
+	} else if raw.AFIAlt != "" {
+		r.AFI = raw.AFIAlt
+	}
+
+	r.Message = raw.Message
+	r.Error = raw.Error
+
+	return nil
+}
+
+// WriteAFIRequest represents a command to write or toggle the AFI byte (e.g. EAS security state).
+type WriteAFIRequest struct {
+	Event string `json:"event"`
+	UID   string `json:"uid,omitempty"`
+	AFI   string `json:"afi"`
+}
+
+// NewWriteAFIRequest creates a new WriteAFIRequest for security state manipulation.
+func NewWriteAFIRequest(afi string, uid ...string) WriteAFIRequest {
+	var targetUID string
+	if len(uid) > 0 {
+		targetUID = uid[0]
+	}
+	return WriteAFIRequest{
+		Event: EventWriteAFI,
+		UID:   targetUID,
+		AFI:   afi,
+	}
+}
+
+// Validate checks whether AFI value is specified.
+func (r *WriteAFIRequest) Validate() error {
+	if strings.TrimSpace(r.AFI) == "" {
+		return errors.New("write afi request: afi byte must not be empty")
+	}
+	return nil
+}
+
+// WriteAFIResponse represents the result of writing the AFI byte.
+type WriteAFIResponse struct {
+	BaseRFIDPayload
+	Status  string `json:"status"`
+	UID     string `json:"uid,omitempty"`
+	AFI     string `json:"afi,omitempty"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// IsSuccess returns true if the AFI write was successful.
+func (r *WriteAFIResponse) IsSuccess() bool {
+	return strings.EqualFold(r.Status, "ok")
+}
+
+// GetError returns the error description if AFI write failed.
+func (r *WriteAFIResponse) GetError() string {
+	if r.Error != "" {
+		return r.Error
+	}
+	if !r.IsSuccess() {
+		return r.Message
+	}
+	return ""
+}
+
+// Summary returns a concise human-readable description of the AFI write result.
+func (r *WriteAFIResponse) Summary() string {
+	if r.IsSuccess() {
+		return fmt.Sprintf("[WRITE AFI] Status: OK | UID: %s | AFI: %s", r.UID, r.AFI)
+	}
+	errText := r.GetError()
+	return fmt.Sprintf("[WRITE AFI ERROR] UID: %s | Error: %s", r.UID, errText)
+}
+
+// UnmarshalJSON custom unmarshaler supporting field aliases for write AFI response.
+func (r *WriteAFIResponse) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event     string `json:"event"`
+		Session   string `json:"session"`
+		Timestamp int64  `json:"timestamp"`
+		ClientID  string `json:"clientId"`
+		Status    string `json:"status"`
+		UID       string `json:"uid"`
+		UIDAlt    string `json:"UID"`
+		AFI       string `json:"afi"`
+		AFIAlt    string `json:"AFI"`
+		Message   string `json:"message"`
+		Error     string `json:"error"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.Event = raw.Event
+	r.Session = raw.Session
+	r.Timestamp = raw.Timestamp
+	r.ClientID = raw.ClientID
+	r.Status = raw.Status
+
+	if raw.UID != "" {
+		r.UID = raw.UID
+	} else if raw.UIDAlt != "" {
+		r.UID = raw.UIDAlt
+	}
+
+	if raw.AFI != "" {
+		r.AFI = raw.AFI
+	} else if raw.AFIAlt != "" {
+		r.AFI = raw.AFIAlt
+	}
+
+	r.Message = raw.Message
+	r.Error = raw.Error
+
+	return nil
+}
+
+// ParseRFIDPayload unmarshals raw JSON bytes into the concrete typed RFID payload struct.
+func ParseRFIDPayload(data []byte) (any, error) {
+	if len(data) == 0 {
+		return nil, errors.New("empty payload data")
+	}
+
+	var header struct {
+		Event string `json:"event"`
+	}
+	if err := json.Unmarshal(data, &header); err != nil {
+		return nil, errors.Wrap(err, "failed to decode json header")
+	}
+
+	normEvent := strings.ToLower(strings.TrimSpace(header.Event))
+	switch normEvent {
+	case EventTagRead, "tag_read":
+		var tag TagReadEvent
+		if err := json.Unmarshal(data, &tag); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal TagReadEvent")
+		}
+		return &tag, nil
+
+	case EventTagsCleared, "tags_cleared":
+		var cleared TagsClearedEvent
+		if err := json.Unmarshal(data, &cleared); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedEvent")
+		}
+		return &cleared, nil
+
+	case EventDeviceMetadataResponse, EventDeviceMetadata, "device_metadata_response", "device_metadata":
+		var meta DeviceMetadataResponse
+		if err := json.Unmarshal(data, &meta); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataResponse")
+		}
+		return &meta, nil
+
+	case EventWriteTagResponse, "write_tag_response":
+		var writeResp WriteTagResponse
+		if err := json.Unmarshal(data, &writeResp); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
+		}
+		return &writeResp, nil
+
+	case EventWriteAFIResponse, "write_afi_response":
+		var afiResp WriteAFIResponse
+		if err := json.Unmarshal(data, &afiResp); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
+		}
+		return &afiResp, nil
+
+	default:
+		return nil, errors.Errorf("unrecognized rfid event type: %q", header.Event)
+	}
+}
+
+// ParseEvent extracts and parses the RFID payload from a wsbroker event envelope.
+func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
+	if evt == nil {
+		return nil, errors.New("event envelope is nil")
+	}
+	if len(evt.Data) == 0 {
+		return nil, errors.New("event data is empty")
+	}
+	return ParseRFIDPayload(evt.Data)
+}
