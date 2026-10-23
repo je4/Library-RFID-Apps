@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="de" class="dark" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Desk - {{.ClientName}}</title>
+    <!-- Tailwind CSS, HTMX 4 & SSE Extension -->
+    <link rel="stylesheet" href="/static/css/tailwind.min.css">
+    <script src="/static/js/htmx-4.0.js"></script>
+    <script src="/static/js/hx-sse.js"></script>
+    <link rel="stylesheet" href="/static/css/desk.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="/events" data-sse-connect="/events" hx-ext="sse">
+
+    <!-- Header Bar -->
+    <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b border-gray-800/80 gap-4">
+        <div class="flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2.5">
+                    RFID Desk
+                    <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 transition-all">Bereit</span>
+                </h1>
+                <p class="text-xs text-gray-400 font-mono flex items-center gap-2">
+                    <span>Client: <strong class="text-gray-200">{{.ClientName}}</strong></span>
+                    <span class="text-gray-600">&bull;</span>
+                    <span>Broker: <strong class="text-gray-300">{{.WSBroker}}</strong></span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- Audio Feedback Toggle Button -->
+            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-900 text-gray-400 hover:text-white hover:bg-gray-800 border border-gray-800 transition-colors inline-flex items-center gap-1.5" title="Signalton bei Scan umschalten">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <span>Ton</span>
+            </button>
+
+            <!-- SSE Status Badge -->
+            <div id="sse-status-container" class="flex items-center space-x-2 px-3 py-1.5 bg-gray-900/80 border border-gray-800 rounded-lg text-xs">
+                <span id="sse-status-dot" class="w-2 h-2 rounded-full bg-amber-400"></span>
+                <span id="sse-status-text" class="text-amber-400 font-medium">Verbinde SSE...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
+
+        <!-- Metrics Overview Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Tags Card -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-gray-800/80 shadow-md flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium text-gray-400">Gelesene RFID-Tags</div>
+                    <div id="stats-total-tags" class="text-2xl font-bold font-mono text-white mt-1">{{len .Tags}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-blue-950/80 border border-blue-800/60 flex items-center justify-center text-blue-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Target Reader / Channel Card -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-gray-800/80 shadow-md flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium text-gray-400">Abonnierte Channels</div>
+                    <div class="text-sm font-semibold font-mono text-indigo-300 mt-1 truncate max-w-[160px]">{{range $i, $c := .Channels}}{{if $i}}, {{end}}{{$c}}{{else}}all{{end}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-indigo-950/80 border border-indigo-800/60 flex items-center justify-center text-indigo-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Target Reader Card -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-gray-800/80 shadow-md flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium text-gray-400">Standard Reader</div>
+                    <div class="text-sm font-semibold font-mono text-cyan-300 mt-1 truncate max-w-[160px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-cyan-950/80 border border-cyan-800/60 flex items-center justify-center text-cyan-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Uptime Card -->
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-gray-800/80 shadow-md flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium text-gray-400">Laufzeit</div>
+                    <div class="text-sm font-semibold font-mono text-emerald-400 mt-1">{{.Uptime}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg bg-emerald-950/80 border border-emerald-800/60 flex items-center justify-center text-emerald-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Live Scanned Tags Panel -->
+        <section class="rounded-2xl bg-gradient-to-b from-gray-900/90 to-gray-950/90 border border-gray-800 shadow-2xl overflow-hidden flex flex-col flex-1">
+            <!-- Toolbar -->
+            <div class="p-4 sm:p-5 border-b border-gray-800/80 flex flex-wrap items-center justify-between gap-3 bg-gray-900/40">
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2">
+                        <h2 class="text-base font-semibold text-white">Live NFC / RFID Transponder Stream</h2>
+                        <span id="tag-count-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full bg-blue-900/80 text-blue-300 border border-blue-700/80">{{len .Tags}}</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2.5">
+                    <!-- Filter Input -->
+                    <div class="relative flex items-center">
+                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="w-48 sm:w-64 bg-gray-950/90 border border-gray-700/80 text-xs text-white placeholder-gray-500 rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-mono transition-all">
+                        <svg class="w-4 h-4 text-gray-500 absolute left-2.5 pointer-events-none" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+
+                    <!-- Clear List Button (HTMX 4 POST) -->
+                    <button hx-post="/tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg bg-gray-900 text-gray-300 hover:text-white hover:bg-rose-950/80 hover:border-rose-800 border border-gray-700/80 transition-colors inline-flex items-center gap-1.5" title="Transponder-Liste leeren">
+                        <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                        </svg>
+                        <span>Leeren</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tags Table with SSE Connection -->
+            <div class="overflow-x-auto flex-1 min-h-[360px]">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="border-b border-gray-800 bg-gray-950/60 text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+                            <th scope="col" class="py-3 px-4">Item ID (Medium)</th>
+                            <th scope="col" class="py-3 px-4">Transponder UID</th>
+                            <th scope="col" class="py-3 px-4">ISIL / Land</th>
+                            <th scope="col" class="py-3 px-4">Teile (Multi-Part)</th>
+                            <th scope="col" class="py-3 px-4">CRC Prüfsumme</th>
+                            <th scope="col" class="py-3 px-4">AFI Status</th>
+                            <th scope="col" class="py-3 px-4 text-right">Erfassungszeit</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tags-table-body" sse-swap="tag_read" data-sse-swap="tag_read" hx-swap="afterbegin">
+                        {{template "tags_table.gohtml" .}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Bar -->
+    <footer class="w-full max-w-7xl mx-auto pt-6 mt-8 border-t border-gray-800/80 flex flex-wrap justify-between items-center text-xs text-gray-500 gap-4">
+        <div>
+            RFID Desk &copy; 2026 &bull; Web-Interface &amp; HTMX 4 SSE Transponder Monitor
+        </div>
+        <div class="flex items-center space-x-4 font-mono">
+            <span>Webserver: <span class="text-gray-400">{{.Addr}}</span></span>
+            <span>&bull;</span>
+            <span>WSBroker: <span class="text-blue-400">{{.WSBroker}}</span></span>
+        </div>
+    </footer>
+
+    <!-- Interactive script for audio, counters and filtering -->
+    <script src="/static/js/desk.js"></script>
+</body>
+</html>

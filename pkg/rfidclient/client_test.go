@@ -126,6 +126,9 @@ func (f *fakeBrokerClient) ChannelInfo(ctx context.Context, channel string) (*ev
 	return nil, nil
 }
 func (f *fakeBrokerClient) OnEvent(handler client.EventHandler) client.UnsubscribeFunc {
+	f.mu.Lock()
+	f.msgHandlers = append(f.msgHandlers, handler)
+	f.mu.Unlock()
 	return func() {}
 }
 func (f *fakeBrokerClient) OnMessage(handler client.EventHandler) client.UnsubscribeFunc {

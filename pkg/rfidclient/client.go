@@ -122,8 +122,8 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*RFIDClie
 		logger: cfg.logger,
 	}
 
-	// Register listener for incoming TypeMessage events from WSBroker
-	c.brokerUnsub = c.broker.OnMessage(func(evt *event.Event) {
+	// Register listener for all incoming events from WSBroker
+	c.brokerUnsub = c.broker.OnEvent(func(evt *event.Event) {
 		_, _ = c.HandleEvent(evt)
 	})
 
@@ -504,7 +504,14 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
 
 	parsed, err := ParseEvent(evt)
 	if err != nil {
-		// Not an RFID event or unknown event structure
+		if c.logger != nil {
+			c.logger.Debug().
+				Err(err).
+				Str("source", evt.Source).
+				Str("target", evt.Target).
+				Str("type", string(evt.Type)).
+				Msg("event not parsed as RFID payload")
+		}
 		return nil, err
 	}
 

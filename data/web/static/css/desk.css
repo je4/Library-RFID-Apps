@@ -1,0 +1,63 @@
+/* RFID Desk CSS Custom Styles & Animations */
+
+@keyframes scan-flash {
+    0% {
+        background-color: rgba(59, 130, 246, 0.35);
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+
+.animate-scan-flash {
+    animation: scan-flash 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+.pulse-indicator {
+    animation: pulse-ring 2s infinite ease-in-out;
+}
+
+/* Glassmorphism scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(15, 23, 42, 0.6);
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(51, 65, 85, 0.8);
+    border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(100, 116, 139, 0.9);
+}
+
+/* Fallback SVG scaling safeguards */
+svg.w-4 { width: 1rem; height: 1rem; max-width: 1rem; max-height: 1rem; }
+svg.w-3\.5 { width: 0.875rem; height: 0.875rem; max-width: 0.875rem; max-height: 0.875rem; }
+svg.w-3 { width: 0.75rem; height: 0.75rem; max-width: 0.75rem; max-height: 0.75rem; }
+svg.w-5 { width: 1.25rem; height: 1.25rem; max-width: 1.25rem; max-height: 1.25rem; }
+svg.w-6 { width: 1.5rem; height: 1.5rem; max-width: 1.5rem; max-height: 1.5rem; }
+svg.w-10 { width: 2.5rem; height: 2.5rem; max-width: 2.5rem; max-height: 2.5rem; }
+svg.w-11 { width: 2.75rem; height: 2.75rem; max-width: 2.75rem; max-height: 2.75rem; }

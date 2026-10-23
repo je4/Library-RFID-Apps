@@ -1,6 +1,7 @@
 package rfidclient
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -607,48 +608,75 @@ func (r *WriteAFIResponse) UnmarshalJSON(data []byte) error {
 
 // ParseRFIDPayload unmarshals raw JSON bytes into the concrete typed RFID payload struct.
 func ParseRFIDPayload(data []byte) (any, error) {
-	if len(data) == 0 {
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 {
 		return nil, errors.New("empty payload data")
 	}
 
+	// If data is a quoted JSON string, unquote it
+	if len(trimmed) > 0 && trimmed[0] == '"' {
+		var unquoted string
+		if err := json.Unmarshal(trimmed, &unquoted); err == nil && len(unquoted) > 0 {
+			data = []byte(unquoted)
+			trimmed = bytes.TrimSpace(data)
+		}
+	}
+
 	var header struct {
-		Event string `json:"event"`
+		Event       string `json:"event"`
+		Type        string `json:"type"`
+		Action      string `json:"action"`
+		UID         string `json:"uid"`
+		ItemID      string `json:"itemId"`
+		ImtemID     string `json:"imtemId"`
+		PrimaryItem string `json:"primaryItemId"`
+		Barcode     string `json:"barcode"`
+		Status      string `json:"status"`
+		TotalTags   *int   `json:"totalTags"`
 	}
 	if err := json.Unmarshal(data, &header); err != nil {
 		return nil, errors.Wrap(err, "failed to decode json header")
 	}
 
-	normEvent := strings.ToLower(strings.TrimSpace(header.Event))
+	eventName := header.Event
+	if eventName == "" {
+		eventName = header.Type
+	}
+	if eventName == "" {
+		eventName = header.Action
+	}
+
+	normEvent := strings.ToLower(strings.TrimSpace(eventName))
 	switch normEvent {
-	case EventTagRead, "tag_read":
+	case EventTagRead, "tag_read", "tagread", "tag-read", "rfid_tag_read", "tag":
 		var tag TagReadEvent
 		if err := json.Unmarshal(data, &tag); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal TagReadEvent")
 		}
 		return &tag, nil
 
-	case EventTagsCleared, "tags_cleared":
+	case EventTagsCleared, "tags_cleared", "tagscleared", "tags-cleared", "rfid_tags_cleared", "clear", "cleared":
 		var cleared TagsClearedEvent
 		if err := json.Unmarshal(data, &cleared); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedEvent")
 		}
 		return &cleared, nil
 
-	case EventDeviceMetadataResponse, EventDeviceMetadata, "device_metadata_response", "device_metadata":
+	case EventDeviceMetadataResponse, EventDeviceMetadata, "device_metadata_response", "device_metadata", "device-metadata", "metadata":
 		var meta DeviceMetadataResponse
 		if err := json.Unmarshal(data, &meta); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataResponse")
 		}
 		return &meta, nil
 
-	case EventWriteTagResponse, "write_tag_response":
+	case EventWriteTagResponse, "write_tag_response", "write_tag", "writetag":
 		var writeResp WriteTagResponse
 		if err := json.Unmarshal(data, &writeResp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
 		}
 		return &writeResp, nil
 
-	case EventWriteAFIResponse, "write_afi_response":
+	case EventWriteAFIResponse, "write_afi_response", "write_afi", "writeafi":
 		var afiResp WriteAFIResponse
 		if err := json.Unmarshal(data, &afiResp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
@@ -656,7 +684,20 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		return &afiResp, nil
 
 	default:
-		return nil, errors.Errorf("unrecognized rfid event type: %q", header.Event)
+		// Fallback inspection: check if payload has UID / ItemID or Cleared indicators
+		if header.UID != "" || header.ItemID != "" || header.ImtemID != "" || header.PrimaryItem != "" || header.Barcode != "" {
+			var tag TagReadEvent
+			if err := json.Unmarshal(data, &tag); err == nil && (tag.UID != "" || tag.ItemID != "") {
+				return &tag, nil
+			}
+		}
+		if header.Status == "cleared" || (header.TotalTags != nil && *header.TotalTags == 0) {
+			var cleared TagsClearedEvent
+			if err := json.Unmarshal(data, &cleared); err == nil {
+				return &cleared, nil
+			}
+		}
+		return nil, errors.Errorf("unrecognized rfid event type: %q", eventName)
 	}
 }
 
