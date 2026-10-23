@@ -225,3 +225,423 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected placeholder 'Keine aktiven Medien auf dem Lesefeld' after antenna field cleared, got %s", recLoanCleared.Body.String())
 	}
 }
+
+type mockRFIDClient struct {
+	rfidclient.Client
+	broadcastAFIErr  error
+	writeAFIErr      error
+	writeAFIResp     *rfidclient.WriteAFIResponse
+	lastBroadcastCh  string
+	lastBroadcastReq rfidclient.WriteAFIRequest
+	lastWriteTarget  string
+	lastWriteReq     rfidclient.WriteAFIRequest
+	broadcastCount   int
+	writeCount       int
+}
+
+func (m *mockRFIDClient) BroadcastAFI(ctx context.Context, channel string, req rfidclient.WriteAFIRequest) error {
+	m.broadcastCount++
+	m.lastBroadcastCh = channel
+	m.lastBroadcastReq = req
+	return m.broadcastAFIErr
+}
+
+func (m *mockRFIDClient) WriteAFI(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
+	m.writeCount++
+	m.lastWriteTarget = target
+	m.lastWriteReq = req
+	if m.writeAFIErr != nil {
+		return nil, m.writeAFIErr
+	}
+	if m.writeAFIResp != nil {
+		return m.writeAFIResp, nil
+	}
+	return &rfidclient.WriteAFIResponse{
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			Event: rfidclient.EventWriteAFIResponse,
+		},
+		Status: "ok",
+		UID:    req.UID,
+		AFI:    req.AFI,
+	}, nil
+}
+
+func TestController_AFIViaRFIDClient_Success(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	mockCli := &mockRFIDClient{}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Add an active tag
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:    "E004015011112222",
+		ItemID: "ITEM-SUCCESS-1",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	// 1. Post unsecure
+	reqUnsecure := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	recUnsecure := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recUnsecure, reqUnsecure)
+	if recUnsecure.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recUnsecure.Code)
+	}
+	bodyUnsecure := recUnsecure.Body.String()
+	if !strings.Contains(bodyUnsecure, "Entsichert (C2)") {
+		t.Errorf("expected loan table to show 'Entsichert (C2)', got: %s", bodyUnsecure)
+	}
+	if !strings.Contains(bodyUnsecure, "loan-action-success-row") {
+		t.Errorf("expected success notification banner in table response, got: %s", bodyUnsecure)
+	}
+	if mockCli.broadcastCount == 0 || mockCli.writeCount == 0 {
+		t.Errorf("expected broadcast and write calls on mock client, got broadcast=%d, write=%d", mockCli.broadcastCount, mockCli.writeCount)
+	}
+
+	// 2. Post secure
+	reqSecure := httptest.NewRequest(http.MethodPost, "/loan/afi/secure", nil)
+	recSecure := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recSecure, reqSecure)
+	if recSecure.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", recSecure.Code)
+	}
+	bodySecure := recSecure.Body.String()
+	if !strings.Contains(bodySecure, "Gesichert (07)") {
+		t.Errorf("expected loan table to show 'Gesichert (07)', got: %s", bodySecure)
+	}
+	if !strings.Contains(bodySecure, "loan-action-success-row") {
+		t.Errorf("expected success notification banner in table response, got: %s", bodySecure)
+	}
+
+	// 3. API loan AFI
+	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/loan/afi", strings.NewReader(`{"action":"unsecure"}`))
+	reqAPI.Header.Set("Content-Type", "application/json")
+	recAPI := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAPI, reqAPI)
+	if recAPI.Code != http.StatusOK {
+		t.Errorf("expected 200 for API loan AFI, got %d", recAPI.Code)
+	}
+}
+
+func TestController_AFIViaRFIDClient_Error(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	mockCli := &mockRFIDClient{
+		writeAFIErr: http.ErrHandlerTimeout,
+	}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Add an active tag with AFI 07 (Gesichert)
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:    "E004015099998888",
+		ItemID: "ITEM-ERR-1",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	// Post unsecure when write fails
+	reqUnsecure := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	recUnsecure := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recUnsecure, reqUnsecure)
+	if recUnsecure.Code != http.StatusOK {
+		t.Errorf("expected 200 with error fragment, got %d", recUnsecure.Code)
+	}
+	body := recUnsecure.Body.String()
+	if !strings.Contains(body, "loan-action-error-row") {
+		t.Errorf("expected error row in loan table, got: %s", body)
+	}
+	if !strings.Contains(body, "Fehler beim Setzen der AFI") {
+		t.Errorf("expected error message in loan table, got: %s", body)
+	}
+	// Tag should NOT have been updated to C2 in hub
+	active := hub.GetActiveTags("reader-01")
+	if len(active) > 0 && active[0].AFI != "07" {
+		t.Errorf("expected tag AFI to remain '07' after failure, got %s", active[0].AFI)
+	}
+
+	// Test API returns 500 when write fails
+	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/loan/afi", strings.NewReader(`{"action":"secure"}`))
+	reqAPI.Header.Set("Content-Type", "application/json")
+	recAPI := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAPI, reqAPI)
+	if recAPI.Code != http.StatusInternalServerError {
+		t.Errorf("expected 500 for failing API loan AFI, got %d", recAPI.Code)
+	}
+}
+
+func TestController_HandleWriteAFIResponse_Success(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		DefaultReader: "reader-01",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Add an active tag
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:    "E004015011223344",
+		ItemID: "ITEM-ASYNC-1",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	sseChan := hub.Subscribe()
+
+	// Simulate successful asynchronous WriteAFIResponse
+	resp := &rfidclient.WriteAFIResponse{
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			Event: rfidclient.EventWriteAFIResponse,
+		},
+		Status: "ok",
+		UID:    "E004015011223344",
+		AFI:    "C2",
+	}
+
+	ctrl.HandleWriteAFIResponse(resp)
+
+	// Verify tag in Hub updated to C2
+	active := hub.GetActiveTags("reader-01")
+	if len(active) == 0 || active[0].AFI != "C2" {
+		t.Fatalf("expected tag AFI in Hub to be 'C2', got %+v", active)
+	}
+
+	// Verify SSE broadcast
+	select {
+	case msg := <-sseChan:
+		if msg.Event != "loan_tags" {
+			t.Errorf("expected SSE event 'loan_tags', got '%s'", msg.Event)
+		}
+		if !strings.Contains(msg.Data, "loan-action-success-row") {
+			t.Errorf("expected success row in SSE broadcast, got: %s", msg.Data)
+		}
+		if !strings.Contains(msg.Data, "Entsichert (C2)") {
+			t.Errorf("expected updated AFI status 'Entsichert (C2)' in SSE broadcast, got: %s", msg.Data)
+		}
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for SSE loan_tags message")
+	}
+}
+
+func TestController_HandleWriteAFIResponse_Error(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		DefaultReader: "reader-01",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Add an active tag with AFI 07 (Gesichert)
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:    "E00401080AFD252F",
+		ItemID: "ITEM-ERR-ASYNC",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	sseChan := hub.Subscribe()
+
+	// Simulate failed asynchronous WriteAFIResponse (e.g. ISO 149 / 0x0F error)
+	errText := "Failed to write AFI byte 0xC2 (status: 149 (Iso error (149)), ISO Error: 0x0F (Unknown error))"
+	resp := &rfidclient.WriteAFIResponse{
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			Event: rfidclient.EventWriteAFIResponse,
+		},
+		Status: "error",
+		Error:  errText,
+		UID:    "E00401080AFD252F",
+		AFI:    "C2",
+	}
+
+	ctrl.HandleWriteAFIResponse(resp)
+
+	// Verify tag in Hub was NOT modified and remains "07"
+	active := hub.GetActiveTags("reader-01")
+	if len(active) == 0 || active[0].AFI != "07" {
+		t.Fatalf("expected tag AFI in Hub to remain '07', got %+v", active)
+	}
+
+	// Verify SSE broadcast contains error notification
+	select {
+	case msg := <-sseChan:
+		if msg.Event != "loan_tags" {
+			t.Errorf("expected SSE event 'loan_tags', got '%s'", msg.Event)
+		}
+		if !strings.Contains(msg.Data, "loan-action-error-row") {
+			t.Errorf("expected error row in SSE broadcast, got: %s", msg.Data)
+		}
+		if !strings.Contains(msg.Data, "Iso error (149)") {
+			t.Errorf("expected error details in SSE broadcast, got: %s", msg.Data)
+		}
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for SSE loan_tags message")
+	}
+}
+
+func TestController_SetAFI_SynchronousFailure(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	mockCli := &mockRFIDClient{
+		writeAFIResp: &rfidclient.WriteAFIResponse{
+			Status: "error",
+			Error:  "ISO error: 149 / 0x0F write protection failed",
+		},
+	}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		DefaultReader: "reader-01",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:    "E00401080AFD252F",
+		ItemID: "ITEM-SYNC-ERR",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	rec := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", rec.Code)
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, "loan-action-error-row") {
+		t.Errorf("expected loan-action-error-row in response body, got: %s", body)
+	}
+	if !strings.Contains(body, "149 / 0x0F write protection failed") {
+		t.Errorf("expected error text in response body, got: %s", body)
+	}
+
+	// Hub AFI should remain "07"
+	active := hub.GetActiveTags("reader-01")
+	if len(active) == 0 || active[0].AFI != "07" {
+		t.Fatalf("expected tag AFI to remain 07, got %+v", active)
+	}
+}
+
+func TestController_SetAFI_TargetedReader(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	mockCli := &mockRFIDClient{}
+
+	// No DefaultReader configured
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		DefaultReader: "",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Tag scanned from reader 'rfid:reader:desk-antenna-01'
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:    "E004015099887766",
+		ItemID: "ITEM-TARGETED-1",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "rfid:reader:desk-antenna-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	req := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	rec := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", rec.Code)
+	}
+
+	if mockCli.lastWriteTarget != "rfid:reader:desk-antenna-01" {
+		t.Errorf("expected write target 'rfid:reader:desk-antenna-01', got '%s'", mockCli.lastWriteTarget)
+	}
+}

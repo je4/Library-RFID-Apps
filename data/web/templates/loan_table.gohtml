@@ -1,3 +1,27 @@
+{{if .ErrorMessage}}
+    <tr id="loan-action-error-row" class="bg-rose-500/10 border-b border-rose-500/30">
+        <td colspan="7" class="py-3 px-4 text-rose-500 dark:text-rose-400 font-medium text-xs">
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-rose-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <span><strong>Fehler beim Setzen der AFI:</strong> {{.ErrorMessage}}</span>
+            </div>
+        </td>
+    </tr>
+{{end}}
+{{if .SuccessMessage}}
+    <tr id="loan-action-success-row" class="bg-emerald-500/10 border-b border-emerald-500/30">
+        <td colspan="7" class="py-3 px-4 text-emerald-600 dark:text-emerald-400 font-medium text-xs">
+            <div class="flex items-center space-x-2">
+                <svg class="w-4 h-4 text-emerald-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span>{{.SuccessMessage}}</span>
+            </div>
+        </td>
+    </tr>
+{{end}}
 {{if .Tags}}
     {{range .Tags}}
         {{template "loan_row.gohtml" .}}

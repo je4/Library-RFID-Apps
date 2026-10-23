@@ -11,6 +11,7 @@ import (
 	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/je4/wsbrokerclient"
 	"github.com/je4/wsbrokerclient/pkg/event"
+	"github.com/rs/zerolog"
 )
 
 // Handler function signatures for concrete RFID events.
@@ -72,6 +73,12 @@ type Client interface {
 	// UnsecureTag is a convenience method that writes AFIUnsecured ("C2") to a specific tag UID.
 	UnsecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error)
 
+	// SendAFI sends an asynchronous AFI write command to a specific reader target or default reader.
+	SendAFI(ctx context.Context, target string, req WriteAFIRequest) error
+
+	// BroadcastAFI broadcasts an AFI write command to a specific broker channel or configured channels.
+	BroadcastAFI(ctx context.Context, channel string, req WriteAFIRequest) error
+
 	// OnTagRead registers a listener for incoming tag read events.
 	OnTagRead(handler TagReadHandler) wsbrokerclient.UnsubscribeFunc
 
@@ -128,10 +135,17 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*RFIDClie
 		opt(cfg)
 	}
 
+	logger := cfg.logger
+	if logger == nil {
+		nop := zerolog.Nop()
+		logger = &nop
+		cfg.logger = logger
+	}
+
 	c := &RFIDClient{
 		broker: brokerClient,
 		config: cfg,
-		logger: cfg.logger,
+		logger: logger,
 	}
 
 	// Register listener for incoming message events from WSBroker
@@ -145,6 +159,9 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*RFIDClie
 // NewFromConfig initializes a new wsbroker client from config and creates the RFIDClient wrapper.
 func NewFromConfig(cfg wsbrokerclient.Config, opts ...Option) (*RFIDClient, error) {
 	clientCfg := defaultConfig()
+	if cfg.Logger != nil {
+		clientCfg.logger = cfg.Logger
+	}
 	for _, opt := range opts {
 		opt(clientCfg)
 	}
@@ -161,7 +178,13 @@ func NewFromConfig(cfg wsbrokerclient.Config, opts ...Option) (*RFIDClient, erro
 		return nil, errors.Wrap(err, "failed to create wsbrokerclient")
 	}
 
-	return New(brokerClient, opts...)
+	allOpts := make([]Option, 0, len(opts)+1)
+	if clientCfg.logger != nil {
+		allOpts = append(allOpts, WithLogger(clientCfg.logger))
+	}
+	allOpts = append(allOpts, opts...)
+
+	return New(brokerClient, allOpts...)
 }
 
 // BrokerClient returns the underlying wsbrokerclient.ClientInterface.
@@ -425,6 +448,99 @@ func (c *RFIDClient) SecureTag(ctx context.Context, target string, uid string) (
 // UnsecureTag writes AFIUnsecured ("C2") to the specified transponder UID.
 func (c *RFIDClient) UnsecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error) {
 	return c.WriteAFIValue(ctx, target, uid, AFIUnsecured)
+}
+
+// SendAFI sends an asynchronous AFI write command to a specific reader target or default reader.
+func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIRequest) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+
+	targetAddr, err := c.resolveTarget(target)
+	if err != nil {
+		return err
+	}
+
+	req.Event = EventWriteAFI
+
+	c.logger.Info().
+		Str("afi", req.AFI).
+		Str("status", AFISecurityStatus(req.AFI)).
+		Str("target", targetAddr).
+		Str("uid", req.UID).
+		Msg("sending RFID AFI write command")
+
+	if err := c.broker.SendMessage(ctx, targetAddr, req); err != nil {
+		c.logger.Warn().
+			Err(err).
+			Str("afi", req.AFI).
+			Str("target", targetAddr).
+			Str("uid", req.UID).
+			Msg("failed to send RFID AFI write command")
+		return errors.Wrapf(err, "failed to send AFI write command to target %s", targetAddr)
+	}
+
+	c.logger.Info().
+		Str("afi", req.AFI).
+		Str("status", AFISecurityStatus(req.AFI)).
+		Str("target", targetAddr).
+		Str("uid", req.UID).
+		Msg("RFID AFI write command sent successfully")
+
+	return nil
+}
+
+// BroadcastAFI broadcasts an AFI write command to a specific broker channel or configured channels.
+func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req WriteAFIRequest) error {
+	if err := req.Validate(); err != nil {
+		return err
+	}
+
+	req.Event = EventWriteAFI
+
+	channels := make([]string, 0)
+	if strings.TrimSpace(channel) != "" {
+		channels = append(channels, strings.TrimSpace(channel))
+	} else if len(c.config.channels) > 0 {
+		for _, ch := range c.config.channels {
+			if strings.TrimSpace(ch) != "" {
+				channels = append(channels, strings.TrimSpace(ch))
+			}
+		}
+	} else {
+		channels = append(channels, "all")
+	}
+
+	var firstErr error
+	for _, ch := range channels {
+		c.logger.Info().
+			Str("afi", req.AFI).
+			Str("status", AFISecurityStatus(req.AFI)).
+			Str("channel", ch).
+			Str("uid", req.UID).
+			Msg("broadcasting RFID AFI write command")
+
+		if err := c.broker.SendMessage(ctx, ch, req); err != nil {
+			c.logger.Warn().
+				Err(err).
+				Str("afi", req.AFI).
+				Str("channel", ch).
+				Str("uid", req.UID).
+				Msg("failed to broadcast RFID AFI write command")
+			if firstErr == nil {
+				firstErr = errors.Wrapf(err, "failed to broadcast AFI write command to channel %s", ch)
+			}
+		} else {
+			c.logger.Info().
+				Str("afi", req.AFI).
+				Str("status", AFISecurityStatus(req.AFI)).
+				Str("channel", ch).
+				Str("uid", req.UID).
+				Msg("RFID AFI write command broadcast successfully")
+		}
+	}
+
+	return firstErr
 }
 
 // OnTagRead registers a listener for incoming tag read events.

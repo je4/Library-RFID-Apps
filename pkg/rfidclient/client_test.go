@@ -1,9 +1,11 @@
 package rfidclient
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -13,6 +15,7 @@ import (
 	"github.com/je4/wsbrokerclient"
 	"github.com/je4/wsbrokerclient/pkg/client"
 	"github.com/je4/wsbrokerclient/pkg/event"
+	"github.com/rs/zerolog"
 )
 
 // fakeBrokerClient implements wsbrokerclient.ClientInterface for comprehensive testing.
@@ -661,4 +664,159 @@ func TestRFIDClient_HandleWriteAFIAndWriteTagEvents(t *testing.T) {
 	if count != 3 {
 		t.Errorf("expected 3 any events, got %d", count)
 	}
+}
+
+func TestRFIDClient_SendAFI(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("default-reader"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// 1. Send with explicit target
+	req := NewWriteAFIRequest(AFISecured, "E004015099887766")
+	if err := rfid.SendAFI(ctx, "rfid:reader:01", req); err != nil {
+		t.Fatalf("SendAFI failed: %v", err)
+	}
+
+	fake.mu.Lock()
+	lastSent := fake.lastSent
+	fake.mu.Unlock()
+
+	if lastSent == nil {
+		t.Fatal("expected message to be sent")
+	}
+	if lastSent.Target != "rfid:reader:01" {
+		t.Errorf("expected target 'rfid:reader:01', got %s", lastSent.Target)
+	}
+
+	var parsedReq WriteAFIRequest
+	if err := json.Unmarshal(lastSent.Data, &parsedReq); err != nil {
+		t.Fatalf("failed to unmarshal sent data: %v", err)
+	}
+	if parsedReq.AFI != AFISecured || parsedReq.UID != "E004015099887766" {
+		t.Errorf("unexpected payload: %+v", parsedReq)
+	}
+
+	// 2. Send with default target fallback
+	req2 := NewWriteAFIRequest(AFIUnsecured)
+	if err := rfid.SendAFI(ctx, "", req2); err != nil {
+		t.Fatalf("SendAFI with default target failed: %v", err)
+	}
+
+	fake.mu.Lock()
+	lastSent2 := fake.lastSent
+	fake.mu.Unlock()
+
+	if lastSent2.Target != "default-reader" {
+		t.Errorf("expected target 'default-reader', got %s", lastSent2.Target)
+	}
+
+	// 3. Validation error on empty AFI
+	invalidReq := WriteAFIRequest{AFI: ""}
+	if err := rfid.SendAFI(ctx, "rfid:reader:01", invalidReq); err == nil {
+		t.Error("expected error for empty AFI")
+	}
+}
+
+func TestRFIDClient_BroadcastAFI(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithChannels("channel1", "channel2"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// 1. Broadcast to specific channel
+	req := NewWriteAFIRequest(AFISecured, "E004015099887766")
+	if err := rfid.BroadcastAFI(ctx, "custom-channel", req); err != nil {
+		t.Fatalf("BroadcastAFI failed: %v", err)
+	}
+
+	fake.mu.Lock()
+	lastSent := fake.lastSent
+	fake.mu.Unlock()
+
+	if lastSent == nil {
+		t.Fatal("expected message to be broadcast")
+	}
+	if lastSent.Target != "custom-channel" {
+		t.Errorf("expected target 'custom-channel', got %s", lastSent.Target)
+	}
+
+	// 2. Broadcast without channel uses configured channels
+	if err := rfid.BroadcastAFI(ctx, "", req); err != nil {
+		t.Fatalf("BroadcastAFI to configured channels failed: %v", err)
+	}
+
+	// 3. Validation error on empty AFI
+	invalidReq := WriteAFIRequest{AFI: ""}
+	if err := rfid.BroadcastAFI(ctx, "custom-channel", invalidReq); err == nil {
+		t.Error("expected error for empty AFI")
+	}
+}
+
+func TestNewFromConfig_InheritsBrokerLogger(t *testing.T) {
+	var buf bytes.Buffer
+	logger := zerolog.New(&buf)
+
+	cfg := wsbrokerclient.DefaultConfig()
+	cfg.ClientName = "test-client"
+	cfg.Endpoint = "wss://localhost:8080/ws"
+	cfg.Logger = &logger
+
+	cli, err := NewFromConfig(cfg)
+	if err != nil {
+		t.Fatalf("NewFromConfig failed: %v", err)
+	}
+	if cli == nil {
+		t.Fatal("expected non-nil client")
+	}
+	if cli.logger == nil {
+		t.Fatal("expected non-nil logger")
+	}
+	cli.logger.Info().Msg("inherited test message")
+	if !strings.Contains(buf.String(), "inherited test message") {
+		t.Errorf("expected log buffer to contain message, got: %s", buf.String())
+	}
+}
+
+func TestNewFromConfig_ExplicitWithLoggerOverrides(t *testing.T) {
+	var buf1, buf2 bytes.Buffer
+	brokerLogger := zerolog.New(&buf1)
+	overrideLogger := zerolog.New(&buf2)
+
+	cfg := wsbrokerclient.DefaultConfig()
+	cfg.ClientName = "test-client"
+	cfg.Endpoint = "wss://localhost:8080/ws"
+	cfg.Logger = &brokerLogger
+
+	cli, err := NewFromConfig(cfg, WithLogger(&overrideLogger))
+	if err != nil {
+		t.Fatalf("NewFromConfig failed: %v", err)
+	}
+	cli.logger.Info().Msg("override message")
+	if strings.Contains(buf1.String(), "override message") {
+		t.Errorf("broker logger should NOT have received message")
+	}
+	if !strings.Contains(buf2.String(), "override message") {
+		t.Errorf("expected override logger to contain message, got: %s", buf2.String())
+	}
+}
+
+func TestRFIDClient_NilSafety(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	cli, err := New(fake, WithLogger(nil))
+	if err != nil {
+		t.Fatalf("New failed: %v", err)
+	}
+	if cli.logger == nil {
+		t.Fatal("expected logger to fallback to non-nil")
+	}
+	// Calling methods shouldn't panic
+	_ = cli.BroadcastAFI(context.Background(), "all", NewWriteAFIRequest("07", "E00401"))
+	_ = cli.SendAFI(context.Background(), "reader-01", NewWriteAFIRequest("07", "E00401"))
 }

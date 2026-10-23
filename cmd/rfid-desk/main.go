@@ -160,6 +160,7 @@ func main() {
 				Str("error", resp.GetError()).
 				Msg("RFID AFI security update failed")
 		}
+		webCtrl.HandleWriteAFIResponse(resp)
 	})
 
 	// 7. Start Web Server in background

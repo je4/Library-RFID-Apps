@@ -122,12 +122,14 @@ type DeskData struct {
 
 // LoanData encapsulates the view model passed to loan and return web templates.
 type LoanData struct {
-	ClientName    string
-	WSBroker      string
-	Channels      []string
-	DefaultReader string
-	Addr          string
-	ExtAddr       string
-	Uptime        string
-	Tags          []*TagItem
+	ClientName     string
+	WSBroker       string
+	Channels       []string
+	DefaultReader  string
+	Addr           string
+	ExtAddr        string
+	Uptime         string
+	Tags           []*TagItem
+	ErrorMessage   string
+	SuccessMessage string
 }
