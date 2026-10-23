@@ -440,3 +440,123 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 		t.Error("expected error when ParseEvent is called with non-message event type")
 	}
 }
+
+func TestAFISecurityConstantsAndHelpers(t *testing.T) {
+	// 1. Verify constant values
+	if AFISecured != "07" {
+		t.Errorf("expected AFISecured = %q, got %q", "07", AFISecured)
+	}
+	if AFIUnsecured != "C2" {
+		t.Errorf("expected AFIUnsecured = %q, got %q", "C2", AFIUnsecured)
+	}
+	if AFIUnlocked != AFIUnsecured {
+		t.Errorf("expected AFIUnlocked = AFIUnsecured (%q), got %q", AFIUnsecured, AFIUnlocked)
+	}
+
+	// 2. Test NormalizeAFI
+	normTests := []struct {
+		input string
+		want  string
+	}{
+		{"07", "07"},
+		{"7", "07"},
+		{" 07 ", "07"},
+		{"c2", "C2"},
+		{"C2", "C2"},
+		{" C2\n", "C2"},
+		{"", ""},
+		{"01", "01"},
+		{"ff", "FF"},
+	}
+	for _, tc := range normTests {
+		got := NormalizeAFI(tc.input)
+		if got != tc.want {
+			t.Errorf("NormalizeAFI(%q) = %q, want %q", tc.input, got, tc.want)
+		}
+	}
+
+	// 3. Test IsAFISecured and IsAFIUnsecured
+	securedCases := []struct {
+		afi       string
+		secured   bool
+		unsecured bool
+		status    string
+	}{
+		{"07", true, false, "Gesichert"},
+		{"7", true, false, "Gesichert"},
+		{" 07 ", true, false, "Gesichert"},
+		{"C2", false, true, "Entsichert"},
+		{"c2", false, true, "Entsichert"},
+		{" C2\r\n", false, true, "Entsichert"},
+		{"01", false, false, ""},
+		{"FF", false, false, ""},
+		{"", false, false, ""},
+	}
+	for _, tc := range securedCases {
+		if got := IsAFISecured(tc.afi); got != tc.secured {
+			t.Errorf("IsAFISecured(%q) = %v, want %v", tc.afi, got, tc.secured)
+		}
+		if got := IsAFIUnsecured(tc.afi); got != tc.unsecured {
+			t.Errorf("IsAFIUnsecured(%q) = %v, want %v", tc.afi, got, tc.unsecured)
+		}
+		if got := AFISecurityStatus(tc.afi); got != tc.status {
+			t.Errorf("AFISecurityStatus(%q) = %q, want %q", tc.afi, got, tc.status)
+		}
+	}
+}
+
+func TestTagReadEvent_SecurityMethods(t *testing.T) {
+	tagSecured := &TagReadEvent{AFI: "07"}
+	if !tagSecured.IsSecured() {
+		t.Errorf("expected tagSecured.IsSecured() = true")
+	}
+	if tagSecured.IsUnsecured() {
+		t.Errorf("expected tagSecured.IsUnsecured() = false")
+	}
+	if tagSecured.SecurityStatus() != "Gesichert" {
+		t.Errorf("expected SecurityStatus() = %q, got %q", "Gesichert", tagSecured.SecurityStatus())
+	}
+
+	tagUnsecured := &TagReadEvent{AFI: "C2"}
+	if tagUnsecured.IsSecured() {
+		t.Errorf("expected tagUnsecured.IsSecured() = false")
+	}
+	if !tagUnsecured.IsUnsecured() {
+		t.Errorf("expected tagUnsecured.IsUnsecured() = true")
+	}
+	if tagUnsecured.SecurityStatus() != "Entsichert" {
+		t.Errorf("expected SecurityStatus() = %q, got %q", "Entsichert", tagUnsecured.SecurityStatus())
+	}
+
+	tagOther := &TagReadEvent{AFI: "01"}
+	if tagOther.IsSecured() || tagOther.IsUnsecured() {
+		t.Errorf("expected tagOther IsSecured and IsUnsecured = false")
+	}
+	if tagOther.SecurityStatus() != "" {
+		t.Errorf("expected empty SecurityStatus(), got %q", tagOther.SecurityStatus())
+	}
+}
+
+func TestWriteAFIResponse_SecurityMethods(t *testing.T) {
+	respSecured := &WriteAFIResponse{AFI: "07", Status: "ok"}
+	if !respSecured.IsSecured() {
+		t.Errorf("expected respSecured.IsSecured() = true")
+	}
+	if respSecured.IsUnsecured() {
+		t.Errorf("expected respSecured.IsUnsecured() = false")
+	}
+	if respSecured.SecurityStatus() != "Gesichert" {
+		t.Errorf("expected SecurityStatus() = %q, got %q", "Gesichert", respSecured.SecurityStatus())
+	}
+
+	respUnsecured := &WriteAFIResponse{AFI: "c2", Status: "ok"}
+	if respUnsecured.IsSecured() {
+		t.Errorf("expected respUnsecured.IsSecured() = false")
+	}
+	if !respUnsecured.IsUnsecured() {
+		t.Errorf("expected respUnsecured.IsUnsecured() = true")
+	}
+	if respUnsecured.SecurityStatus() != "Entsichert" {
+		t.Errorf("expected SecurityStatus() = %q, got %q", "Entsichert", respUnsecured.SecurityStatus())
+	}
+}

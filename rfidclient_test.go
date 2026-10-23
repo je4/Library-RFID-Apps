@@ -21,6 +21,26 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("expected EventWriteAFI, got %s", afiReq.Event)
 	}
 
+	// Verify AFI security constants and helper functions
+	if rfidapps.AFISecured != "07" {
+		t.Errorf("expected AFISecured = '07', got %s", rfidapps.AFISecured)
+	}
+	if rfidapps.AFIUnsecured != "C2" {
+		t.Errorf("expected AFIUnsecured = 'C2', got %s", rfidapps.AFIUnsecured)
+	}
+	if rfidapps.AFIUnlocked != "C2" {
+		t.Errorf("expected AFIUnlocked = 'C2', got %s", rfidapps.AFIUnlocked)
+	}
+	if !rfidapps.IsAFISecured("07") || !rfidapps.IsAFISecured("7") {
+		t.Errorf("IsAFISecured failed for '07'/'7'")
+	}
+	if !rfidapps.IsAFIUnsecured("C2") || !rfidapps.IsAFIUnsecured("c2") {
+		t.Errorf("IsAFIUnsecured failed for 'C2'/'c2'")
+	}
+	if rfidapps.AFISecurityStatus("07") != "Gesichert" || rfidapps.AFISecurityStatus("c2") != "Entsichert" {
+		t.Errorf("AFISecurityStatus returned unexpected string")
+	}
+
 	metaReq := rfidapps.NewDeviceMetadataRequest()
 	if metaReq.Event != rfidapps.EventGetDeviceMetadata {
 		t.Errorf("expected EventGetDeviceMetadata, got %s", metaReq.Event)

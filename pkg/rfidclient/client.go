@@ -60,6 +60,18 @@ type Client interface {
 	// WriteAFIValue is a convenience wrapper for writing an AFI value to a target transponder.
 	WriteAFIValue(ctx context.Context, target string, uid string, afi string) (*WriteAFIResponse, error)
 
+	// SetAFISecured sets the AFI byte of a tag (or all tags) to AFISecured ("07").
+	SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error)
+
+	// SetAFIUnsecured sets the AFI byte of a tag (or all tags) to AFIUnsecured ("C2").
+	SetAFIUnsecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error)
+
+	// SecureTag is a convenience method that writes AFISecured ("07") to a specific tag UID.
+	SecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error)
+
+	// UnsecureTag is a convenience method that writes AFIUnsecured ("C2") to a specific tag UID.
+	UnsecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error)
+
 	// OnTagRead registers a listener for incoming tag read events.
 	OnTagRead(handler TagReadHandler) wsbrokerclient.UnsubscribeFunc
 
@@ -335,6 +347,34 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 // WriteAFIValue is a convenience wrapper for writing an AFI value to a target reader/transponder.
 func (c *RFIDClient) WriteAFIValue(ctx context.Context, target string, uid string, afi string) (*WriteAFIResponse, error) {
 	return c.WriteAFI(ctx, target, NewWriteAFIRequest(afi, uid))
+}
+
+// SetAFISecured sets the AFI byte of a tag (or all tags) to AFISecured ("07").
+func (c *RFIDClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
+	var targetUID string
+	if len(uid) > 0 {
+		targetUID = uid[0]
+	}
+	return c.WriteAFIValue(ctx, target, targetUID, AFISecured)
+}
+
+// SetAFIUnsecured sets the AFI byte of a tag (or all tags) to AFIUnsecured ("C2").
+func (c *RFIDClient) SetAFIUnsecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
+	var targetUID string
+	if len(uid) > 0 {
+		targetUID = uid[0]
+	}
+	return c.WriteAFIValue(ctx, target, targetUID, AFIUnsecured)
+}
+
+// SecureTag writes AFISecured ("07") to the specified transponder UID.
+func (c *RFIDClient) SecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error) {
+	return c.WriteAFIValue(ctx, target, uid, AFISecured)
+}
+
+// UnsecureTag writes AFIUnsecured ("C2") to the specified transponder UID.
+func (c *RFIDClient) UnsecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error) {
+	return c.WriteAFIValue(ctx, target, uid, AFIUnsecured)
 }
 
 // OnTagRead registers a listener for incoming tag read events.

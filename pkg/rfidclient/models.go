@@ -25,6 +25,13 @@ const (
 	EventWriteAFIResponse       = "rfid:write_afi_response"
 )
 
+// Standard ISO 28560 AFI (Application Family Identifier) security byte constants.
+const (
+	AFISecured   = "07" // Item in library / EAS active (gesichert)
+	AFIUnsecured = "C2" // Item on loan / EAS deactivated (entsichert)
+	AFIUnlocked  = AFIUnsecured
+)
+
 // BaseRFIDPayload represents common fields included in RFID event payloads.
 type BaseRFIDPayload struct {
 	Event     string `json:"event"`
@@ -95,6 +102,52 @@ func (e *TagReadEvent) GetUsageType() int {
 // IsMultiPart returns true if this item is part of a multi-part set (parts > 1).
 func (e *TagReadEvent) IsMultiPart() bool {
 	return e.GetParts() > 1
+}
+
+// NormalizeAFI normalizes an AFI hex string for comparison (trimmed and uppercase, with single-digit hex padded to 2 chars).
+func NormalizeAFI(afi string) string {
+	s := strings.ToUpper(strings.TrimSpace(afi))
+	if len(s) == 1 {
+		s = "0" + s
+	}
+	return s
+}
+
+// IsAFISecured returns true if the AFI byte corresponds to secured state ("07" or "7").
+func IsAFISecured(afi string) bool {
+	return NormalizeAFI(afi) == AFISecured
+}
+
+// IsAFIUnsecured returns true if the AFI byte corresponds to unsecured state ("C2").
+func IsAFIUnsecured(afi string) bool {
+	return NormalizeAFI(afi) == AFIUnsecured
+}
+
+// AFISecurityStatus returns "Gesichert" for 07, "Entsichert" for C2, or empty string if unset/other.
+func AFISecurityStatus(afi string) string {
+	switch NormalizeAFI(afi) {
+	case AFISecured:
+		return "Gesichert"
+	case AFIUnsecured:
+		return "Entsichert"
+	default:
+		return ""
+	}
+}
+
+// IsSecured returns true if the tag AFI indicates secured status (07).
+func (e *TagReadEvent) IsSecured() bool {
+	return IsAFISecured(e.AFI)
+}
+
+// IsUnsecured returns true if the tag AFI indicates unsecured status (C2).
+func (e *TagReadEvent) IsUnsecured() bool {
+	return IsAFIUnsecured(e.AFI)
+}
+
+// SecurityStatus returns "Gesichert" for 07, "Entsichert" for C2, or empty string if unset/other.
+func (e *TagReadEvent) SecurityStatus() string {
+	return AFISecurityStatus(e.AFI)
 }
 
 // Summary returns a concise human-readable description of the tag read.
@@ -556,6 +609,21 @@ type WriteAFIResponse struct {
 // IsSuccess returns true if the AFI write was successful.
 func (r *WriteAFIResponse) IsSuccess() bool {
 	return strings.EqualFold(r.Status, "ok")
+}
+
+// IsSecured returns true if the response AFI indicates secured status (07).
+func (r *WriteAFIResponse) IsSecured() bool {
+	return IsAFISecured(r.AFI)
+}
+
+// IsUnsecured returns true if the response AFI indicates unsecured status (C2).
+func (r *WriteAFIResponse) IsUnsecured() bool {
+	return IsAFIUnsecured(r.AFI)
+}
+
+// SecurityStatus returns "Gesichert" for 07, "Entsichert" for C2, or empty string if unset/other.
+func (r *WriteAFIResponse) SecurityStatus() string {
+	return AFISecurityStatus(r.AFI)
 }
 
 // GetError returns the error description if AFI write failed.

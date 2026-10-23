@@ -207,20 +207,36 @@ if resp.IsSuccess() {
 
 ### 5. AFI-Byte schreiben / Sicherheitstoggle (EAS)
 
+Die Bibliothek stellt typisierte Konstanten und Hilfsmethoden für den ISO 28560 Sicherheitsstatus bereit:
+* `rfidclient.AFISecured` (`"07"`): Medium in der Bibliothek / EAS aktiv (**Gesichert**).
+* `rfidclient.AFIUnsecured` / `rfidclient.AFIUnlocked` (`"C2"`): Medium ausgeliehen / EAS deaktiviert (**Entsichert**).
+
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 defer cancel()
 
-// AFI auf gesichert ("07") oder entsichert ("C2") setzen
-resp, err := client.WriteAFIValue(ctx, "rfid-reader-station-01", "E004015099887766", "C2")
+// Option A: Bequeme Hilfsmethoden für Gesichert / Entsichert
+resp, err := client.SecureTag(ctx, "rfid-reader-station-01", "E004015099887766")   // setzt "07"
+// oder
+resp, err = client.UnsecureTag(ctx, "rfid-reader-station-01", "E004015099887766") // setzt "C2"
+
+// Option B: Direkter AFI-Wert mit Konstanten
+resp, err = client.WriteAFIValue(ctx, "rfid-reader-station-01", "E004015099887766", rfidclient.AFIUnsecured)
 if err != nil {
     log.Fatalf("AFI-Befehl fehlgeschlagen: %v", err)
 }
 
 if resp.IsSuccess() {
-    log.Printf("AFI erfolgreich auf '%s' gesetzt für UID %s", resp.AFI, resp.UID)
+    log.Printf("AFI erfolgreich auf '%s' (%s) gesetzt für UID %s", resp.AFI, resp.SecurityStatus(), resp.UID)
 } else {
     log.Printf("AFI-Schreibfehler: %s", resp.GetError())
+}
+
+// Statusprüfung am TagReadEvent:
+if tag.IsSecured() {
+    log.Println("Transponder ist gesichert (07)")
+} else if tag.IsUnsecured() {
+    log.Println("Transponder ist entsichert (C2)")
 }
 ```
 

@@ -133,3 +133,83 @@ func TestHub_DefaultMaxTags100(t *testing.T) {
 		t.Fatalf("expected exactly 100 retained tags, got %d", len(tags))
 	}
 }
+
+func TestTagItem_AFISecurityStatus(t *testing.T) {
+	tests := []struct {
+		name           string
+		afi            string
+		raw            string
+		wantSecured    bool
+		wantUnsecured  bool
+		wantStatusText string
+	}{
+		{
+			name:           "Secured tag 07",
+			afi:            "07",
+			wantSecured:    true,
+			wantUnsecured:  false,
+			wantStatusText: "Gesichert",
+		},
+		{
+			name:           "Secured tag single digit 7",
+			afi:            "7",
+			wantSecured:    true,
+			wantUnsecured:  false,
+			wantStatusText: "Gesichert",
+		},
+		{
+			name:           "Unsecured tag C2",
+			afi:            "C2",
+			wantSecured:    false,
+			wantUnsecured:  true,
+			wantStatusText: "Entsichert",
+		},
+		{
+			name:           "Unsecured tag lowercase c2",
+			afi:            "c2",
+			wantSecured:    false,
+			wantUnsecured:  true,
+			wantStatusText: "Entsichert",
+		},
+		{
+			name:           "AFI extracted from Raw string",
+			raw:            "AFI: 07 [OK]",
+			wantSecured:    true,
+			wantUnsecured:  false,
+			wantStatusText: "Gesichert",
+		},
+		{
+			name:           "Other arbitrary AFI",
+			afi:            "01",
+			wantSecured:    false,
+			wantUnsecured:  false,
+			wantStatusText: "",
+		},
+		{
+			name:           "Empty AFI",
+			afi:            "",
+			wantSecured:    false,
+			wantUnsecured:  false,
+			wantStatusText: "",
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			item := NewTagItem(&rfidclient.TagReadEvent{
+				UID: "E00401",
+				AFI: tc.afi,
+				Raw: tc.raw,
+			})
+			if item.AFISecured != tc.wantSecured {
+				t.Errorf("AFISecured = %v, want %v", item.AFISecured, tc.wantSecured)
+			}
+			if item.AFIUnsecured != tc.wantUnsecured {
+				t.Errorf("AFIUnsecured = %v, want %v", item.AFIUnsecured, tc.wantUnsecured)
+			}
+			if item.AFISecurityStatus != tc.wantStatusText {
+				t.Errorf("AFISecurityStatus = %q, want %q", item.AFISecurityStatus, tc.wantStatusText)
+			}
+		})
+	}
+}

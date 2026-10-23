@@ -113,8 +113,8 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	if !strings.Contains(bodyWithTag, "reader-01") {
 		t.Errorf("expected transponder row to contain reader 'reader-01', got %s", bodyWithTag)
 	}
-	if !strings.Contains(bodyWithTag, "AFI: 07") {
-		t.Errorf("expected transponder row to contain 'AFI: 07', got %s", bodyWithTag)
+	if !strings.Contains(bodyWithTag, "Gesichert (07)") || !strings.Contains(bodyWithTag, "app-badge-afi-secured") {
+		t.Errorf("expected transponder row to contain secured badge 'Gesichert (07)', got %s", bodyWithTag)
 	}
 	if !strings.Contains(bodyWithTag, "copy-itemid-btn") || !strings.Contains(bodyWithTag, `data-itemid="ITEM-TEST-123"`) {
 		t.Errorf("expected transponder row to contain copy-itemid-btn, got %s", bodyWithTag)

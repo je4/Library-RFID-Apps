@@ -102,6 +102,14 @@
     --color-tag-afi-border: #c7d2fe;
     --color-tag-afi-text: #4338ca;
 
+    --color-tag-afi-secured-bg: #ecfdf5;
+    --color-tag-afi-secured-border: #a7f3d0;
+    --color-tag-afi-secured-text: #047857;
+
+    --color-tag-afi-unsecured-bg: #fffbeb;
+    --color-tag-afi-unsecured-border: #fde68a;
+    --color-tag-afi-unsecured-text: #b45309;
+
     --color-sse-connected-bg: #ecfdf5;
     --color-sse-connected-border: #a7f3d0;
     --color-sse-connected-text: #047857;
@@ -217,6 +225,14 @@
         --color-tag-afi-border: rgba(49, 46, 129, 0.6);
         --color-tag-afi-text: #a5b4fc;
 
+        --color-tag-afi-secured-bg: rgba(2, 44, 34, 0.7);
+        --color-tag-afi-secured-border: rgba(6, 95, 70, 0.7);
+        --color-tag-afi-secured-text: #6ee7b7;
+
+        --color-tag-afi-unsecured-bg: rgba(69, 26, 3, 0.7);
+        --color-tag-afi-unsecured-border: rgba(146, 64, 14, 0.7);
+        --color-tag-afi-unsecured-text: #fcd34d;
+
         --color-sse-connected-bg: rgba(2, 44, 34, 0.6);
         --color-sse-connected-border: rgba(6, 95, 70, 0.8);
         --color-sse-connected-text: #34d399;
@@ -328,6 +344,14 @@
     --color-tag-afi-bg: rgba(30, 27, 75, 0.8);
     --color-tag-afi-border: rgba(49, 46, 129, 0.6);
     --color-tag-afi-text: #a5b4fc;
+
+    --color-tag-afi-secured-bg: rgba(2, 44, 34, 0.7);
+    --color-tag-afi-secured-border: rgba(6, 95, 70, 0.7);
+    --color-tag-afi-secured-text: #6ee7b7;
+
+    --color-tag-afi-unsecured-bg: rgba(69, 26, 3, 0.7);
+    --color-tag-afi-unsecured-border: rgba(146, 64, 14, 0.7);
+    --color-tag-afi-unsecured-text: #fcd34d;
 
     --color-sse-connected-bg: rgba(2, 44, 34, 0.6);
     --color-sse-connected-border: rgba(6, 95, 70, 0.8);
@@ -617,6 +641,18 @@
     background-color: var(--color-tag-afi-bg);
     color: var(--color-tag-afi-text);
     border: 1px solid var(--color-tag-afi-border);
+}
+
+.app-badge-afi-secured {
+    background-color: var(--color-tag-afi-secured-bg);
+    color: var(--color-tag-afi-secured-text);
+    border: 1px solid var(--color-tag-afi-secured-border);
+}
+
+.app-badge-afi-unsecured {
+    background-color: var(--color-tag-afi-unsecured-bg);
+    color: var(--color-tag-afi-unsecured-text);
+    border: 1px solid var(--color-tag-afi-unsecured-border);
 }
 
 .app-time-text {

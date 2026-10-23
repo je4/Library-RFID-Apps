@@ -30,7 +30,7 @@ type (
 	AnyRFIDEventHandler     = rfidclient.AnyRFIDEventHandler
 )
 
-// Re-exported event constants.
+// Re-exported event constants and AFI security constants.
 const (
 	EventTagRead                = rfidclient.EventTagRead
 	EventTagsCleared            = rfidclient.EventTagsCleared
@@ -42,9 +42,13 @@ const (
 	EventWriteAFI               = rfidclient.EventWriteAFI
 	EventWriteAFIAlt            = rfidclient.EventWriteAFIAlt
 	EventWriteAFIResponse       = rfidclient.EventWriteAFIResponse
+
+	AFISecured   = rfidclient.AFISecured
+	AFIUnsecured = rfidclient.AFIUnsecured
+	AFIUnlocked  = rfidclient.AFIUnlocked
 )
 
-// Re-exported constructors and options.
+// Re-exported constructors, helpers and options.
 var (
 	New                      = rfidclient.New
 	NewFromConfig            = rfidclient.NewFromConfig
@@ -58,6 +62,10 @@ var (
 	NewWriteAFIRequest       = rfidclient.NewWriteAFIRequest
 	ParseRFIDPayload         = rfidclient.ParseRFIDPayload
 	ParseEvent               = rfidclient.ParseEvent
+	NormalizeAFI             = rfidclient.NormalizeAFI
+	IsAFISecured             = rfidclient.IsAFISecured
+	IsAFIUnsecured           = rfidclient.IsAFIUnsecured
+	AFISecurityStatus        = rfidclient.AFISecurityStatus
 )
 
 // DefaultWSBrokerConfig returns standard WSBroker configuration with defaults.

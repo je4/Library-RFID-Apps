@@ -97,7 +97,7 @@ func (ctrl *Controller) init() error {
 
 	// Web Dashboard UI routes
 	ctrl.router.GET("/", ctrl.handleIndex)
-	ctrl.router.GET("/desk", ctrl.handleIndex)
+	//ctrl.router.GET("/desk", ctrl.handleIndex)
 	ctrl.router.GET("/events", ctrl.handleSSE)
 	ctrl.router.POST("/tags/clear", ctrl.handleClearTags)
 

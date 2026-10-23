@@ -326,6 +326,87 @@ func TestRFIDClient_WriteAFI(t *testing.T) {
 	}
 }
 
+func TestRFIDClient_AFIConvenienceMethods(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	var lastReq WriteAFIRequest
+	var lastTarget string
+
+	fake.requestFunc = func(ctx context.Context, evt *event.Event) (*event.Event, error) {
+		lastTarget = evt.Target
+		var req WriteAFIRequest
+		if err := json.Unmarshal(evt.Data, &req); err != nil {
+			return nil, err
+		}
+		lastReq = req
+
+		respData := WriteAFIResponse{
+			BaseRFIDPayload: BaseRFIDPayload{
+				Event: EventWriteAFIResponse,
+			},
+			Status: "ok",
+			UID:    req.UID,
+			AFI:    req.AFI,
+		}
+		raw, _ := json.Marshal(respData)
+		return &event.Event{
+			Type:   event.TypeMessage,
+			Source: evt.Target,
+			Target: evt.Source,
+			Token:  evt.Token,
+			Data:   raw,
+		}, nil
+	}
+
+	rfid, err := New(fake, WithDefaultTarget("default-station"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	ctx := context.Background()
+
+	// 1. SecureTag
+	resp, err := rfid.SecureTag(ctx, "station-01", "E00401")
+	if err != nil {
+		t.Fatalf("SecureTag failed: %v", err)
+	}
+	if lastTarget != "station-01" || lastReq.UID != "E00401" || lastReq.AFI != AFISecured {
+		t.Errorf("SecureTag sent unexpected request: target=%s, req=%+v", lastTarget, lastReq)
+	}
+	if !resp.IsSecured() || resp.SecurityStatus() != "Gesichert" {
+		t.Errorf("expected resp.IsSecured()=true, got %+v", resp)
+	}
+
+	// 2. UnsecureTag
+	resp, err = rfid.UnsecureTag(ctx, "station-02", "E00402")
+	if err != nil {
+		t.Fatalf("UnsecureTag failed: %v", err)
+	}
+	if lastTarget != "station-02" || lastReq.UID != "E00402" || lastReq.AFI != AFIUnsecured {
+		t.Errorf("UnsecureTag sent unexpected request: target=%s, req=%+v", lastTarget, lastReq)
+	}
+	if !resp.IsUnsecured() || resp.SecurityStatus() != "Entsichert" {
+		t.Errorf("expected resp.IsUnsecured()=true, got %+v", resp)
+	}
+
+	// 3. SetAFISecured with default target
+	resp, err = rfid.SetAFISecured(ctx, "", "E00403")
+	if err != nil {
+		t.Fatalf("SetAFISecured failed: %v", err)
+	}
+	if lastTarget != "default-station" || lastReq.UID != "E00403" || lastReq.AFI != AFISecured {
+		t.Errorf("SetAFISecured sent unexpected request: target=%s, req=%+v", lastTarget, lastReq)
+	}
+
+	// 4. SetAFIUnsecured without UID
+	resp, err = rfid.SetAFIUnsecured(ctx, "station-03")
+	if err != nil {
+		t.Fatalf("SetAFIUnsecured failed: %v", err)
+	}
+	if lastTarget != "station-03" || lastReq.UID != "" || lastReq.AFI != AFIUnsecured {
+		t.Errorf("SetAFIUnsecured sent unexpected request: target=%s, req=%+v", lastTarget, lastReq)
+	}
+}
+
 func TestRFIDClient_EventHandlers(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	rfid, err := New(fake)
