@@ -26,7 +26,7 @@ type Hub struct {
 // NewHub creates and initializes a new thread-safe Event Hub.
 func NewHub(maxTags int) *Hub {
 	if maxTags <= 0 {
-		maxTags = 500
+		maxTags = 100
 	}
 	return &Hub{
 		tags:    make([]*TagItem, 0, maxTags),

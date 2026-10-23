@@ -4,7 +4,7 @@ name = "rfid:desk:01"
 wsbroker = "https://localhost:8765"
 channels = ["rfid"]
 default_reader = "rfid:reader:01"
-max_tags = 500
+max_tags = 100
 
 [clienttls]
 type = "minivault"

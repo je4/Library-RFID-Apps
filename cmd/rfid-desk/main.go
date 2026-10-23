@@ -49,7 +49,7 @@ func main() {
 	// 3. Initialize in-memory Event Hub
 	maxTags := conf.MaxTags
 	if maxTags <= 0 {
-		maxTags = 500
+		maxTags = 100
 	}
 	hub := desk.NewHub(maxTags)
 	hubCtx, hubCancel := context.WithCancel(context.Background())
@@ -103,10 +103,16 @@ func main() {
 
 	// 6. Register event listeners for tag scans and antenna field events
 	rfidCli.OnTagRead(func(tag *rfidclient.TagReadEvent, rawEvt *wsbrokerclient.Event) {
+		if tag.ClientID == "" && rawEvt != nil && rawEvt.Source != "" {
+			tag.ClientID = rawEvt.Source
+		}
+
 		logger.Info().
 			Str("uid", tag.UID).
 			Str("itemId", tag.ItemID).
 			Str("isil", tag.ISIL).
+			Str("reader", tag.ClientID).
+			Str("afi", tag.AFI).
 			Bool("crcOk", tag.IsCRCValidStatus()).
 			Msg("NFC/RFID tag scanned")
 

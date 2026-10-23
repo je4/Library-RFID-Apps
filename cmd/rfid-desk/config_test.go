@@ -33,6 +33,9 @@ func TestLoadConfig_EmbeddedDefault(t *testing.T) {
 	if len(conf.Channels) == 0 {
 		t.Error("expected non-empty channels list")
 	}
+	if conf.MaxTags != 100 {
+		t.Errorf("expected default max_tags 100, got %d", conf.MaxTags)
+	}
 }
 
 func TestLoadConfig_CustomFile(t *testing.T) {

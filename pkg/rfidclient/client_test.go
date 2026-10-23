@@ -429,3 +429,66 @@ func TestRFIDClient_SubscribeTags(t *testing.T) {
 		t.Fatal("timed out waiting for tag stream event")
 	}
 }
+
+func TestRFIDClient_IgnoreNonMessageEvents(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake)
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	var handlerCalled bool
+	rfid.OnAnyRFIDEvent(func(rfidEvt any, rawEvt *wsbrokerclient.Event) {
+		handlerCalled = true
+	})
+	rfid.OnTagRead(func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event) {
+		handlerCalled = true
+	})
+
+	// 1. Direct HandleEvent call with pong event
+	pongEvt, err := wsbrokerclient.NewPongEvent("wsbroker", "rfid:desk:01", "pong")
+	if err != nil {
+		t.Fatalf("NewPongEvent failed: %v", err)
+	}
+
+	res, err := rfid.HandleEvent(pongEvt)
+	if err != nil {
+		t.Fatalf("HandleEvent should not return error for non-message event, got: %v", err)
+	}
+	if res != nil {
+		t.Errorf("HandleEvent should return nil result for non-message event, got: %+v", res)
+	}
+
+	// 2. Direct HandleEvent call with ping event
+	pingEvt, err := wsbrokerclient.NewPingEvent("rfid:desk:01")
+	if err != nil {
+		t.Fatalf("NewPingEvent failed: %v", err)
+	}
+
+	res, err = rfid.HandleEvent(pingEvt)
+	if err != nil {
+		t.Fatalf("HandleEvent should not return error for ping event, got: %v", err)
+	}
+	if res != nil {
+		t.Errorf("HandleEvent should return nil result for ping event, got: %+v", res)
+	}
+
+	// 3. Attach event
+	attachEvt, err := wsbrokerclient.NewAttachEvent("rfid:desk:01", "all")
+	if err != nil {
+		t.Fatalf("NewAttachEvent failed: %v", err)
+	}
+
+	res, err = rfid.HandleEvent(attachEvt)
+	if err != nil {
+		t.Fatalf("HandleEvent should not return error for attach event, got: %v", err)
+	}
+	if res != nil {
+		t.Errorf("HandleEvent should return nil result for attach event, got: %+v", res)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+	if handlerCalled {
+		t.Errorf("handler should not have been called for non-message events")
+	}
+}

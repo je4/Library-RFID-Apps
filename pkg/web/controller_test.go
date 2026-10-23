@@ -66,6 +66,12 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	if !strings.Contains(bodyUI, "RFID Desk") || !strings.Contains(bodyUI, "test-rfid-desk") {
 		t.Errorf("expected dashboard UI to contain app name and client ID, got %s", bodyUI)
 	}
+	if !strings.Contains(bodyUI, "info-age GmbH, Basel") {
+		t.Errorf("expected dashboard UI to contain copyright 'info-age GmbH, Basel', got %s", bodyUI)
+	}
+	if !strings.Contains(bodyUI, "Reader (Sender)") {
+		t.Errorf("expected dashboard UI table header to contain 'Reader (Sender)', got %s", bodyUI)
+	}
 
 	// 3. Test API Status
 	reqStatus := httptest.NewRequest(http.MethodGet, "/api/v1/status", nil)
@@ -77,12 +83,16 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 
 	// 4. Test Tag Scan Broadcasting and API Tags
 	tag := &rfidclient.TagReadEvent{
-		UID:       "E004015099887766",
-		ItemID:    "ITEM-TEST-123",
-		ISIL:      "CH-000001-1",
-		Country:   "CH",
-		CRCOk:     true,
-		Timestamp: time.Now().UnixMilli(),
+		UID:     "E004015099887766",
+		ItemID:  "ITEM-TEST-123",
+		ISIL:    "CH-000001-1",
+		Country: "CH",
+		CRCOk:   true,
+		AFI:     "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Timestamp: time.Now().UnixMilli(),
+		},
 	}
 	ctrl.HandleTagRead(tag)
 
@@ -94,6 +104,20 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	}
 	if !strings.Contains(recTags.Body.String(), "ITEM-TEST-123") {
 		t.Errorf("expected tags list to contain ITEM-TEST-123, got %s", recTags.Body.String())
+	}
+
+	// Test dashboard rendering with active tag
+	recUIWithTag := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recUIWithTag, reqUI)
+	bodyWithTag := recUIWithTag.Body.String()
+	if !strings.Contains(bodyWithTag, "reader-01") {
+		t.Errorf("expected transponder row to contain reader 'reader-01', got %s", bodyWithTag)
+	}
+	if !strings.Contains(bodyWithTag, "AFI: 07") {
+		t.Errorf("expected transponder row to contain 'AFI: 07', got %s", bodyWithTag)
+	}
+	if !strings.Contains(bodyWithTag, "copy-itemid-btn") || !strings.Contains(bodyWithTag, `data-itemid="ITEM-TEST-123"`) {
+		t.Errorf("expected transponder row to contain copy-itemid-btn, got %s", bodyWithTag)
 	}
 
 	// 5. Test Clear Tags (HTMX endpoint)

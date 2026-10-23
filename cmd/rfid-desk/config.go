@@ -16,7 +16,7 @@ import (
 //   - WSBroker: Target broker WebSocket endpoint URL (e.g. "https://localhost:8765").
 //   - Channels: List of WSBroker channels to subscribe on connect (e.g. ["all", "intern", "rfid"]).
 //   - DefaultReader: Target reader identifier for RPC commands (e.g. "rfid-reader-station-01").
-//   - MaxTags: Maximum number of scanned tags to retain in memory (default: 500).
+//   - MaxTags: Maximum number of scanned tags to retain in memory (default: 100).
 //   - ReadLimit: Maximum WebSocket message read limit in bytes (optional).
 //   - ClientTLS: mTLS configuration via certloader (MiniVault, File, Env, Dev, or ACME).
 //   - WebTLS: TLS configuration for the local web server.

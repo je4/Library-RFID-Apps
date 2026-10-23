@@ -23,14 +23,18 @@ func TestHub_AddTagAndGetTags(t *testing.T) {
 	parts := 2
 	partNo := 1
 	tag1 := &rfidclient.TagReadEvent{
-		UID:       "E004015011223344",
-		ItemID:    "ITEM-001",
-		ISIL:      "CH-000001-1",
-		Country:   "CH",
-		CRCOk:     true,
-		Parts:     &parts,
-		PartNo:    &partNo,
-		Timestamp: time.Now().UnixMilli(),
+		UID:     "E004015011223344",
+		ItemID:  "ITEM-001",
+		ISIL:    "CH-000001-1",
+		Country: "CH",
+		CRCOk:   true,
+		Parts:   &parts,
+		PartNo:  &partNo,
+		AFI:     "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "rfid:reader:01",
+			Timestamp: time.Now().UnixMilli(),
+		},
 	}
 
 	item1 := hub.AddTag(tag1)
@@ -39,6 +43,12 @@ func TestHub_AddTagAndGetTags(t *testing.T) {
 	}
 	if !item1.IsMultiPart || item1.Parts != 2 || item1.PartNo != 1 {
 		t.Errorf("expected multi-part item: %+v", item1)
+	}
+	if item1.AFI != "07" {
+		t.Errorf("expected AFI '07', got %s", item1.AFI)
+	}
+	if item1.ClientID != "rfid:reader:01" {
+		t.Errorf("expected ClientID 'rfid:reader:01', got %s", item1.ClientID)
 	}
 
 	if count := hub.Count(); count != 1 {
@@ -94,5 +104,32 @@ func TestHub_SubscribeAndBroadcast(t *testing.T) {
 		}
 	case <-time.After(1 * time.Second):
 		t.Fatal("timeout waiting for SSE message")
+	}
+}
+
+func TestHub_DefaultMaxTags100(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Passing 0 or negative should default to 100
+	hub := NewHub(0)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	for i := 0; i < 150; i++ {
+		hub.AddTag(&rfidclient.TagReadEvent{
+			UID:       "UID-" + string(rune('A'+(i%26))),
+			ItemID:    "ITEM",
+			Timestamp: time.Now().UnixMilli(),
+		})
+	}
+
+	if count := hub.Count(); count != 100 {
+		t.Fatalf("expected count 100, got %d", count)
+	}
+
+	tags := hub.GetTags()
+	if len(tags) != 100 {
+		t.Fatalf("expected exactly 100 retained tags, got %d", len(tags))
 	}
 }

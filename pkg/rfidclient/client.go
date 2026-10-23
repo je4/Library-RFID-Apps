@@ -122,8 +122,8 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*RFIDClie
 		logger: cfg.logger,
 	}
 
-	// Register listener for all incoming events from WSBroker
-	c.brokerUnsub = c.broker.OnEvent(func(evt *event.Event) {
+	// Register listener for incoming message events from WSBroker
+	c.brokerUnsub = c.broker.OnMessage(func(evt *event.Event) {
 		_, _ = c.HandleEvent(evt)
 	})
 
@@ -499,6 +499,11 @@ func (c *RFIDClient) SubscribeTags(ctx context.Context, channel string) (<-chan 
 // HandleEvent parses and routes a raw wsbroker Event through the registered RFID handlers.
 func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
 	if evt == nil || len(evt.Data) == 0 {
+		return nil, nil
+	}
+
+	// Only message events carry RFID payloads; ignore transport/heartbeat events (pong, ping, etc.)
+	if evt.Type != "" && evt.Type != event.TypeMessage {
 		return nil, nil
 	}
 

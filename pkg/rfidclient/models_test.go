@@ -22,9 +22,10 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 		wantUsage    int
 		wantMulti    bool
 		wantCRCValid bool
+		wantAFI      string
 	}{
 		{
-			name: "Standard rfid-headless TagRead event",
+			name: "Standard rfid-headless TagRead event with AFI",
 			jsonInput: `{
 				"event": "rfid:tag_read",
 				"uid": "E004010000001234",
@@ -40,6 +41,7 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 				"partNo": 1,
 				"usageType": 1,
 				"version": 1,
+				"afi": "07",
 				"session": "main-scan",
 				"timestamp": 1792756801123,
 				"clientId": "rfid-reader-station-01"
@@ -54,6 +56,7 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 			wantUsage:    1,
 			wantMulti:    false,
 			wantCRCValid: true,
+			wantAFI:      "07",
 		},
 		{
 			name: "TagRead with aliases and multi-part item",
@@ -66,7 +69,8 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 				"crc": "ERROR",
 				"parts": 3,
 				"partno": 2,
-				"typeOfUsage": 2
+				"typeOfUsage": 2,
+				"afiByte": "C2"
 			}`,
 			wantUID:      "E004015099887766",
 			wantItemID:   "BARCODE999",
@@ -78,6 +82,7 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 			wantUsage:    2,
 			wantMulti:    true,
 			wantCRCValid: false,
+			wantAFI:      "C2",
 		},
 		{
 			name: "TagRead with primaryItemId alias and string CRC OK",
@@ -94,6 +99,7 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 			wantUsage:    1,
 			wantMulti:    false,
 			wantCRCValid: true,
+			wantAFI:      "",
 		},
 	}
 
@@ -130,6 +136,9 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 			}
 			if tag.IsCRCValidStatus() != tt.wantCRCValid {
 				t.Errorf("IsCRCValidStatus() = %v, want %v", tag.IsCRCValidStatus(), tt.wantCRCValid)
+			}
+			if tag.AFI != tt.wantAFI {
+				t.Errorf("AFI = %q, want %q", tag.AFI, tt.wantAFI)
 			}
 
 			summary := tag.Summary()
@@ -395,9 +404,10 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 	}
 
 	// 7. ParseEvent via wsbroker Event
-	wsEvt, err := wsbrokerclient.NewMessageEvent("source", "target", TagReadEvent{
+	wsEvt, err := wsbrokerclient.NewMessageEvent("rfid:reader:01", "rfid:desk:01", TagReadEvent{
 		UID:    "E004019999",
 		ItemID: "55555",
+		AFI:    "07",
 		BaseRFIDPayload: BaseRFIDPayload{
 			Event: EventTagRead,
 		},
@@ -413,5 +423,20 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 	tagEvt, ok := pEvt.(*TagReadEvent)
 	if !ok || tagEvt.UID != "E004019999" {
 		t.Errorf("ParseEvent returned unexpected object: %+v", pEvt)
+	}
+	if tagEvt.ClientID != "rfid:reader:01" {
+		t.Errorf("expected ClientID to be populated from envelope source %q, got %q", "rfid:reader:01", tagEvt.ClientID)
+	}
+	if tagEvt.AFI != "07" {
+		t.Errorf("expected AFI to be %q, got %q", "07", tagEvt.AFI)
+	}
+
+	// 8. ParseEvent with non-message type (e.g. pong) should return error
+	pongEvt, err := wsbrokerclient.NewPongEvent("source", "target", "pong")
+	if err != nil {
+		t.Fatalf("NewPongEvent failed: %v", err)
+	}
+	if _, err := ParseEvent(pongEvt); err == nil {
+		t.Error("expected error when ParseEvent is called with non-message event type")
 	}
 }

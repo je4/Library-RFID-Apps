@@ -9,9 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (soundToggle) {
         soundToggle.addEventListener('click', () => {
             beepEnabled = !beepEnabled;
-            soundToggle.classList.toggle('text-blue-400', beepEnabled);
-            soundToggle.classList.toggle('text-gray-400', !beepEnabled);
-            soundToggle.classList.toggle('border-blue-500', beepEnabled);
+            soundToggle.classList.toggle('active', beepEnabled);
         });
     }
 
@@ -45,14 +43,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusDot = document.getElementById('sse-status-dot');
         const statusText = document.getElementById('sse-status-text');
         if (statusContainer) {
-            statusContainer.className = 'flex items-center space-x-2 px-3 py-1.5 bg-emerald-950/60 border border-emerald-800/80 rounded-lg text-xs';
+            statusContainer.classList.remove('connecting');
+            statusContainer.classList.add('connected');
         }
         if (statusDot) {
-            statusDot.className = 'w-2 h-2 rounded-full bg-emerald-400 pulse-indicator';
+            statusDot.className = 'w-2 h-2 rounded-full pulse-indicator';
         }
         if (statusText) {
             statusText.textContent = 'SSE Verbunden';
-            statusText.className = 'text-xs font-medium text-emerald-400';
         }
     }
 
@@ -61,14 +59,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const statusDot = document.getElementById('sse-status-dot');
         const statusText = document.getElementById('sse-status-text');
         if (statusContainer) {
-            statusContainer.className = 'flex items-center space-x-2 px-3 py-1.5 bg-amber-950/60 border border-amber-800/80 rounded-lg text-xs';
+            statusContainer.classList.remove('connected');
+            statusContainer.classList.add('connecting');
         }
         if (statusDot) {
-            statusDot.className = 'w-2 h-2 rounded-full bg-amber-400';
+            statusDot.className = 'w-2 h-2 rounded-full';
         }
         if (statusText) {
             statusText.textContent = 'Verbindung wird wiederhergestellt...';
-            statusText.className = 'text-xs font-medium text-amber-400';
         }
     }
 
@@ -78,10 +76,23 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('htmx:sse:error', onSSEError);
     document.addEventListener('htmx:sseError', onSSEError);
 
+    const MAX_TAG_EVENTS = 100;
+
+    // Prune rows in transponder table to maintain at most MAX_TAG_EVENTS (100)
+    function pruneTags() {
+        const rows = document.querySelectorAll('#tags-table-body tr.tag-row');
+        if (rows.length > MAX_TAG_EVENTS) {
+            for (let i = MAX_TAG_EVENTS; i < rows.length; i++) {
+                rows[i].remove();
+            }
+        }
+    }
+
     // Handle tag additions & counter updates via HTMX 4 swap / SSE events
     function onTagReceived() {
         playBeep();
         removeEmptyPlaceholder();
+        pruneTags();
         updateCounters();
         applyFilter();
     }
@@ -105,6 +116,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     document.body.addEventListener('htmx:after:swap', () => {
+        pruneTags();
+        updateCounters();
+        applyFilter();
+    });
+
+    document.body.addEventListener('htmx:afterSwap', () => {
+        pruneTags();
         updateCounters();
         applyFilter();
     });
@@ -132,10 +150,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const badge = document.getElementById('field-status-badge');
         if (badge) {
             badge.textContent = 'Lesefeld frei';
-            badge.className = 'text-xs font-normal px-2 py-0.5 rounded bg-gray-800 text-gray-300 border border-gray-700 transition-all';
+            badge.className = 'text-xs font-normal px-2 py-0.5 rounded app-badge-status-cleared transition-all';
             setTimeout(() => {
                 badge.textContent = 'Bereit';
-                badge.className = 'text-xs font-normal px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 transition-all';
+                badge.className = 'text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all';
             }, 3000);
         }
     }
@@ -159,13 +177,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Copy UID to clipboard helper
+    // Copy UID / ItemID to clipboard helper
     document.addEventListener('click', (e) => {
-        const btn = e.target.closest('.copy-uid-btn');
+        const btn = e.target.closest('.copy-uid-btn, .copy-itemid-btn');
         if (btn) {
-            const uid = btn.getAttribute('data-uid');
-            if (uid && navigator.clipboard) {
-                navigator.clipboard.writeText(uid).then(() => {
+            const textToCopy = btn.getAttribute('data-uid') || btn.getAttribute('data-itemid') || btn.getAttribute('data-copy');
+            if (textToCopy && navigator.clipboard) {
+                navigator.clipboard.writeText(textToCopy).then(() => {
                     const originalHtml = btn.innerHTML;
                     btn.innerHTML = '<span class="text-emerald-400 text-xs">Kopiert!</span>';
                     setTimeout(() => {
@@ -200,15 +218,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // MutationObserver to auto-update counters, filter and placeholder whenever table changes
     const tableBody = document.getElementById('tags-table-body');
     if (tableBody) {
+        let isPruning = false;
         const observer = new MutationObserver(() => {
+            if (isPruning) return;
             if (tableBody.querySelector('tr.tag-row')) {
                 removeEmptyPlaceholder();
             }
+            isPruning = true;
+            pruneTags();
+            isPruning = false;
             updateCounters();
             applyFilter();
         });
         observer.observe(tableBody, { childList: true });
     }
 
+    pruneTags();
     updateCounters();
 });

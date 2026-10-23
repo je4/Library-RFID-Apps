@@ -56,9 +56,9 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 	partNo := tag.GetPartNo()
 	isMultiPart := tag.IsMultiPart()
 
-	// Extract AFI if present in raw string or tagName
-	afi := ""
-	if strings.Contains(tag.Raw, "AFI:") {
+	// Extract AFI if present in tag event or raw string
+	afi := tag.AFI
+	if afi == "" && strings.Contains(tag.Raw, "AFI:") {
 		parts := strings.Split(tag.Raw, "AFI:")
 		if len(parts) > 1 {
 			afi = strings.TrimSpace(strings.Fields(parts[1])[0])

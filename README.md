@@ -278,7 +278,7 @@ func OnIncomingRawEvent(rawEvt *wsbrokerclient.Event) error {
 
 | Event Identifier | Struct | Beschreibung |
 | :--- | :--- | :--- |
-| `rfid:tag_read` | `TagReadEvent` | Tag erkannt & decodiert (UID, ItemId, ISIL, Land, CRC, Teile, Rohdaten) |
+| `rfid:tag_read` | `TagReadEvent` | Tag erkannt & decodiert (UID, ItemId, ISIL, Land, AFI, CRC, Teile, Rohdaten) |
 | `rfid:tags_cleared` | `TagsClearedEvent` | Alle Transponder aus dem Antennenfeld entfernt |
 | `rfid:get_device_metadata` | `DeviceMetadataRequest` | Abfragebefehl für Reader-Hardware und Startup-Diagnose |
 | `rfid:device_metadata_response` | `DeviceMetadataResponse` | Antwort mit Geräte-ID, Typ und Initialisierungsbericht |
@@ -303,3 +303,9 @@ brokerCfg.ClientName = "rfid-terminal-01"
 
 client, err := rfidclient.NewFromConfig(brokerCfg)
 ```
+
+---
+
+## Lizenz & Copyright
+
+Copyright &copy; 2026 info-age GmbH, Basel. Lizenziert unter der [Apache License, Version 2.0](LICENSE).

@@ -57,6 +57,7 @@ type TagReadEvent struct {
 	PartNo     *int   `json:"partNo,omitempty"`
 	UsageType  *int   `json:"usageType,omitempty"`
 	Version    *int   `json:"version,omitempty"`
+	AFI        string `json:"afi,omitempty"`
 }
 
 // IsCRCValidStatus returns true if the CRC validation was successful.
@@ -102,8 +103,12 @@ func (e *TagReadEvent) Summary() string {
 	if e.IsCRCValidStatus() {
 		crcStatus = "OK"
 	}
-	return fmt.Sprintf("[TAG READ] UID: %s | ItemID: %s | ISIL: %s | Country: %s | CRC: %s",
-		e.UID, e.ItemID, e.ISIL, e.Country, crcStatus)
+	afiStr := ""
+	if e.AFI != "" {
+		afiStr = fmt.Sprintf(" | AFI: %s", e.AFI)
+	}
+	return fmt.Sprintf("[TAG READ] UID: %s | ItemID: %s | ISIL: %s | Country: %s%s | CRC: %s",
+		e.UID, e.ItemID, e.ISIL, e.Country, afiStr, crcStatus)
 }
 
 // UnmarshalJSON custom unmarshaler supporting field aliases from diverse reader drivers and historical payloads.
@@ -132,6 +137,9 @@ func (e *TagReadEvent) UnmarshalJSON(data []byte) error {
 		UsageType   *int   `json:"usageType"`
 		TypeOfUsage *int   `json:"typeOfUsage"`
 		Version     *int   `json:"version"`
+		AFI         string `json:"afi"`
+		AFIAlt      string `json:"afiByte"`
+		AFIOpt      string `json:"afiHex"`
 	}
 
 	var raw rawAlias
@@ -179,6 +187,15 @@ func (e *TagReadEvent) UnmarshalJSON(data []byte) error {
 	}
 
 	e.Version = raw.Version
+
+	if raw.AFI != "" {
+		e.AFI = raw.AFI
+	} else if raw.AFIAlt != "" {
+		e.AFI = raw.AFIAlt
+	} else if raw.AFIOpt != "" {
+		e.AFI = raw.AFIOpt
+	}
+
 	return nil
 }
 
@@ -706,8 +723,29 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 	if evt == nil {
 		return nil, errors.New("event envelope is nil")
 	}
+	if evt.Type != "" && evt.Type != wsbrokerclient.TypeMessage {
+		return nil, errors.Errorf("event type %q is not %q", evt.Type, wsbrokerclient.TypeMessage)
+	}
 	if len(evt.Data) == 0 {
 		return nil, errors.New("event data is empty")
 	}
-	return ParseRFIDPayload(evt.Data)
+	payload, err := ParseRFIDPayload(evt.Data)
+	if err != nil {
+		return nil, err
+	}
+	switch v := payload.(type) {
+	case *TagReadEvent:
+		if v.ClientID == "" && evt.Source != "" {
+			v.ClientID = evt.Source
+		}
+	case *TagsClearedEvent:
+		if v.ClientID == "" && evt.Source != "" {
+			v.ClientID = evt.Source
+		}
+	case *DeviceMetadataResponse:
+		if v.ClientID == "" && evt.Source != "" {
+			v.ClientID = evt.Source
+		}
+	}
+	return payload, nil
 }
