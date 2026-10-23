@@ -573,3 +573,92 @@ func TestRFIDClient_IgnoreNonMessageEvents(t *testing.T) {
 		t.Errorf("handler should not have been called for non-message events")
 	}
 }
+
+func TestRFIDClient_HandleWriteAFIAndWriteTagEvents(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake)
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	var anyReceived []any
+	var anyMu sync.Mutex
+	rfid.OnAnyRFIDEvent(func(rfidEvt any, rawEvt *wsbrokerclient.Event) {
+		anyMu.Lock()
+		anyReceived = append(anyReceived, rfidEvt)
+		anyMu.Unlock()
+	})
+
+	var afiRespReceived *WriteAFIResponse
+	rfid.OnWriteAFIResponse(func(resp *WriteAFIResponse, rawEvt *wsbrokerclient.Event) {
+		afiRespReceived = resp
+	})
+
+	var tagRespReceived *WriteTagResponse
+	rfid.OnWriteTagResponse(func(resp *WriteTagResponse, rawEvt *wsbrokerclient.Event) {
+		tagRespReceived = resp
+	})
+
+	// 1. Simulate self-echoed WriteAFIRequest
+	rawReq := []byte(`{"event":"rfid:write_afi","uid":"E004015099887766","afi":"07"}`)
+	evt1 := &wsbrokerclient.Event{
+		Type:   event.TypeMessage,
+		Source: "rfid:desk:01",
+		Target: "rfid",
+		Data:   rawReq,
+	}
+	res1, err := rfid.HandleEvent(evt1)
+	if err != nil {
+		t.Fatalf("HandleEvent failed for WriteAFIRequest: %v", err)
+	}
+	if _, ok := res1.(*WriteAFIRequest); !ok {
+		t.Fatalf("expected *WriteAFIRequest, got %T", res1)
+	}
+
+	// 2. Simulate WriteAFIResponse
+	rawAFIResp := []byte(`{"event":"rfid:write_afi_response","status":"ok","uid":"E004015099887766","afi":"07"}`)
+	evt2 := &wsbrokerclient.Event{
+		Type:   event.TypeMessage,
+		Source: "rfid:reader:01",
+		Target: "rfid:desk:01",
+		Data:   rawAFIResp,
+	}
+	res2, err := rfid.HandleEvent(evt2)
+	if err != nil {
+		t.Fatalf("HandleEvent failed for WriteAFIResponse: %v", err)
+	}
+	if _, ok := res2.(*WriteAFIResponse); !ok {
+		t.Fatalf("expected *WriteAFIResponse, got %T", res2)
+	}
+
+	// 3. Simulate WriteTagResponse
+	rawTagResp := []byte(`{"event":"rfid:write_tag_response","status":"ok","uid":"E004015099887766","itemId":"12345"}`)
+	evt3 := &wsbrokerclient.Event{
+		Type:   event.TypeMessage,
+		Source: "rfid:reader:01",
+		Target: "rfid:desk:01",
+		Data:   rawTagResp,
+	}
+	res3, err := rfid.HandleEvent(evt3)
+	if err != nil {
+		t.Fatalf("HandleEvent failed for WriteTagResponse: %v", err)
+	}
+	if _, ok := res3.(*WriteTagResponse); !ok {
+		t.Fatalf("expected *WriteTagResponse, got %T", res3)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+	if afiRespReceived == nil || afiRespReceived.AFI != "07" {
+		t.Errorf("expected afiRespReceived with AFI '07'")
+	}
+	if tagRespReceived == nil || tagRespReceived.ItemID != "12345" {
+		t.Errorf("expected tagRespReceived with ItemID '12345'")
+	}
+
+	anyMu.Lock()
+	count := len(anyReceived)
+	anyMu.Unlock()
+	if count != 3 {
+		t.Errorf("expected 3 any events, got %d", count)
+	}
+}

@@ -29,19 +29,21 @@ type Config struct {
 	Channels      []string
 	DefaultReader string
 	Hub           *desk.Hub
+	RFIDClient    rfidclient.Client
 	Logger        zLogger.ZLogger
 	StartTime     time.Time
 }
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
 type Controller struct {
-	cfg       Config
-	router    *gin.Engine
-	server    http.Server
-	templates *template.Template
-	logger    zLogger.ZLogger
-	hub       *desk.Hub
-	startTime time.Time
+	cfg        Config
+	router     *gin.Engine
+	server     http.Server
+	templates  *template.Template
+	logger     zLogger.ZLogger
+	hub        *desk.Hub
+	rfidClient rfidclient.Client
+	startTime  time.Time
 }
 
 // NewController creates and initializes the Web Controller instance.
@@ -53,16 +55,21 @@ func NewController(cfg Config) (*Controller, error) {
 		cfg.StartTime = time.Now().UTC()
 	}
 
+	if cfg.DefaultReader != "" && cfg.Hub.GetConfiguredReader() == "" {
+		cfg.Hub.SetConfiguredReader(cfg.DefaultReader)
+	}
+
 	gin.SetMode(gin.ReleaseMode)
 	router := gin.New()
 	router.Use(gin.Recovery())
 
 	ctrl := &Controller{
-		cfg:       cfg,
-		router:    router,
-		logger:    cfg.Logger,
-		hub:       cfg.Hub,
-		startTime: cfg.StartTime,
+		cfg:        cfg,
+		router:     router,
+		logger:     cfg.Logger,
+		hub:        cfg.Hub,
+		rfidClient: cfg.RFIDClient,
+		startTime:  cfg.StartTime,
 	}
 
 	if err := ctrl.init(); err != nil {
@@ -70,6 +77,11 @@ func NewController(cfg Config) (*Controller, error) {
 	}
 
 	return ctrl, nil
+}
+
+// SetRFIDClient configures or updates the RFID client used for sending AFI commands.
+func (ctrl *Controller) SetRFIDClient(client rfidclient.Client) {
+	ctrl.rfidClient = client
 }
 
 func (ctrl *Controller) init() error {
@@ -97,7 +109,10 @@ func (ctrl *Controller) init() error {
 
 	// Web Dashboard UI routes
 	ctrl.router.GET("/", ctrl.handleIndex)
-	//ctrl.router.GET("/desk", ctrl.handleIndex)
+	ctrl.router.GET("/loan", ctrl.handleLoan)
+	ctrl.router.GET("/loan/tags", ctrl.handleLoanTagsFragment)
+	ctrl.router.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
+	ctrl.router.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)
 	ctrl.router.GET("/events", ctrl.handleSSE)
 	ctrl.router.POST("/tags/clear", ctrl.handleClearTags)
 
@@ -107,6 +122,8 @@ func (ctrl *Controller) init() error {
 		api.GET("/status", ctrl.handleAPIStatus)
 		api.GET("/tags", ctrl.handleAPITags)
 		api.POST("/tags/clear", ctrl.handleClearTagsJSON)
+		api.GET("/loan/tags", ctrl.handleAPILoanTags)
+		api.POST("/loan/afi", ctrl.handleAPILoanAFI)
 	}
 
 	ctrl.server = http.Server{
@@ -156,7 +173,7 @@ func (ctrl *Controller) HandleTagRead(tag *rfidclient.TagReadEvent) {
 	}
 	item := ctrl.hub.AddTag(tag)
 
-	// Render table row HTML fragment
+	// Render table row HTML fragment for desk stream
 	var buf bytes.Buffer
 	if err := ctrl.templates.ExecuteTemplate(&buf, "tag_row.gohtml", item); err != nil {
 		if ctrl.logger != nil {
@@ -170,13 +187,34 @@ func (ctrl *Controller) HandleTagRead(tag *rfidclient.TagReadEvent) {
 		Data:  buf.String(),
 		ID:    item.ID,
 	})
+
+	// Broadcast updated active loan media list
+	ctrl.broadcastLoanTable()
 }
 
-// HandleTagsCleared notifies connected SSE clients that the reader field was cleared.
+// HandleTagsCleared notifies connected SSE clients that the reader field was cleared
+// and updates the active media list for the loan view.
 func (ctrl *Controller) HandleTagsCleared() {
+	ctrl.hub.ClearActive(ctrl.cfg.DefaultReader)
 	ctrl.hub.Broadcast(&desk.SSEMessage{
 		Event: "tags_cleared",
 		Data:  "cleared",
+	})
+	ctrl.broadcastLoanTable()
+}
+
+func (ctrl *Controller) broadcastLoanTable() {
+	data := ctrl.getLoanData()
+	var buf bytes.Buffer
+	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+		if ctrl.logger != nil {
+			ctrl.logger.Error().Err(err).Msg("failed to render loan_table template for SSE")
+		}
+		return
+	}
+	ctrl.hub.Broadcast(&desk.SSEMessage{
+		Event: "loan_tags",
+		Data:  buf.String(),
 	})
 }
 
@@ -194,9 +232,186 @@ func (ctrl *Controller) getDeskData() desk.DeskData {
 	}
 }
 
+func (ctrl *Controller) getLoanData() desk.LoanData {
+	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
+	return desk.LoanData{
+		ClientName:    ctrl.cfg.ClientName,
+		WSBroker:      ctrl.cfg.WSBroker,
+		Channels:      ctrl.cfg.Channels,
+		DefaultReader: ctrl.cfg.DefaultReader,
+		Addr:          ctrl.cfg.Addr,
+		ExtAddr:       ctrl.cfg.ExtAddr,
+		Uptime:        uptime,
+		Tags:          ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader),
+	}
+}
+
 func (ctrl *Controller) handleIndex(c *gin.Context) {
 	data := ctrl.getDeskData()
 	c.HTML(http.StatusOK, "desk.gohtml", data)
+}
+
+func (ctrl *Controller) handleLoan(c *gin.Context) {
+	data := ctrl.getLoanData()
+	c.HTML(http.StatusOK, "loan.gohtml", data)
+}
+
+func (ctrl *Controller) handleLoanTagsFragment(c *gin.Context) {
+	data := ctrl.getLoanData()
+	var buf bytes.Buffer
+	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+		c.String(http.StatusInternalServerError, "error rendering template")
+		return
+	}
+	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+}
+
+func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
+	ctx := c.Request.Context()
+	activeTags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+	uids := make([]string, 0, len(activeTags))
+	for _, t := range activeTags {
+		if t.UID != "" {
+			uids = append(uids, t.UID)
+		}
+	}
+
+	if ctrl.logger != nil {
+		ctrl.logger.Info().
+			Str("afi", afi).
+			Str("status", rfidclient.AFISecurityStatus(afi)).
+			Int("activeTags", len(uids)).
+			Strs("uids", uids).
+			Msg("AFI security update triggered from web desk")
+	}
+
+	// Send AFI command message to configured channel(s) and default reader
+	if ctrl.rfidClient != nil {
+		req := rfidclient.NewWriteAFIRequest(afi)
+		for _, ch := range ctrl.cfg.Channels {
+			if strings.TrimSpace(ch) != "" {
+				_ = ctrl.rfidClient.BrokerClient().SendMessage(ctx, ch, req)
+			}
+		}
+		if ctrl.cfg.DefaultReader != "" {
+			_, _ = ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
+		}
+		for _, uid := range uids {
+			uidReq := rfidclient.NewWriteAFIRequest(afi, uid)
+			for _, ch := range ctrl.cfg.Channels {
+				if strings.TrimSpace(ch) != "" {
+					_ = ctrl.rfidClient.BrokerClient().SendMessage(ctx, ch, uidReq)
+				}
+			}
+			if ctrl.cfg.DefaultReader != "" {
+				_, _ = ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, uidReq)
+			}
+		}
+	}
+
+	// Update active tags and recent scans in hub
+	ctrl.hub.UpdateActiveAFI(afi, uids...)
+
+	// Broadcast updated loan table via SSE
+	ctrl.broadcastLoanTable()
+
+	// Return updated table fragment for HTMX swap
+	data := ctrl.getLoanData()
+	var buf bytes.Buffer
+	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+		c.String(http.StatusInternalServerError, "error rendering template")
+		return
+	}
+	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+}
+
+func (ctrl *Controller) handleLoanAFISecure(c *gin.Context) {
+	ctrl.setAFIAndRespond(c, rfidclient.AFISecured)
+}
+
+func (ctrl *Controller) handleLoanAFIUnsecure(c *gin.Context) {
+	ctrl.setAFIAndRespond(c, rfidclient.AFIUnsecured)
+}
+
+func (ctrl *Controller) handleAPILoanTags(c *gin.Context) {
+	active := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+	c.JSON(http.StatusOK, active)
+}
+
+// LoanAFIRequestPayload defines the JSON payload for setting AFI via API.
+type LoanAFIRequestPayload struct {
+	AFI    string   `json:"afi"`
+	Action string   `json:"action"`
+	UIDs   []string `json:"uids"`
+}
+
+func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
+	var payload LoanAFIRequestPayload
+	_ = c.ShouldBindJSON(&payload)
+
+	afi := payload.AFI
+	if afi == "" {
+		if strings.EqualFold(payload.Action, "secure") || strings.EqualFold(payload.Action, "sichern") {
+			afi = rfidclient.AFISecured
+		} else if strings.EqualFold(payload.Action, "unsecure") || strings.EqualFold(payload.Action, "entsichern") {
+			afi = rfidclient.AFIUnsecured
+		} else {
+			afi = rfidclient.AFISecured
+		}
+	}
+
+	ctx := c.Request.Context()
+	uids := payload.UIDs
+	if len(uids) == 0 {
+		activeTags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+		for _, t := range activeTags {
+			if t.UID != "" {
+				uids = append(uids, t.UID)
+			}
+		}
+	}
+
+	if ctrl.logger != nil {
+		ctrl.logger.Info().
+			Str("afi", afi).
+			Str("status", rfidclient.AFISecurityStatus(afi)).
+			Int("tagsCount", len(uids)).
+			Strs("uids", uids).
+			Msg("AFI security update triggered via API")
+	}
+
+	if ctrl.rfidClient != nil {
+		req := rfidclient.NewWriteAFIRequest(afi)
+		for _, ch := range ctrl.cfg.Channels {
+			if strings.TrimSpace(ch) != "" {
+				_ = ctrl.rfidClient.BrokerClient().SendMessage(ctx, ch, req)
+			}
+		}
+		if ctrl.cfg.DefaultReader != "" {
+			_, _ = ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
+		}
+		for _, uid := range uids {
+			uidReq := rfidclient.NewWriteAFIRequest(afi, uid)
+			for _, ch := range ctrl.cfg.Channels {
+				if strings.TrimSpace(ch) != "" {
+					_ = ctrl.rfidClient.BrokerClient().SendMessage(ctx, ch, uidReq)
+				}
+			}
+			if ctrl.cfg.DefaultReader != "" {
+				_, _ = ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, uidReq)
+			}
+		}
+	}
+
+	ctrl.hub.UpdateActiveAFI(afi, uids...)
+	ctrl.broadcastLoanTable()
+
+	c.JSON(http.StatusOK, gin.H{
+		"status":   "ok",
+		"afi":      afi,
+		"affected": len(uids),
+		"uids":     uids,
+	})
 }
 
 func (ctrl *Controller) handleClearTags(c *gin.Context) {

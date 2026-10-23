@@ -100,6 +100,7 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("cannot initialize rfid client")
 	}
+	webCtrl.SetRFIDClient(rfidCli)
 
 	// 6. Register event listeners for tag scans and antenna field events
 	rfidCli.OnTagRead(func(tag *rfidclient.TagReadEvent, rawEvt *wsbrokerclient.Event) {
@@ -122,6 +123,43 @@ func main() {
 	rfidCli.OnTagsCleared(func(cleared *rfidclient.TagsClearedEvent, rawEvt *wsbrokerclient.Event) {
 		logger.Info().Msg("RFID antenna field cleared (tags removed)")
 		webCtrl.HandleTagsCleared()
+	})
+
+	rfidCli.OnWriteTagResponse(func(resp *rfidclient.WriteTagResponse, rawEvt *wsbrokerclient.Event) {
+		if resp.IsSuccess() {
+			logger.Info().
+				Str("uid", resp.UID).
+				Str("itemId", resp.ItemID).
+				Str("isil", resp.ISIL).
+				Str("afi", resp.AFI).
+				Msg("RFID tag write response received: success")
+		} else {
+			logger.Warn().
+				Str("uid", resp.UID).
+				Str("itemId", resp.ItemID).
+				Str("error", resp.GetError()).
+				Msg("RFID tag write response received: failed")
+		}
+	})
+
+	rfidCli.OnWriteAFIResponse(func(resp *rfidclient.WriteAFIResponse, rawEvt *wsbrokerclient.Event) {
+		secStatus := rfidclient.AFISecurityStatus(resp.AFI)
+		if secStatus == "" {
+			secStatus = resp.AFI
+		}
+		if resp.IsSuccess() {
+			logger.Info().
+				Str("uid", resp.UID).
+				Str("afi", resp.AFI).
+				Str("securityStatus", secStatus).
+				Msg("RFID AFI security update confirmed")
+		} else {
+			logger.Warn().
+				Str("uid", resp.UID).
+				Str("afi", resp.AFI).
+				Str("error", resp.GetError()).
+				Msg("RFID AFI security update failed")
+		}
 	})
 
 	// 7. Start Web Server in background

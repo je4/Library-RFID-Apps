@@ -278,7 +278,14 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		defer cancel()
 	}
 
-	c.logger.Debug().Msgf("sending write tag request for item '%s' to %s (token: %s)", req.ItemID, targetAddr, token)
+	if c.logger != nil {
+		c.logger.Info().
+			Str("itemId", req.ItemID).
+			Str("target", targetAddr).
+			Str("uid", req.UID).
+			Str("afi", req.AFI).
+			Msg("writing RFID tag")
+	}
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write tag request failed for target %s", targetAddr)
@@ -291,6 +298,24 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 	var writeResp WriteTagResponse
 	if err := json.Unmarshal(respEvt.Data, &writeResp); err != nil {
 		return nil, errors.Wrap(err, "failed to decode write tag response")
+	}
+
+	if c.logger != nil {
+		if writeResp.IsSuccess() {
+			c.logger.Info().
+				Str("itemId", writeResp.ItemID).
+				Str("uid", writeResp.UID).
+				Str("target", targetAddr).
+				Str("afi", writeResp.AFI).
+				Msg("RFID tag written successfully")
+		} else {
+			c.logger.Warn().
+				Str("itemId", writeResp.ItemID).
+				Str("uid", writeResp.UID).
+				Str("target", targetAddr).
+				Str("error", writeResp.GetError()).
+				Msg("failed to write RFID tag")
+		}
 	}
 
 	return &writeResp, nil
@@ -326,7 +351,14 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		defer cancel()
 	}
 
-	c.logger.Debug().Msgf("sending write afi request '%s' to %s (token: %s)", req.AFI, targetAddr, token)
+	if c.logger != nil {
+		c.logger.Info().
+			Str("afi", req.AFI).
+			Str("status", AFISecurityStatus(req.AFI)).
+			Str("target", targetAddr).
+			Str("uid", req.UID).
+			Msg("writing RFID AFI security byte")
+	}
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "write afi request failed for target %s", targetAddr)
@@ -339,6 +371,24 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 	var afiResp WriteAFIResponse
 	if err := json.Unmarshal(respEvt.Data, &afiResp); err != nil {
 		return nil, errors.Wrap(err, "failed to decode write afi response")
+	}
+
+	if c.logger != nil {
+		if afiResp.IsSuccess() {
+			c.logger.Info().
+				Str("afi", afiResp.AFI).
+				Str("status", AFISecurityStatus(afiResp.AFI)).
+				Str("target", targetAddr).
+				Str("uid", afiResp.UID).
+				Msg("RFID AFI security byte updated successfully")
+		} else {
+			c.logger.Warn().
+				Str("afi", afiResp.AFI).
+				Str("target", targetAddr).
+				Str("uid", afiResp.UID).
+				Str("error", afiResp.GetError()).
+				Msg("failed to update RFID AFI security byte")
+		}
 	}
 
 	return &afiResp, nil

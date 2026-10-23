@@ -53,9 +53,10 @@
             </div>
         </div>
 
+        <!-- Top Right Actions & SSE Status Badge -->
         <div class="flex items-center space-x-3">
             <!-- Audio Feedback Toggle Button -->
-            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-btn transition-colors inline-flex items-center gap-1.5" title="Signalton bei Scan umschalten">
+            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton bei Scan umschalten">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
                 </svg>
@@ -72,6 +73,33 @@
 
     <!-- Main Content Area -->
     <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
+
+        <!-- Top Navigation / Action Bar (Single Elegant Loan Action Button) -->
+        <nav class="flex items-center" aria-label="Aktionsleiste">
+            <!-- Ausleihe & Rückgabe (Loan) Action Card -->
+            <a href="/loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg" title="Zur Ausleihe und Rückgabe wechseln">
+                <div class="flex items-center justify-between w-full mb-3">
+                    <div class="w-12 h-12 rounded-xl flex items-center justify-center card-icon-box shadow-md transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            <path d="M9 7h6"></path>
+                            <path d="M9 11h6"></path>
+                            <path d="M16 16l3-3m0 0l-3-3m3 3H11" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
+                    <span class="card-arrow-badge w-7 h-7 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </span>
+                </div>
+                <div>
+                    <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
+                    <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Ausleihe &amp; Rückgabe</span>
+                </div>
+            </a>
+        </nav>
 
         <!-- Metrics Overview Grid -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

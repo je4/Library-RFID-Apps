@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="de" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Ausleihe &amp; Rückgabe - {{.ClientName}}</title>
+    <!-- Automatic Dark / Light mode detection to prevent FOUC -->
+    <script>
+        (function() {
+            function syncTheme() {
+                var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            syncTheme();
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
+            }
+        })();
+    </script>
+    <!-- Tailwind CSS, HTMX 4 & SSE Extension -->
+    <link rel="stylesheet" href="/static/css/tailwind.min.css">
+    <script src="/static/js/htmx-4.0.js"></script>
+    <script src="/static/js/hx-sse.js"></script>
+    <link rel="stylesheet" href="/static/css/desk.css">
+</head>
+<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="/events" data-sse-connect="/events" hx-ext="sse">
+
+    <!-- Header Bar with Navigation -->
+    <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
+        <div class="flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
+                    Ausleihe &amp; Rückgabe
+                    <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
+                </h1>
+                <p class="text-xs app-meta-text font-mono flex items-center gap-2">
+                    <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
+                    <span>&bull;</span>
+                    <span>Client: <strong>{{.ClientName}}</strong></span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <!-- Back to Desk Button -->
+            <a href="/" id="nav-desk-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>RFID Desk</span>
+            </a>
+
+            <!-- Audio Feedback Toggle Button -->
+            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-btn transition-colors inline-flex items-center gap-1.5" title="Signalton bei Scan umschalten">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <span>Ton</span>
+            </button>
+
+            <!-- SSE Status Badge -->
+            <div id="sse-status-container" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs app-sse-badge">
+                <span id="sse-status-dot" class="w-2 h-2 rounded-full"></span>
+                <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
+
+        <!-- Metrics Overview Grid -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Active Media on Pad Card -->
+            <div class="p-4 rounded-xl app-card flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium app-metric-label">Aufliegende Medien</div>
+                    <div id="stats-active-tags" class="text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Configured Reader Card -->
+            <div class="p-4 rounded-xl app-card flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium app-metric-label">Konfigurierter Reader</div>
+                    <div class="text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[180px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path>
+                    </svg>
+                </div>
+            </div>
+
+            <!-- Target Channels Card -->
+            <div class="p-4 rounded-xl app-card flex items-center justify-between">
+                <div>
+                    <div class="text-xs font-medium app-metric-label">Ziel-Channels</div>
+                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[180px]">{{range $i, $c := .Channels}}{{if $i}}, {{end}}{{$c}}{{else}}all{{end}}</div>
+                </div>
+                <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                    </svg>
+                </div>
+            </div>
+        </section>
+
+        <!-- Active Media Table & Control Panel -->
+        <section class="rounded-2xl app-panel border shadow-2xl overflow-hidden flex flex-col flex-1">
+            <!-- Action Toolbar -->
+            <div class="p-4 sm:p-5 border-b app-panel-toolbar flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2">
+                        <h2 class="text-base font-semibold app-panel-title">Aufliegende Medien auf Reader</h2>
+                        <span id="loan-tag-count-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full app-count-badge">{{len .Tags}}</span>
+                    </div>
+                </div>
+
+                <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
+                <div class="flex items-center flex-wrap gap-2.5">
+                    <!-- Copy All Item IDs Button -->
+                    <button id="btn-copy-all-itemids" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                        </svg>
+                        <span id="copy-all-label">Item-IDs kopieren</span>
+                    </button>
+
+                    <!-- Unsecure Button (AFI C2) -->
+                    <button id="btn-unsecure" hx-post="/loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-600/20 transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                        </svg>
+                        <span>Entsichern</span>
+                    </button>
+
+                    <!-- Secure Button (AFI 07) -->
+                    <button id="btn-secure" hx-post="/loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                        </svg>
+                        <span>Sichern</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Status Notification Banner -->
+            <div id="action-notification" class="hidden px-4 py-2 text-xs font-medium border-b transition-all flex items-center justify-between">
+                <span id="action-notification-text"></span>
+            </div>
+
+            <!-- Active Tags Table with SSE Connection -->
+            <div class="transponder-stream-scroll flex-1">
+                <table class="w-full text-left border-collapse">
+                    <thead class="sticky top-0 z-10 shadow-sm">
+                        <tr class="text-[11px] font-semibold uppercase tracking-wider">
+                            <th scope="col" class="py-3 px-4">Item ID (Medium)</th>
+                            <th scope="col" class="py-3 px-4">Transponder UID</th>
+                            <th scope="col" class="py-3 px-4">Teile (Multi-Part)</th>
+                            <th scope="col" class="py-3 px-4">ISIL / Land</th>
+                            <th scope="col" class="py-3 px-4">CRC Prüfsumme</th>
+                            <th scope="col" class="py-3 px-4">AFI Sicherheitsstatus</th>
+                            <th scope="col" class="py-3 px-4 text-right">Zuletzt erfasst</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loan-table-body" sse-swap="loan_tags" data-sse-swap="loan_tags" hx-swap="innerHTML">
+                        {{template "loan_table.gohtml" .}}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer Bar -->
+    <footer class="w-full max-w-7xl mx-auto pt-6 mt-8 border-t app-footer flex flex-wrap justify-between items-center text-xs gap-4">
+        <div>
+            RFID Desk &copy; 2026 info-age GmbH, Basel
+        </div>
+        <div class="flex items-center space-x-4 font-mono">
+            <span>Webserver: <span class="server-addr">{{.Addr}}</span></span>
+            <span>&bull;</span>
+            <span>WSBroker: <span class="broker-addr">{{.WSBroker}}</span></span>
+        </div>
+    </footer>
+
+    <!-- Interactive script for audio, counters, copy-all and actions -->
+    <script src="/static/js/desk.js"></script>
+</body>
+</html>

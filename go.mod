@@ -3,19 +3,26 @@ module github.com/je4/Library-RFID-Apps
 go 1.27.2
 
 require (
-	emperror.dev/errors v0.8.1 // indirect
+	emperror.dev/errors v0.8.1
+	github.com/BurntSushi/toml v1.6.0
+	github.com/beevik/ntp v1.6.0
+	github.com/gin-contrib/cors v1.7.9
+	github.com/gin-gonic/gin v1.12.0
+	github.com/je4/utils/v2 v2.0.71
+	github.com/je4/wsbrokerclient v0.0.0-20261023184533-11e0c6af33e8
+	github.com/rs/zerolog v1.35.1
+	go.ub.unibas.ch/cloud/certloader/v2 v2.0.26
+)
+
+require (
 	filippo.io/edwards25519 v1.2.0 // indirect
-	github.com/BurntSushi/toml v1.6.0 // indirect
-	github.com/beevik/ntp v1.6.0 // indirect
 	github.com/bytedance/gopkg v0.1.4 // indirect
 	github.com/bytedance/sonic v1.15.2 // indirect
 	github.com/bytedance/sonic/loader v0.5.2 // indirect
 	github.com/cloudwego/base64x v0.1.7 // indirect
 	github.com/coder/websocket v1.8.15 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.15 // indirect
-	github.com/gin-contrib/cors v1.7.9 // indirect
 	github.com/gin-contrib/sse v1.1.1 // indirect
-	github.com/gin-gonic/gin v1.12.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
 	github.com/go-playground/universal-translator v0.18.1 // indirect
 	github.com/go-playground/validator/v10 v10.30.3 // indirect
@@ -23,8 +30,6 @@ require (
 	github.com/goccy/go-yaml v1.19.2 // indirect
 	github.com/google/certificate-transparency-go v1.3.3 // indirect
 	github.com/je4/trustutil/v2 v2.0.31 // indirect
-	github.com/je4/utils/v2 v2.0.71 // indirect
-	github.com/je4/wsbrokerclient v0.0.0-20261023125705-5862b9fcd84e // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/cpuid/v2 v2.4.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
@@ -36,13 +41,11 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/quic-go/qpack v0.6.0 // indirect
 	github.com/quic-go/quic-go v0.61.0 // indirect
-	github.com/rs/zerolog v1.35.1 // indirect
 	github.com/smallstep/certinfo v1.17.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.2 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.8.1 // indirect
 	go.step.sm/crypto v0.91.0 // indirect
-	go.ub.unibas.ch/cloud/certloader/v2 v2.0.26 // indirect
 	go.ub.unibas.ch/cloud/minivaultclient v1.0.7 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.30.0 // indirect

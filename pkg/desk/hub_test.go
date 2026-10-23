@@ -213,3 +213,148 @@ func TestTagItem_AFISecurityStatus(t *testing.T) {
 		})
 	}
 }
+
+func TestHub_ActiveTagsAndAFI(t *testing.T) {
+	hub := NewHub(50)
+	hub.SetConfiguredReader("rfid:reader:desk01")
+	hub.SetActiveWindow(500 * time.Millisecond)
+
+	// Tag 1 from configured reader
+	tag1 := &rfidclient.TagReadEvent{
+		UID:    "UID-001",
+		ItemID: "ITEM-001",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "rfid:reader:desk01",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	}
+	// Tag 2 from another reader
+	tag2 := &rfidclient.TagReadEvent{
+		UID:    "UID-002",
+		ItemID: "ITEM-002",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "rfid:reader:other",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	}
+
+	hub.AddTag(tag1)
+	hub.AddTag(tag2)
+
+	active := hub.GetActiveTags()
+	if len(active) != 1 {
+		t.Fatalf("expected 1 active tag for configured reader, got %d", len(active))
+	}
+	if active[0].UID != "UID-001" {
+		t.Errorf("expected UID-001, got %s", active[0].UID)
+	}
+
+	// Update AFI on active tag
+	hub.UpdateActiveAFI("C2", "UID-001")
+	active = hub.GetActiveTags()
+	if len(active) != 1 || active[0].AFI != "C2" || !active[0].AFIUnsecured {
+		t.Errorf("expected active tag AFI to be updated to C2 unsecured, got %+v", active[0])
+	}
+
+	// Test ClearActive
+	hub.ClearActive("rfid:reader:desk01")
+	if len(hub.GetActiveTags()) != 0 {
+		t.Errorf("expected 0 active tags after ClearActive")
+	}
+
+	// Test Active Window Expiration
+	oldTag := &rfidclient.TagReadEvent{
+		UID:    "UID-OLD",
+		ItemID: "ITEM-OLD",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "rfid:reader:desk01",
+			Timestamp: time.Now().Add(-1 * time.Second).UnixMilli(),
+		},
+	}
+	hub.AddTag(oldTag)
+	// Tag is older than 500ms activeWindow, so GetActiveTags should prune it
+	if len(hub.GetActiveTags()) != 0 {
+		t.Errorf("expected expired tag to be pruned from active tags")
+	}
+}
+
+func TestHub_SequentialTagsAccumulation(t *testing.T) {
+	hub := NewHub(50)
+	hub.SetConfiguredReader("reader-1")
+
+	// Default activeWindow is 0 (no time-based expiration)
+	if hub.GetActiveWindow() != 0 {
+		t.Fatalf("expected default activeWindow 0, got %v", hub.GetActiveWindow())
+	}
+
+	// Add tag 1
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "UID-1",
+		ItemID: "ITEM-1",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-1",
+			Timestamp: time.Now().Add(-10 * time.Second).UnixMilli(),
+		},
+	})
+
+	// Add tag 2 sequentially later
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "UID-2",
+		ItemID: "ITEM-2",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-1",
+			Timestamp: time.Now().Add(-5 * time.Second).UnixMilli(),
+		},
+	})
+
+	// Add tag 3 sequentially later
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "UID-3",
+		ItemID: "ITEM-3",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-1",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	})
+
+	active := hub.GetActiveTags()
+	if len(active) != 3 {
+		t.Fatalf("expected 3 accumulated active tags, got %d", len(active))
+	}
+	if active[0].ItemID != "ITEM-1" || active[1].ItemID != "ITEM-2" || active[2].ItemID != "ITEM-3" {
+		t.Errorf("unexpected active tags ordering: %+v", active)
+	}
+
+	// Tags cleared / removed message clears the active list
+	hub.ClearActive("reader-1")
+	if len(hub.GetActiveTags()) != 0 {
+		t.Errorf("expected 0 active tags after ClearActive")
+	}
+}
+
+func TestHub_MatchReader(t *testing.T) {
+	cases := []struct {
+		tagReader    string
+		targetReader string
+		expected     bool
+	}{
+		{"", "", true},
+		{"rfid:reader:01", "", true},
+		{"rfid:reader:01", "*", true},
+		{"rfid:reader:01", "all", true},
+		{"rfid:reader:01", "rfid:reader:01", true},
+		{"wsbroker:client:rfid:reader:01", "rfid:reader:01", true},
+		{"rfid:reader:01", "wsbroker:client:rfid:reader:01", true},
+		{"reader-01", "reader-01", true},
+		{"reader-01", "reader-02", false},
+	}
+
+	for _, tc := range cases {
+		got := MatchReader(tc.tagReader, tc.targetReader)
+		if got != tc.expected {
+			t.Errorf("MatchReader(%q, %q) = %v; want %v", tc.tagReader, tc.targetReader, got, tc.expected)
+		}
+	}
+}

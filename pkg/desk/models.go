@@ -100,8 +100,28 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 	}
 }
 
+// SetAFI updates the AFI security state and metadata on the TagItem.
+func (item *TagItem) SetAFI(afi string) {
+	item.AFI = afi
+	item.AFISecured = rfidclient.IsAFISecured(afi)
+	item.AFIUnsecured = rfidclient.IsAFIUnsecured(afi)
+	item.AFISecurityStatus = rfidclient.AFISecurityStatus(afi)
+}
+
 // DeskData encapsulates the view model passed to web templates.
 type DeskData struct {
+	ClientName    string
+	WSBroker      string
+	Channels      []string
+	DefaultReader string
+	Addr          string
+	ExtAddr       string
+	Uptime        string
+	Tags          []*TagItem
+}
+
+// LoanData encapsulates the view model passed to loan and return web templates.
+type LoanData struct {
 	ClientName    string
 	WSBroker      string
 	Channels      []string

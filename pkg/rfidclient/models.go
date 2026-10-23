@@ -15,13 +15,16 @@ import (
 const (
 	EventTagRead                = "rfid:tag_read"
 	EventTagsCleared            = "rfid:tags_cleared"
+	EventTagsRemoved            = "rfid:tags_removed"
+	EventAntennaFieldCleared    = "rfid:antenna_field_cleared"
+	EventAntennaFieldClearedAlt = "rfid:antenna_cleared"
 	EventGetDeviceMetadata      = "rfid:get_device_metadata"
 	EventDeviceMetadata         = "rfid:device_metadata"
 	EventDeviceMetadataResponse = "rfid:device_metadata_response"
 	EventWriteTag               = "rfid:write_tag"
 	EventWriteTagResponse       = "rfid:write_tag_response"
-	EventWriteAFI               = "rfid:rfid_write_afi"
-	EventWriteAFIAlt            = "rfid:write_afi"
+	EventWriteAFI               = "rfid:write_afi"
+	EventWriteAFIAlt            = "rfid:afi"
 	EventWriteAFIResponse       = "rfid:write_afi_response"
 )
 
@@ -425,6 +428,88 @@ func (r *WriteTagRequest) Validate() error {
 	return nil
 }
 
+// UnmarshalJSON custom unmarshaler supporting field aliases for write tag request.
+func (r *WriteTagRequest) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event       string `json:"event"`
+		UID         string `json:"uid"`
+		UIDAlt      string `json:"UID"`
+		ItemID      string `json:"itemId"`
+		ImtemID     string `json:"imtemId"`
+		PrimaryItem string `json:"primaryItemId"`
+		Barcode     string `json:"barcode"`
+		ISIL        string `json:"isil"`
+		ISILAlt     string `json:"ISIL"`
+		Country     string `json:"country"`
+		CountryAlt  string `json:"countryOfOwnerLib"`
+		Parts       int    `json:"parts"`
+		PartNo      int    `json:"partNo"`
+		PartnoAlt   int    `json:"partno"`
+		PartNumber  int    `json:"partNumber"`
+		UsageType   int    `json:"usageType"`
+		TypeOfUsage int    `json:"typeOfUsage"`
+		AFI         string `json:"afi"`
+		AFIAlt      string `json:"AFI"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.Event = raw.Event
+	if raw.UID != "" {
+		r.UID = raw.UID
+	} else if raw.UIDAlt != "" {
+		r.UID = raw.UIDAlt
+	}
+
+	if raw.ItemID != "" {
+		r.ItemID = raw.ItemID
+	} else if raw.ImtemID != "" {
+		r.ItemID = raw.ImtemID
+	} else if raw.PrimaryItem != "" {
+		r.ItemID = raw.PrimaryItem
+	} else if raw.Barcode != "" {
+		r.ItemID = raw.Barcode
+	}
+
+	if raw.ISIL != "" {
+		r.ISIL = raw.ISIL
+	} else if raw.ISILAlt != "" {
+		r.ISIL = raw.ISILAlt
+	}
+
+	if raw.Country != "" {
+		r.Country = raw.Country
+	} else if raw.CountryAlt != "" {
+		r.Country = raw.CountryAlt
+	}
+
+	r.Parts = raw.Parts
+	if raw.PartNo != 0 {
+		r.PartNo = raw.PartNo
+	} else if raw.PartnoAlt != 0 {
+		r.PartNo = raw.PartnoAlt
+	} else if raw.PartNumber != 0 {
+		r.PartNo = raw.PartNumber
+	}
+
+	if raw.UsageType != 0 {
+		r.UsageType = raw.UsageType
+	} else if raw.TypeOfUsage != 0 {
+		r.UsageType = raw.TypeOfUsage
+	}
+
+	if raw.AFI != "" {
+		r.AFI = raw.AFI
+	} else if raw.AFIAlt != "" {
+		r.AFI = raw.AFIAlt
+	}
+
+	return nil
+}
+
 // WriteTagResponse represents the result of an RFID tag write operation.
 type WriteTagResponse struct {
 	BaseRFIDPayload
@@ -596,6 +681,40 @@ func (r *WriteAFIRequest) Validate() error {
 	return nil
 }
 
+// UnmarshalJSON custom unmarshaler supporting field aliases for write afi request.
+func (r *WriteAFIRequest) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event  string `json:"event"`
+		UID    string `json:"uid"`
+		UIDAlt string `json:"UID"`
+		AFI    string `json:"afi"`
+		AFIAlt string `json:"AFI"`
+		AFIOpt string `json:"afiByte"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.Event = raw.Event
+	if raw.UID != "" {
+		r.UID = raw.UID
+	} else if raw.UIDAlt != "" {
+		r.UID = raw.UIDAlt
+	}
+
+	if raw.AFI != "" {
+		r.AFI = raw.AFI
+	} else if raw.AFIAlt != "" {
+		r.AFI = raw.AFIAlt
+	} else if raw.AFIOpt != "" {
+		r.AFI = raw.AFIOpt
+	}
+
+	return nil
+}
+
 // WriteAFIResponse represents the result of writing the AFI byte.
 type WriteAFIResponse struct {
 	BaseRFIDPayload
@@ -740,7 +859,10 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		}
 		return &tag, nil
 
-	case EventTagsCleared, "tags_cleared", "tagscleared", "tags-cleared", "rfid_tags_cleared", "clear", "cleared":
+	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared, EventAntennaFieldClearedAlt,
+		"tags_cleared", "tagscleared", "tags-cleared", "rfid_tags_cleared", "clear", "cleared",
+		"tags_removed", "tagsremoved", "tags-removed", "rfid_tags_removed", "removed", "empty",
+		"antenna_field_cleared", "antennafieldcleared", "antenna-field-cleared", "antenna_cleared", "field_cleared":
 		var cleared TagsClearedEvent
 		if err := json.Unmarshal(data, &cleared); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedEvent")
@@ -754,19 +876,56 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		}
 		return &meta, nil
 
-	case EventWriteTagResponse, "write_tag_response", "write_tag", "writetag":
+	case EventGetDeviceMetadata, "get_device_metadata", "getdevicemetadata", "get_metadata", "rfid:get_metadata":
+		var req DeviceMetadataRequest
+		if err := json.Unmarshal(data, &req); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataRequest")
+		}
+		return &req, nil
+
+	case EventWriteTagResponse, "write_tag_response", "writetagresponse":
 		var writeResp WriteTagResponse
 		if err := json.Unmarshal(data, &writeResp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
 		}
 		return &writeResp, nil
 
-	case EventWriteAFIResponse, "write_afi_response", "write_afi", "writeafi":
+	case EventWriteTag, "write_tag", "writetag", "rfid:tag_write", "tag_write", "tagwrite":
+		// If status is provided, deserialize as response; otherwise as request
+		if header.Status != "" {
+			var writeResp WriteTagResponse
+			if err := json.Unmarshal(data, &writeResp); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
+			}
+			return &writeResp, nil
+		}
+		var writeReq WriteTagRequest
+		if err := json.Unmarshal(data, &writeReq); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal WriteTagRequest")
+		}
+		return &writeReq, nil
+
+	case EventWriteAFIResponse, "write_afi_response", "writeafiresponse":
 		var afiResp WriteAFIResponse
 		if err := json.Unmarshal(data, &afiResp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
 		}
 		return &afiResp, nil
+
+	case EventWriteAFI, EventWriteAFIAlt, "write_afi", "writeafi", "afi", "rfid:set_afi", "set_afi", "setafi":
+		// If status is provided, deserialize as response; otherwise as request
+		if header.Status != "" {
+			var afiResp WriteAFIResponse
+			if err := json.Unmarshal(data, &afiResp); err != nil {
+				return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
+			}
+			return &afiResp, nil
+		}
+		var afiReq WriteAFIRequest
+		if err := json.Unmarshal(data, &afiReq); err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIRequest")
+		}
+		return &afiReq, nil
 
 	default:
 		// Fallback inspection: check if payload has UID / ItemID or Cleared indicators
@@ -776,7 +935,7 @@ func ParseRFIDPayload(data []byte) (any, error) {
 				return &tag, nil
 			}
 		}
-		if header.Status == "cleared" || (header.TotalTags != nil && *header.TotalTags == 0) {
+		if header.Status == "cleared" || header.Status == "removed" || header.Status == "empty" || (header.TotalTags != nil && *header.TotalTags == 0) {
 			var cleared TagsClearedEvent
 			if err := json.Unmarshal(data, &cleared); err == nil {
 				return &cleared, nil
@@ -811,6 +970,14 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 			v.ClientID = evt.Source
 		}
 	case *DeviceMetadataResponse:
+		if v.ClientID == "" && evt.Source != "" {
+			v.ClientID = evt.Source
+		}
+	case *WriteTagResponse:
+		if v.ClientID == "" && evt.Source != "" {
+			v.ClientID = evt.Source
+		}
+	case *WriteAFIResponse:
 		if v.ClientID == "" && evt.Source != "" {
 			v.ClientID = evt.Source
 		}

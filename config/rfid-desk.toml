@@ -1,9 +1,9 @@
-addr = "localhost:8762"
-extaddr = "http://localhost:8762"
+addr = "localhost:5000"
+extaddr = "http://localhost:5000"
 name = "rfid:desk:01"
 wsbroker = "https://localhost:8765"
 channels = ["rfid"]
-default_reader = "rfid:reader:01"
+default_reader = ""
 max_tags = 100
 
 [clienttls]

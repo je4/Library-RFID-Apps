@@ -97,12 +97,21 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFilter();
     }
 
+    function onLoanTagsReceived() {
+        playBeep();
+        updateLoanCounters();
+    }
+
     document.body.addEventListener('htmx:sse:message', (evt) => {
         const eventName = evt.detail?.eventName;
         if (eventName === 'tag_read') {
             onTagReceived();
         } else if (eventName === 'tags_cleared') {
             showClearedNotification();
+            updateCounters();
+            updateLoanCounters();
+        } else if (eventName === 'loan_tags' || eventName === 'loan_updated') {
+            onLoanTagsReceived();
         }
     });
 
@@ -112,18 +121,24 @@ document.addEventListener('DOMContentLoaded', () => {
             onTagReceived();
         } else if (eventName === 'tags_cleared') {
             showClearedNotification();
+            updateCounters();
+            updateLoanCounters();
+        } else if (eventName === 'loan_tags' || eventName === 'loan_updated') {
+            onLoanTagsReceived();
         }
     });
 
     document.body.addEventListener('htmx:after:swap', () => {
         pruneTags();
         updateCounters();
+        updateLoanCounters();
         applyFilter();
     });
 
     document.body.addEventListener('htmx:afterSwap', () => {
         pruneTags();
         updateCounters();
+        updateLoanCounters();
         applyFilter();
     });
 
@@ -146,6 +161,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function updateLoanCounters() {
+        const loanRows = document.querySelectorAll('#loan-table-body tr.tag-row');
+        const loanCountBadge = document.getElementById('loan-tag-count-badge');
+        const statsActive = document.getElementById('stats-active-tags');
+        if (loanCountBadge) {
+            loanCountBadge.textContent = loanRows.length;
+        }
+        if (statsActive) {
+            statsActive.textContent = loanRows.length;
+        }
+    }
+
     function showClearedNotification() {
         const badge = document.getElementById('field-status-badge');
         if (badge) {
@@ -156,6 +183,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 badge.className = 'text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all';
             }, 3000);
         }
+    }
+
+    // Copy all Item-IDs button for loan & return page
+    const copyAllBtn = document.getElementById('btn-copy-all-itemids');
+    if (copyAllBtn) {
+        copyAllBtn.addEventListener('click', () => {
+            const itemElements = document.querySelectorAll('#loan-table-body .loan-item-id, #loan-table-body tr.tag-row[data-itemid]');
+            const itemIds = [];
+            itemElements.forEach((el) => {
+                let id = el.getAttribute('data-itemid') || el.textContent;
+                id = id ? id.trim() : '';
+                if (id && id !== 'Keine ItemID' && !itemIds.includes(id)) {
+                    itemIds.push(id);
+                }
+            });
+
+            const copyLabel = document.getElementById('copy-all-label');
+            const originalLabel = copyLabel ? copyLabel.textContent : 'Item-IDs kopieren';
+
+            if (itemIds.length === 0) {
+                if (copyLabel) copyLabel.textContent = 'Keine IDs vorhanden';
+                setTimeout(() => {
+                    if (copyLabel) copyLabel.textContent = originalLabel;
+                }, 2000);
+                return;
+            }
+
+            const clipboardText = itemIds.join('\n');
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(clipboardText).then(() => {
+                    if (copyLabel) copyLabel.textContent = `Kopiert (${itemIds.length})`;
+                    copyAllBtn.classList.add('bg-emerald-600');
+                    copyAllBtn.classList.remove('bg-indigo-600');
+                    setTimeout(() => {
+                        if (copyLabel) copyLabel.textContent = originalLabel;
+                        copyAllBtn.classList.remove('bg-emerald-600');
+                        copyAllBtn.classList.add('bg-indigo-600');
+                    }, 2000);
+                }).catch((err) => {
+                    console.error('Clipboard copy failed:', err);
+                });
+            }
+        });
     }
 
     // Filter functionality

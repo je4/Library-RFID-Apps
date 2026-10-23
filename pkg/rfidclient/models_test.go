@@ -357,14 +357,22 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 		t.Fatalf("expected *TagReadEvent, got %T", p1)
 	}
 
-	// 2. TagsCleared
-	rawCleared := []byte(`{"event":"rfid:tags_cleared","status":"empty"}`)
-	p2, err := ParseRFIDPayload(rawCleared)
-	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+	// 2. TagsCleared and variations (tags_removed, antenna_field_cleared)
+	clearedVariants := []string{
+		`{"event":"rfid:tags_cleared","status":"empty"}`,
+		`{"event":"rfid:tags_removed","status":"removed"}`,
+		`{"event":"tags_removed"}`,
+		`{"event":"antenna_field_cleared"}`,
+		`{"status":"removed","totalTags":0}`,
 	}
-	if _, ok := p2.(*TagsClearedEvent); !ok {
-		t.Fatalf("expected *TagsClearedEvent, got %T", p2)
+	for _, cv := range clearedVariants {
+		pCleared, err := ParseRFIDPayload([]byte(cv))
+		if err != nil {
+			t.Fatalf("ParseRFIDPayload failed for %s: %v", cv, err)
+		}
+		if _, ok := pCleared.(*TagsClearedEvent); !ok {
+			t.Fatalf("expected *TagsClearedEvent for %s, got %T", cv, pCleared)
+		}
 	}
 
 	// 3. DeviceMetadataResponse
@@ -558,5 +566,89 @@ func TestWriteAFIResponse_SecurityMethods(t *testing.T) {
 	}
 	if respUnsecured.SecurityStatus() != "Entsichert" {
 		t.Errorf("expected SecurityStatus() = %q, got %q", "Entsichert", respUnsecured.SecurityStatus())
+	}
+}
+
+func TestParseRFIDPayload_WriteAFIAndWriteTagVariants(t *testing.T) {
+	// 1. WriteAFIRequest variations
+	afiRequestCases := []string{
+		`{"event":"rfid:write_afi","uid":"E004015099887766","afi":"07"}`,
+		`{"event":"rfid:afi","uid":"E004015099887766","afi":"07"}`,
+		`{"event":"write_afi","uid":"E004015099887766","afi":"C2"}`,
+		`{"event":"writeafi","uid":"E004015099887766","afi":"07"}`,
+		`{"event":"afi","uid":"E004015099887766","afi":"C2"}`,
+		`{"event":"rfid:set_afi","uid":"E004015099887766","afi":"07"}`,
+	}
+	for _, raw := range afiRequestCases {
+		p, err := ParseRFIDPayload([]byte(raw))
+		if err != nil {
+			t.Fatalf("ParseRFIDPayload failed for %s: %v", raw, err)
+		}
+		req, ok := p.(*WriteAFIRequest)
+		if !ok {
+			t.Fatalf("expected *WriteAFIRequest for %s, got %T", raw, p)
+		}
+		if req.UID != "E004015099887766" {
+			t.Errorf("UID = %q, want E004015099887766", req.UID)
+		}
+		if req.AFI != "07" && req.AFI != "C2" {
+			t.Errorf("AFI = %q, want 07 or C2", req.AFI)
+		}
+	}
+
+	// 2. WriteAFIResponse variations
+	afiResponseCases := []string{
+		`{"event":"rfid:write_afi_response","status":"ok","uid":"E004015099887766","afi":"07"}`,
+		`{"event":"write_afi_response","status":"ok","uid":"E004015099887766","afi":"07"}`,
+		`{"event":"rfid:write_afi","status":"ok","uid":"E004015099887766","afi":"07"}`,
+	}
+	for _, raw := range afiResponseCases {
+		p, err := ParseRFIDPayload([]byte(raw))
+		if err != nil {
+			t.Fatalf("ParseRFIDPayload failed for %s: %v", raw, err)
+		}
+		resp, ok := p.(*WriteAFIResponse)
+		if !ok {
+			t.Fatalf("expected *WriteAFIResponse for %s, got %T", raw, p)
+		}
+		if !resp.IsSuccess() {
+			t.Errorf("expected IsSuccess() = true for %s", raw)
+		}
+	}
+
+	// 3. WriteTagRequest variations
+	tagRequestCases := []string{
+		`{"event":"rfid:write_tag","uid":"E00401","itemId":"123456"}`,
+		`{"event":"write_tag","uid":"E00401","itemId":"123456"}`,
+		`{"event":"writetag","uid":"E00401","itemId":"123456"}`,
+		`{"event":"tag_write","uid":"E00401","itemId":"123456"}`,
+	}
+	for _, raw := range tagRequestCases {
+		p, err := ParseRFIDPayload([]byte(raw))
+		if err != nil {
+			t.Fatalf("ParseRFIDPayload failed for %s: %v", raw, err)
+		}
+		req, ok := p.(*WriteTagRequest)
+		if !ok {
+			t.Fatalf("expected *WriteTagRequest for %s, got %T", raw, p)
+		}
+		if req.ItemID != "123456" {
+			t.Errorf("ItemID = %q, want 123456", req.ItemID)
+		}
+	}
+
+	// 4. DeviceMetadataRequest variations
+	metaRequestCases := []string{
+		`{"event":"rfid:get_device_metadata"}`,
+		`{"event":"get_device_metadata"}`,
+	}
+	for _, raw := range metaRequestCases {
+		p, err := ParseRFIDPayload([]byte(raw))
+		if err != nil {
+			t.Fatalf("ParseRFIDPayload failed for %s: %v", raw, err)
+		}
+		if _, ok := p.(*DeviceMetadataRequest); !ok {
+			t.Fatalf("expected *DeviceMetadataRequest for %s, got %T", raw, p)
+		}
 	}
 }
