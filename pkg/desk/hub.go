@@ -26,22 +26,48 @@ type Hub struct {
 	maxTags          int
 	activeWindow     time.Duration
 	configuredReader string
+	isilList         map[string]*ISILEntry
 	clients          map[chan *SSEMessage]string
 	closed           bool
 }
 
 // NewHub creates and initializes a new thread-safe Event Hub.
-func NewHub(maxTags int) *Hub {
+func NewHub(maxTags int, isilList ...map[string]*ISILEntry) *Hub {
 	if maxTags <= 0 {
 		maxTags = 100
+	}
+	var isils map[string]*ISILEntry
+	if len(isilList) > 0 {
+		isils = isilList[0]
 	}
 	return &Hub{
 		tags:         make([]*TagItem, 0, maxTags),
 		activeTags:   make(map[string]*TagItem),
 		maxTags:      maxTags,
 		activeWindow: 0,
+		isilList:     isils,
 		clients:      make(map[chan *SSEMessage]string),
 	}
+}
+
+// SetISILList updates the ISIL database map and enriches existing tag records.
+func (h *Hub) SetISILList(isilList map[string]*ISILEntry) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	h.isilList = isilList
+	for _, t := range h.tags {
+		t.EnrichISIL(isilList)
+	}
+	for _, t := range h.activeTags {
+		t.EnrichISIL(isilList)
+	}
+}
+
+// GetISILList returns the current ISIL database map.
+func (h *Hub) GetISILList() map[string]*ISILEntry {
+	h.mu.RLock()
+	defer h.mu.RUnlock()
+	return h.isilList
 }
 
 // SetConfiguredReader configures the target reader for active media filtering.
@@ -130,6 +156,10 @@ func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
 
 	h.mu.Lock()
 	defer h.mu.Unlock()
+
+	if h.isilList != nil {
+		item.EnrichISIL(h.isilList)
+	}
 
 	// If tag already exists in active tags and has write status, preserve status on re-scan
 	if existing, ok := h.activeTags[item.UID]; ok {

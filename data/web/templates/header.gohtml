@@ -3,9 +3,7 @@
     <div class="flex items-center space-x-3.5">
         {{if .IsLoan}}
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-            </svg>
+            <img src="../static/img/book-open-white.svg" class="w-6 h-6" alt="Ausleihe" />
         </div>
         <div>
             <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
@@ -21,9 +19,7 @@
         </div>
         {{else if .Channel}}
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+            <img src="../static/img/bolt-white.svg" class="w-6 h-6" alt="RFID Desk" />
         </div>
         <div>
             <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
@@ -39,9 +35,7 @@
         </div>
         {{else}}
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-            </svg>
+            <img src="static/img/bolt-white.svg" class="w-6 h-6" alt="RFID Desk" />
         </div>
         <div>
             <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
@@ -62,18 +56,14 @@
     <div class="flex items-center space-x-3">
         <!-- Back to Channels Selection Button -->
         <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
-            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
-            </svg>
+            <img src="../static/img/arrow-left.svg" class="w-4 h-4" alt="Channels" />
             <span>Channels</span>
         </a>
 
         {{if .IsLoan}}
         <!-- Back to Desk Button (Relative to Channel) -->
         <a href="." id="nav-desk-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
-            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-            </svg>
+            <img src="../static/img/home.svg" class="w-4 h-4" alt="Desk" />
             <span>Desk</span>
         </a>
         {{end}}
@@ -81,14 +71,9 @@
         <!-- Audio Feedback Toggle Button -->
         <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton einschalten">
             <!-- Icon when sound is OFF: Speaker with waves (Click to enable) -->
-            <svg class="w-4 h-4 sound-icon-enable" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-            </svg>
+            <img src="../static/img/volume-high.svg" class="w-4 h-4 sound-icon-enable" alt="Ton einschalten" />
             <!-- Icon when sound is ON: Speaker muted with X (Click to disable) -->
-            <svg class="w-4 h-4 sound-icon-disable hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9l4 4m0-4l-4 4"></path>
-            </svg>
+            <img src="../static/img/volume-off.svg" class="w-4 h-4 sound-icon-disable hidden" alt="Ton ausschalten" />
             <span>Ton</span>
         </button>
 

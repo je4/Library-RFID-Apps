@@ -28,6 +28,7 @@ type Config struct {
 	DefaultReader string
 	Hub           *desk.Hub
 	RFIDClient    rfidclient.Client
+	ISILList      map[string]*desk.ISILEntry
 	Logger        zLogger.ZLogger
 	StartTime     time.Time
 }
@@ -55,6 +56,10 @@ func NewController(cfg Config) (*Controller, error) {
 
 	if cfg.DefaultReader != "" && cfg.Hub.GetConfiguredReader() == "" {
 		cfg.Hub.SetConfiguredReader(cfg.DefaultReader)
+	}
+
+	if cfg.ISILList != nil && cfg.Hub.GetISILList() == nil {
+		cfg.Hub.SetISILList(cfg.ISILList)
 	}
 
 	gin.SetMode(gin.ReleaseMode)
@@ -131,6 +136,7 @@ func (ctrl *Controller) init() error {
 		})
 
 		// Web Dashboard UI routes
+		channelGroup.StaticFS("/static", http.FS(subStatic))
 		channelGroup.GET("", ctrl.handleChannelIndex)
 		channelGroup.GET("/", ctrl.handleChannelIndex)
 		channelGroup.GET("/loan", ctrl.handleLoan)

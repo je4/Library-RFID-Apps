@@ -1368,3 +1368,89 @@ func TestController_HeaderFooterTemplates(t *testing.T) {
 		t.Errorf("expected loan footer copyright, got: %s", bodyLoan)
 	}
 }
+
+func TestController_ISILLibraryNameAndFlyoutRendering(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	isilMap := map[string]*desk.ISILEntry{
+		"CH-000050-X": {
+			ISIL:                  "CH-000050-X",
+			Status:                "aktiv",
+			NameOriginal:          "Aargauer Kantonsbibliothek",
+			Strasse:               "Aargauerplatz",
+			Postleitzahl:          "5001",
+			Ortschaft:             "Aarau",
+			Kanton:                "Aargau",
+			Telefon:               "+41 62 835 22 22",
+			EMail:                 "kantonsbibliothek@ag.ch",
+			Webseite:              "https://www.ag.ch/kantonsbibliothek",
+			Institutionstyp:       "Kantonsbibliothek",
+			Institutionskategorie: "Wissenschaftliche Bibliothek",
+		},
+	}
+
+	hub := desk.NewHub(10, isilMap)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"all"},
+		DefaultReader: "desk-reader",
+		Hub:           hub,
+		ISILList:      isilMap,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Add tag with ISIL
+	tag := &rfidclient.TagReadEvent{
+		UID:     "E004015011223344",
+		ItemID:  "BOOK-999",
+		ISIL:    "CH-000050-X",
+		Country: "CH",
+		CRCOk:   true,
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID: "desk-reader",
+			Channel:  "all",
+		},
+	}
+	hub.AddTag(tag)
+
+	// Test desk view rendering
+	reqDesk := httptest.NewRequest(http.MethodGet, "/all/", nil)
+	recDesk := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDesk, reqDesk)
+	if recDesk.Code != http.StatusOK {
+		t.Fatalf("expected 200 for desk, got %d", recDesk.Code)
+	}
+	bodyDesk := recDesk.Body.String()
+	if !strings.Contains(bodyDesk, "Aargauer Kantonsbibliothek") {
+		t.Errorf("expected desk page to contain library name 'Aargauer Kantonsbibliothek', got: %s", bodyDesk)
+	}
+	if !strings.Contains(bodyDesk, "app-isil-flyout") {
+		t.Errorf("expected desk page to contain 'app-isil-flyout', got: %s", bodyDesk)
+	}
+	if !strings.Contains(bodyDesk, "kantonsbibliothek@ag.ch") || !strings.Contains(bodyDesk, "Aargauerplatz") {
+		t.Errorf("expected flyout details (email, address) in desk page, got: %s", bodyDesk)
+	}
+
+	// Test loan view rendering
+	reqLoan := httptest.NewRequest(http.MethodGet, "/all/loan", nil)
+	recLoan := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recLoan, reqLoan)
+	if recLoan.Code != http.StatusOK {
+		t.Fatalf("expected 200 for loan, got %d", recLoan.Code)
+	}
+	bodyLoan := recLoan.Body.String()
+	if !strings.Contains(bodyLoan, "Aargauer Kantonsbibliothek") {
+		t.Errorf("expected loan page to contain library name 'Aargauer Kantonsbibliothek', got: %s", bodyLoan)
+	}
+	if !strings.Contains(bodyLoan, "app-isil-flyout") {
+		t.Errorf("expected loan page to contain 'app-isil-flyout', got: %s", bodyLoan)
+	}
+}

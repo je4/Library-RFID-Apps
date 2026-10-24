@@ -3,6 +3,7 @@ package desk
 import (
 	"compress/bzip2"
 	"encoding/csv"
+	"fmt"
 	"io"
 	"strings"
 
@@ -63,7 +64,7 @@ type ISILEntry struct {
 
 func LoadISILList(logger zLogger.ZLogger) (map[string]*ISILEntry, error) {
 	isilFiles := []string{"isil-schweiz.csv.bz2"}
-	var result map[string]*ISILEntry
+	result := make(map[string]*ISILEntry)
 
 	for _, isilFile := range isilFiles {
 		entries, err := loadISILFile(isilFile)
@@ -74,6 +75,53 @@ func LoadISILList(logger zLogger.ZLogger) (map[string]*ISILEntry, error) {
 	}
 
 	return result, nil
+}
+
+// FindISILEntry looks up an ISILEntry from the map trying multiple standard formats (e.g. "CH-000050-X", "000050-X" + country "CH").
+func FindISILEntry(isilMap map[string]*ISILEntry, isil string, country string) *ISILEntry {
+	if isilMap == nil {
+		return nil
+	}
+	trimmedISIL := strings.TrimSpace(isil)
+	if trimmedISIL == "" {
+		return nil
+	}
+
+	// 1. Exact match
+	if entry, ok := isilMap[trimmedISIL]; ok {
+		return entry
+	}
+
+	// 2. Case-insensitive / normalized match if exact missed
+	for k, entry := range isilMap {
+		if strings.EqualFold(k, trimmedISIL) {
+			return entry
+		}
+	}
+
+	// 3. Try with Country prefix (e.g. CH + "-" + ISIL)
+	trimmedCountry := strings.TrimSpace(country)
+	if trimmedCountry != "" {
+		withCountry := fmt.Sprintf("%s-%s", trimmedCountry, trimmedISIL)
+		if entry, ok := isilMap[withCountry]; ok {
+			return entry
+		}
+		for k, entry := range isilMap {
+			if strings.EqualFold(k, withCountry) {
+				return entry
+			}
+		}
+	}
+
+	// 4. Try stripping common prefixes like "ISIL-"
+	if strings.HasPrefix(strings.ToUpper(trimmedISIL), "ISIL-") {
+		stripped := strings.TrimPrefix(trimmedISIL[5:], "-")
+		if entry := FindISILEntry(isilMap, stripped, country); entry != nil {
+			return entry
+		}
+	}
+
+	return nil
 }
 
 func loadISILFile(filename string) (map[string]*ISILEntry, error) {
@@ -104,7 +152,7 @@ func loadISILFile(filename string) (map[string]*ISILEntry, error) {
 		return ""
 	}
 
-	var entries map[string]*ISILEntry
+	entries := make(map[string]*ISILEntry)
 
 	for recordNr := 1; ; recordNr++ {
 		line, err := csvReader.Read()

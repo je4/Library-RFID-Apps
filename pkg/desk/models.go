@@ -10,32 +10,34 @@ import (
 
 // TagItem represents a view-friendly RFID tag record for dashboard rendering.
 type TagItem struct {
-	ID                string    `json:"id"`
-	UID               string    `json:"uid"`
-	ItemID            string    `json:"itemId"`
-	ISIL              string    `json:"isil"`
-	Country           string    `json:"country"`
-	CRCOk             bool      `json:"crcOk"`
-	CRCStatus         string    `json:"crcStatus"`
-	Parts             int       `json:"parts"`
-	PartNo            int       `json:"partNo"`
-	IsMultiPart       bool      `json:"isMultiPart"`
-	AFI               string    `json:"afi"`
-	AFISecured        bool      `json:"afiSecured"`
-	AFIUnsecured      bool      `json:"afiUnsecured"`
-	AFISecurityStatus string    `json:"afiSecurityStatus"`
-	UsageType         int       `json:"usageType"`
-	AFIWriteStatus    string    `json:"afiWriteStatus,omitempty"` // "success", "error", "pending"
-	AFIWriteError     string    `json:"afiWriteError,omitempty"`  // specific error message
-	AFIWriteTime      time.Time `json:"afiWriteTime,omitempty"`   // timestamp of last write attempt
-	AFIWritePending   bool      `json:"afiWritePending,omitempty"`
-	Timestamp         int64     `json:"timestamp"`
-	TimeFormatted     string    `json:"timeFormatted"`
-	DateFormatted     string    `json:"dateFormatted"`
-	Raw               string    `json:"raw,omitempty"`
-	ClientID          string    `json:"clientId,omitempty"`
-	Channel           string    `json:"channel,omitempty"`
-	ReadTime          time.Time `json:"readTime"`
+	ID                string     `json:"id"`
+	UID               string     `json:"uid"`
+	ItemID            string     `json:"itemId"`
+	ISIL              string     `json:"isil"`
+	ISILName          string     `json:"isilName,omitempty"`
+	ISILEntry         *ISILEntry `json:"isilEntry,omitempty"`
+	Country           string     `json:"country"`
+	CRCOk             bool       `json:"crcOk"`
+	CRCStatus         string     `json:"crcStatus"`
+	Parts             int        `json:"parts"`
+	PartNo            int        `json:"partNo"`
+	IsMultiPart       bool       `json:"isMultiPart"`
+	AFI               string     `json:"afi"`
+	AFISecured        bool       `json:"afiSecured"`
+	AFIUnsecured      bool       `json:"afiUnsecured"`
+	AFISecurityStatus string     `json:"afiSecurityStatus"`
+	UsageType         int        `json:"usageType"`
+	AFIWriteStatus    string     `json:"afiWriteStatus,omitempty"` // "success", "error", "pending"
+	AFIWriteError     string     `json:"afiWriteError,omitempty"`  // specific error message
+	AFIWriteTime      time.Time  `json:"afiWriteTime,omitempty"`   // timestamp of last write attempt
+	AFIWritePending   bool       `json:"afiWritePending,omitempty"`
+	Timestamp         int64      `json:"timestamp"`
+	TimeFormatted     string     `json:"timeFormatted"`
+	DateFormatted     string     `json:"dateFormatted"`
+	Raw               string     `json:"raw,omitempty"`
+	ClientID          string     `json:"clientId,omitempty"`
+	Channel           string     `json:"channel,omitempty"`
+	ReadTime          time.Time  `json:"readTime"`
 }
 
 // NewTagItem converts a low-level TagReadEvent into a display-oriented TagItem.
@@ -144,6 +146,28 @@ func (item *TagItem) ClearAFIWriteStatus() {
 	item.AFIWriteError = ""
 	item.AFIWritePending = false
 	item.AFIWriteTime = time.Time{}
+}
+
+// EnrichISIL looks up and attaches the ISILEntry and library original name to the TagItem.
+func (item *TagItem) EnrichISIL(isilMap map[string]*ISILEntry) {
+	if item == nil || isilMap == nil {
+		return
+	}
+	entry := FindISILEntry(isilMap, item.ISIL, item.Country)
+	if entry != nil {
+		item.ISILEntry = entry
+		if entry.NameOriginal != "" {
+			item.ISILName = entry.NameOriginal
+		} else if entry.NameDE != "" {
+			item.ISILName = entry.NameDE
+		} else if entry.NameFR != "" {
+			item.ISILName = entry.NameFR
+		} else if entry.NameIT != "" {
+			item.ISILName = entry.NameIT
+		} else if entry.NameEN != "" {
+			item.ISILName = entry.NameEN
+		}
+	}
 }
 
 // DeskData encapsulates the view model passed to web templates.

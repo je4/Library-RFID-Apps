@@ -51,14 +51,13 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("cannot load ISIL list")
 	}
-	_ = isilList
 
 	// 3. Initialize in-memory Event Hub
 	maxTags := conf.MaxTags
 	if maxTags <= 0 {
 		maxTags = 100
 	}
-	hub := desk.NewHub(maxTags)
+	hub := desk.NewHub(maxTags, isilList)
 	hubCtx, hubCancel := context.WithCancel(context.Background())
 	defer hubCancel()
 	hub.Start(hubCtx)
@@ -72,6 +71,7 @@ func main() {
 		Channels:      conf.Channels,
 		DefaultReader: conf.DefaultReader,
 		Hub:           hub,
+		ISILList:      isilList,
 		Logger:        logger,
 		StartTime:     appStartTime,
 	})

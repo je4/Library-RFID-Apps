@@ -277,6 +277,30 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Intelligent repositioning of ISIL flyout on mouseover (viewport boundary detection)
+    document.addEventListener('mouseover', (e) => {
+        const wrapper = e.target.closest('.app-isil-info-wrapper, .app-isil-container');
+        if (!wrapper) return;
+        const flyout = wrapper.querySelector('.app-isil-flyout');
+        if (!flyout) return;
+
+        const rect = wrapper.getBoundingClientRect();
+        const flyoutHeight = flyout.offsetHeight || 260;
+        const spaceBelow = window.innerHeight - rect.bottom;
+
+        if (spaceBelow < flyoutHeight + 20 && rect.top > flyoutHeight + 20) {
+            flyout.classList.add('flyout-top');
+        } else {
+            flyout.classList.remove('flyout-top');
+        }
+
+        if (rect.left + 380 > window.innerWidth) {
+            flyout.classList.add('flyout-right');
+        } else {
+            flyout.classList.remove('flyout-right');
+        }
+    });
+
     // Auto-refresh relative time labels every 5 seconds
     setInterval(() => {
         const timeElements = document.querySelectorAll('.time-ago');
