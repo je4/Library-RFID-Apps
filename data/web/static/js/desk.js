@@ -10,6 +10,21 @@ document.addEventListener('DOMContentLoaded', () => {
         soundToggle.addEventListener('click', () => {
             beepEnabled = !beepEnabled;
             soundToggle.classList.toggle('active', beepEnabled);
+            const iconEnable = soundToggle.querySelector('.sound-icon-enable');
+            const iconDisable = soundToggle.querySelector('.sound-icon-disable');
+            if (iconEnable && iconDisable) {
+                if (beepEnabled) {
+                    // Sound is ON -> display symbol to turn sound OFF
+                    iconEnable.classList.add('hidden');
+                    iconDisable.classList.remove('hidden');
+                    soundToggle.setAttribute('title', 'Signalton ausschalten');
+                } else {
+                    // Sound is OFF -> display symbol to turn sound ON
+                    iconEnable.classList.remove('hidden');
+                    iconDisable.classList.add('hidden');
+                    soundToggle.setAttribute('title', 'Signalton einschalten');
+                }
+            }
         });
     }
 

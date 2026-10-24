@@ -138,11 +138,11 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	if !strings.Contains(bodyWithTag, "rfid:reader:01") {
 		t.Errorf("expected transponder row to contain reader 'rfid:reader:01', got %s", bodyWithTag)
 	}
-	if !strings.Contains(bodyWithTag, "app-channel-badge") || !strings.Contains(bodyWithTag, `title="Channel: rfid"`) {
-		t.Errorf("expected transponder row to contain channel badge 'app-channel-badge' for rfid, got %s", bodyWithTag)
+	if !strings.Contains(bodyWithTag, "#rfid") || !strings.Contains(bodyWithTag, `title="Channel: rfid"`) {
+		t.Errorf("expected transponder row to contain channel '#rfid', got %s", bodyWithTag)
 	}
-	if !strings.Contains(bodyWithTag, "Gesichert (07)") || !strings.Contains(bodyWithTag, "app-badge-afi-secured") {
-		t.Errorf("expected transponder row to contain secured badge 'Gesichert (07)', got %s", bodyWithTag)
+	if !strings.Contains(bodyWithTag, "Gesichert (07)") {
+		t.Errorf("expected transponder row to contain AFI status 'Gesichert (07)', got %s", bodyWithTag)
 	}
 	if !strings.Contains(bodyWithTag, "copy-itemid-btn") || !strings.Contains(bodyWithTag, `data-itemid="ITEM-TEST-123"`) {
 		t.Errorf("expected transponder row to contain copy-itemid-btn, got %s", bodyWithTag)

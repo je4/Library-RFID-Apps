@@ -77,7 +77,7 @@
     --color-tag-reader-border: #a5f3fc;
     --color-tag-reader-text: #0891b2;
 
-    --color-tag-item-id: #2563eb;
+    --color-tag-item-id: inherit;
     --color-tag-country-bg: #e2e8f0;
     --color-tag-country-text: #334155;
     --color-tag-isil-text: #334155;
@@ -200,7 +200,7 @@
         --color-tag-reader-border: rgba(21, 94, 117, 0.6);
         --color-tag-reader-text: #67e8f9;
 
-        --color-tag-item-id: #93c5fd;
+        --color-tag-item-id: inherit;
         --color-tag-country-bg: #1f2937;
         --color-tag-country-text: #d1d5db;
         --color-tag-isil-text: #d1d5db;
@@ -320,7 +320,7 @@
     --color-tag-reader-border: rgba(21, 94, 117, 0.6);
     --color-tag-reader-text: #67e8f9;
 
-    --color-tag-item-id: #93c5fd;
+    --color-tag-item-id: inherit;
     --color-tag-country-bg: #1f2937;
     --color-tag-country-text: #d1d5db;
     --color-tag-isil-text: #d1d5db;
@@ -725,127 +725,73 @@
 }
 
 /* Primary Action Buttons (Loan Toolbar) - Matching Row Action Style */
-.app-btn-action-copy {
-    background-color: rgba(99, 102, 241, 0.12);
-    color: #4f46e5;
-    border: 1px solid rgba(99, 102, 241, 0.35);
+.app-btn-action-copy,
+.app-btn-action-unsecure,
+.app-btn-action-secure {
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
 }
 
-.app-btn-action-copy:hover {
-    background-color: rgba(99, 102, 241, 0.22);
-    color: #4338ca;
+.app-btn-action-copy:hover,
+.app-btn-action-unsecure:hover,
+.app-btn-action-secure:hover {
+    background-color: var(--color-btn-hover-bg);
+    color: var(--color-btn-hover-text);
 }
 
 .app-btn-action-copy.copied {
-    background-color: rgba(16, 185, 129, 0.18);
-    border-color: rgba(16, 185, 129, 0.5);
-    color: #047857;
+    background-color: var(--color-btn-hover-bg);
+    border-color: var(--color-btn-border);
+    color: var(--color-btn-hover-text);
 }
 
-.app-btn-action-unsecure {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #b45309;
-    border: 1px solid rgba(245, 158, 11, 0.35);
+.dark .app-btn-action-copy,
+.dark .app-btn-action-unsecure,
+.dark .app-btn-action-secure {
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
 }
 
-.app-btn-action-unsecure:hover {
-    background-color: rgba(245, 158, 11, 0.22);
-    color: #92400e;
-}
-
-.app-btn-action-secure {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #047857;
-    border: 1px solid rgba(16, 185, 129, 0.35);
-}
-
-.app-btn-action-secure:hover {
-    background-color: rgba(16, 185, 129, 0.22);
-    color: #065f46;
-}
-
-.dark .app-btn-action-copy {
-    background-color: rgba(99, 102, 241, 0.15);
-    color: #a5b4fc;
-    border: 1px solid rgba(99, 102, 241, 0.3);
-}
-
-.dark .app-btn-action-copy:hover {
-    background-color: rgba(99, 102, 241, 0.25);
-    color: #c7d2fe;
+.dark .app-btn-action-copy:hover,
+.dark .app-btn-action-unsecure:hover,
+.dark .app-btn-action-secure:hover {
+    background-color: var(--color-btn-hover-bg);
+    color: var(--color-btn-hover-text);
 }
 
 .dark .app-btn-action-copy.copied {
-    background-color: rgba(16, 185, 129, 0.2);
-    border-color: rgba(16, 185, 129, 0.5);
-    color: #34d399;
-}
-
-.dark .app-btn-action-unsecure {
-    background-color: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
-    border: 1px solid rgba(245, 158, 11, 0.3);
-}
-
-.dark .app-btn-action-unsecure:hover {
-    background-color: rgba(245, 158, 11, 0.25);
-    color: #fef3c7;
-}
-
-.dark .app-btn-action-secure {
-    background-color: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-    border: 1px solid rgba(16, 185, 129, 0.3);
-}
-
-.dark .app-btn-action-secure:hover {
-    background-color: rgba(16, 185, 129, 0.25);
-    color: #d1fae5;
+    background-color: var(--color-btn-hover-bg);
+    border-color: var(--color-btn-border);
+    color: var(--color-btn-hover-text);
 }
 
 /* Row Action Buttons (Loan Table) */
-.app-row-btn-unsecure {
-    background-color: rgba(245, 158, 11, 0.12);
-    color: #b45309;
-    border: 1px solid rgba(245, 158, 11, 0.35);
-}
-
-.app-row-btn-unsecure:hover {
-    background-color: rgba(245, 158, 11, 0.22);
-    color: #92400e;
-}
-
-.dark .app-row-btn-unsecure {
-    background-color: rgba(245, 158, 11, 0.15);
-    color: #fbbf24;
-    border-color: rgba(245, 158, 11, 0.3);
-}
-
-.dark .app-row-btn-unsecure:hover {
-    background-color: rgba(245, 158, 11, 0.25);
-    color: #fef3c7;
-}
-
+.app-row-btn-unsecure,
 .app-row-btn-secure {
-    background-color: rgba(16, 185, 129, 0.12);
-    color: #047857;
-    border: 1px solid rgba(16, 185, 129, 0.35);
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
 }
 
+.app-row-btn-unsecure:hover,
 .app-row-btn-secure:hover {
-    background-color: rgba(16, 185, 129, 0.22);
-    color: #065f46;
+    background-color: var(--color-btn-hover-bg);
+    color: var(--color-btn-hover-text);
 }
 
+.dark .app-row-btn-unsecure,
 .dark .app-row-btn-secure {
-    background-color: rgba(16, 185, 129, 0.15);
-    color: #34d399;
-    border-color: rgba(16, 185, 129, 0.3);
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
 }
 
+.dark .app-row-btn-unsecure:hover,
 .dark .app-row-btn-secure:hover {
-    background-color: rgba(16, 185, 129, 0.25);
-    color: #d1fae5;
+    background-color: var(--color-btn-hover-bg);
+    color: var(--color-btn-hover-text);
 }
 
 /* Table Action Banners */

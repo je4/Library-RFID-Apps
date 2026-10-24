@@ -57,7 +57,7 @@
         <!-- Top Right Actions & SSE Status Badge -->
         <div class="flex items-center space-x-3">
             <!-- Back to Channels Index Button -->
-            <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
+            <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
                 <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
                 </svg>
@@ -65,15 +65,21 @@
             </a>
 
             <!-- Audio Feedback Toggle Button -->
-            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton bei Scan umschalten">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton einschalten">
+                <!-- Icon when sound is OFF: Speaker with waves (Click to enable) -->
+                <svg class="w-4 h-4 sound-icon-enable" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                </svg>
+                <!-- Icon when sound is ON: Speaker muted with X (Click to disable) -->
+                <svg class="w-4 h-4 sound-icon-disable hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9l4 4m0-4l-4 4"></path>
                 </svg>
                 <span>Ton</span>
             </button>
 
             <!-- SSE Status Badge -->
-            <div id="sse-status-container" class="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-xs app-sse-badge">
+            <div id="sse-status-container" class="flex items-center space-x-2 px-3 py-1.5 rounded text-xs app-sse-badge">
                 <span id="sse-status-dot" class="w-2 h-2 rounded-full"></span>
                 <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
             </div>
