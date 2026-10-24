@@ -44,6 +44,23 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for tailwind CSS, got %d", recStatic.Code)
 	}
 
+	reqDeskCSS := httptest.NewRequest(http.MethodGet, "/static/css/desk.css", nil)
+	recDeskCSS := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDeskCSS, reqDeskCSS)
+	if recDeskCSS.Code != http.StatusOK {
+		t.Errorf("expected 200 for desk.css, got %d", recDeskCSS.Code)
+	}
+	if !strings.Contains(recDeskCSS.Body.String(), "--color-bg-image") || !strings.Contains(recDeskCSS.Body.String(), "background.jpg") {
+		t.Errorf("expected desk.css to contain background image variable, got %s", recDeskCSS.Body.String())
+	}
+
+	reqBgImg := httptest.NewRequest(http.MethodGet, "/static/img/background.jpg", nil)
+	recBgImg := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recBgImg, reqBgImg)
+	if recBgImg.Code != http.StatusOK {
+		t.Errorf("expected 200 for background.jpg, got %d", recBgImg.Code)
+	}
+
 	reqHTMX := httptest.NewRequest(http.MethodGet, "/static/js/htmx-4.0.js", nil)
 	recHTMX := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recHTMX, reqHTMX)
@@ -186,6 +203,9 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	}
 	if !strings.Contains(bodyLoan, `nav-desk-btn`) || !strings.Contains(bodyLoan, `href="."`) {
 		t.Errorf("expected /rfid/loan to contain relative link back to RFID Desk, got %s", bodyLoan)
+	}
+	if !strings.Contains(bodyLoan, "afi-modal-overlay") || !strings.Contains(bodyLoan, "AFI wird geschrieben") {
+		t.Errorf("expected /rfid/loan to contain afi-modal-overlay, got %s", bodyLoan)
 	}
 
 	// 8. Test Reader Qualification for Active Media on /rfid/loan
@@ -1272,4 +1292,79 @@ func TestController_LoanAFI_ClusteredByReader(t *testing.T) {
 		}
 	}
 	writeCallsMu.Unlock()
+}
+
+func TestController_HeaderFooterTemplates(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Index Page Header & Footer verification
+	reqIndex := httptest.NewRequest(http.MethodGet, "/", nil)
+	recIndex := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recIndex, reqIndex)
+	if recIndex.Code != http.StatusOK {
+		t.Fatalf("expected 200 for index, got %d", recIndex.Code)
+	}
+	bodyIndex := recIndex.Body.String()
+	if !strings.Contains(bodyIndex, "Channel-Auswahl") {
+		t.Errorf("expected index header to have 'Channel-Auswahl', got: %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, "RFID Desk &copy; 2026 info-age GmbH, Basel") {
+		t.Errorf("expected index footer copyright, got: %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, "Webserver: <span class=\"server-addr\">localhost:8762</span>") {
+		t.Errorf("expected index footer server addr, got: %s", bodyIndex)
+	}
+
+	// 2. Desk Dashboard Page Header & Footer verification
+	reqDesk := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	recDesk := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDesk, reqDesk)
+	if recDesk.Code != http.StatusOK {
+		t.Fatalf("expected 200 for desk, got %d", recDesk.Code)
+	}
+	bodyDesk := recDesk.Body.String()
+	if !strings.Contains(bodyDesk, "RFID Desk") || !strings.Contains(bodyDesk, "Channel: <strong>channel-1</strong>") {
+		t.Errorf("expected desk header channel, got: %s", bodyDesk)
+	}
+	if !strings.Contains(bodyDesk, "RFID Desk &copy; 2026 info-age GmbH, Basel") {
+		t.Errorf("expected desk footer copyright, got: %s", bodyDesk)
+	}
+	if !strings.Contains(bodyDesk, "nav-channels-btn") || !strings.Contains(bodyDesk, "sound-toggle") {
+		t.Errorf("expected desk header buttons, got: %s", bodyDesk)
+	}
+
+	// 3. Loan Page Header & Footer verification
+	reqLoan := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+	recLoan := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recLoan, reqLoan)
+	if recLoan.Code != http.StatusOK {
+		t.Fatalf("expected 200 for loan, got %d", recLoan.Code)
+	}
+	bodyLoan := recLoan.Body.String()
+	if !strings.Contains(bodyLoan, "Ausleihe &amp; Rückgabe") && !strings.Contains(bodyLoan, "Ausleihe & Rückgabe") {
+		t.Errorf("expected loan header title, got: %s", bodyLoan)
+	}
+	if !strings.Contains(bodyLoan, "nav-desk-btn") || !strings.Contains(bodyLoan, "nav-channels-btn") {
+		t.Errorf("expected loan header desk and channels buttons, got: %s", bodyLoan)
+	}
+	if !strings.Contains(bodyLoan, "RFID Desk &copy; 2026 info-age GmbH, Basel") {
+		t.Errorf("expected loan footer copyright, got: %s", bodyLoan)
+	}
 }

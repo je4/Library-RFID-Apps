@@ -43,8 +43,7 @@
     <td class="py-3.5 px-4 text-xs font-mono">
         {{if or .ISIL .Country}}
         <div class="flex items-center space-x-1">
-            {{if .Country}}<span>{{.Country}}</span>{{end}}
-            {{if .ISIL}}<span>{{.ISIL}}</span>{{end}}
+            <span>{{if .Country}}{{.Country}}-{{end}}{{if .ISIL}}{{.ISIL}}{{end}}</span>
         </div>
         {{else}}
         <span class="app-text-dim">-</span>

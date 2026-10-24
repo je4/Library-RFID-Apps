@@ -32,66 +32,7 @@
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
-    <!-- Header Bar with Navigation -->
-    <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
-        <div class="flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
-                </svg>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
-                    Ausleihe &amp; Rückgabe
-                    <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
-                </h1>
-                <p class="text-xs app-meta-text font-mono flex items-center gap-2">
-                    {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
-                    <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
-                    <span>&bull;</span>
-                    <span>Client: <strong>{{.ClientName}}</strong></span>
-                </p>
-            </div>
-        </div>
-
-        <div class="flex items-center space-x-3">
-            <!-- Back to Channels Selection Button -->
-            <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
-                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18"></path>
-                </svg>
-                <span>Channels</span>
-            </a>
-
-            <!-- Back to Desk Button (Relative to Channel) -->
-            <a href="." id="nav-desk-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
-                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
-                </svg>
-                <span>Desk</span>
-            </a>
-
-            <!-- Audio Feedback Toggle Button -->
-            <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton einschalten">
-                <!-- Icon when sound is OFF: Speaker with waves (Click to enable) -->
-                <svg class="w-4 h-4 sound-icon-enable" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                </svg>
-                <!-- Icon when sound is ON: Speaker muted with X (Click to disable) -->
-                <svg class="w-4 h-4 sound-icon-disable hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9l4 4m0-4l-4 4"></path>
-                </svg>
-                <span>Ton</span>
-            </button>
-
-            <!-- SSE Status Badge -->
-            <div id="sse-status-container" class="flex items-center space-x-2 px-3 py-1.5 rounded text-xs app-sse-badge">
-                <span id="sse-status-dot" class="w-2 h-2 rounded-full"></span>
-                <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
-            </div>
-        </div>
-    </header>
+    {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
     <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
@@ -190,7 +131,7 @@
                             <th scope="col" class="py-3 px-4">Item ID (Medium)</th>
                             <th scope="col" class="py-3 px-4">Transponder UID</th>
                             <th scope="col" class="py-3 px-4">Teile (Multi-Part)</th>
-                            <th scope="col" class="py-3 px-4">ISIL / Land</th>
+                            <th scope="col" class="py-3 px-4">ISIL</th>
                             <th scope="col" class="py-3 px-4">CRC Prüfsumme</th>
                             <th scope="col" class="py-3 px-4 app-afi-status-cell">AFI Sicherheitsstatus</th>
                             <th scope="col" class="py-3 px-4">Aktionen</th>
@@ -206,17 +147,32 @@
 
     </main>
 
-    <!-- Footer Bar -->
-    <footer class="w-full max-w-7xl mx-auto pt-6 mt-8 border-t app-footer flex flex-wrap justify-between items-center text-xs gap-4">
-        <div>
-            RFID Desk &copy; 2026 info-age GmbH, Basel
+    {{template "footer.gohtml" .}}
+
+    <!-- AFI Writing Modal Dialog / Waiting Overlay -->
+    <div id="afi-modal-overlay" class="app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="afi-modal-title">
+        <div class="app-afi-modal-dialog">
+            <div class="app-afi-spinner-container">
+                <div class="app-afi-spinner-ring"></div>
+                <div class="app-afi-spinner-icon" id="afi-modal-icon">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                </div>
+            </div>
+            <h3 id="afi-modal-title" class="app-afi-modal-title">AFI wird geschrieben...</h3>
+            <p id="afi-modal-message" class="app-afi-modal-desc">
+                Bitte warten Sie, bis der Sicherheitsstatus auf dem Lesefeld aktualisiert wurde. Bitte keine Medien vom Lesegerät entfernen.
+            </p>
+            <div class="app-afi-modal-badge">
+                <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
+                <span id="afi-modal-status-text">RFID-Kommunikation aktiv...</span>
+            </div>
+            <div id="afi-modal-timeout-hint" class="app-afi-modal-hint">
+                Timeout-Schutz aktiv (10s)
+            </div>
         </div>
-        <div class="flex items-center space-x-4 font-mono">
-            <span>Webserver: <span class="server-addr">{{.Addr}}</span></span>
-            <span>&bull;</span>
-            <span>WSBroker: <span class="broker-addr">{{.WSBroker}}</span></span>
-        </div>
-    </footer>
+    </div>
 
     <!-- Interactive script for audio, counters, copy-all and actions (Relative Path) -->
     <script src="../static/js/desk.js"></script>

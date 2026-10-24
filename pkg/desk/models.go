@@ -159,6 +159,11 @@ type DeskData struct {
 	Tags          []*TagItem
 }
 
+// IsLoan returns true if this data model represents the loan & return view.
+func (d DeskData) IsLoan() bool {
+	return false
+}
+
 // LoanData encapsulates the view model passed to loan and return web templates.
 type LoanData struct {
 	ClientName        string
@@ -175,4 +180,9 @@ type LoanData struct {
 	WriteSuccessCount int
 	WriteErrorCount   int
 	FailedItems       []string
+}
+
+// IsLoan returns true if this data model represents the loan & return view.
+func (d LoanData) IsLoan() bool {
+	return true
 }
