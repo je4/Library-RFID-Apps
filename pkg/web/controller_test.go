@@ -44,7 +44,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for tailwind CSS, got %d", recStatic.Code)
 	}
 
-	reqDeskCSS := httptest.NewRequest(http.MethodGet, "/static/css/desk.css", nil)
+	reqDeskCSS := httptest.NewRequest(http.MethodGet, "/static/scss/desk.css", nil)
 	recDeskCSS := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recDeskCSS, reqDeskCSS)
 	if recDeskCSS.Code != http.StatusOK {
@@ -52,6 +52,13 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	}
 	if !strings.Contains(recDeskCSS.Body.String(), "--color-bg-image") || !strings.Contains(recDeskCSS.Body.String(), "background.jpg") {
 		t.Errorf("expected desk.css to contain background image variable, got %s", recDeskCSS.Body.String())
+	}
+
+	reqDeskMap := httptest.NewRequest(http.MethodGet, "/static/scss/desk.css.map", nil)
+	recDeskMap := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDeskMap, reqDeskMap)
+	if recDeskMap.Code != http.StatusOK {
+		t.Errorf("expected 200 for desk.css.map, got %d", recDeskMap.Code)
 	}
 
 	reqBgImg := httptest.NewRequest(http.MethodGet, "/static/img/background.jpg", nil)

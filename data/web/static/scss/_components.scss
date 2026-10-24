@@ -1,0 +1,213 @@
+// ==========================================================================
+// Component Styles: Buttons, Cards, Badges, Inputs & Toolbars
+// ==========================================================================
+
+// Interactive Buttons
+.app-btn {
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+        background-color: var(--color-btn-hover-bg);
+        color: var(--color-btn-hover-text);
+    }
+
+    &.active {
+        background-color: var(--color-metric-total-bg);
+        border-color: var(--color-metric-total-border);
+        color: var(--color-metric-total-text);
+    }
+
+    &.is-busy,
+    &[disabled],
+    &.disabled {
+        opacity: 0.55 !important;
+        pointer-events: none !important;
+        cursor: not-allowed !important;
+    }
+
+    img,
+    svg {
+        flex-shrink: 0;
+        display: block;
+    }
+}
+
+// SSE Connection Status Badge
+.app-sse-badge {
+    background-color: var(--color-sse-connecting-bg);
+    border: 1px solid var(--color-sse-connecting-border);
+    color: var(--color-sse-connecting-text);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    #sse-status-dot {
+        background-color: var(--color-sse-connecting-dot);
+    }
+
+    #sse-status-text {
+        color: var(--color-sse-connecting-text);
+    }
+
+    &.connected {
+        background-color: var(--color-sse-connected-bg);
+        border-color: var(--color-sse-connected-border);
+        color: var(--color-sse-connected-text);
+
+        #sse-status-dot {
+            background-color: var(--color-sse-connected-dot);
+        }
+
+        #sse-status-text {
+            color: var(--color-sse-connected-text);
+        }
+    }
+
+    &.connecting {
+        background-color: var(--color-sse-connecting-bg);
+        border-color: var(--color-sse-connecting-border);
+        color: var(--color-sse-connecting-text);
+
+        #sse-status-dot {
+            background-color: var(--color-sse-connecting-dot);
+        }
+
+        #sse-status-text {
+            color: var(--color-sse-connecting-text);
+        }
+    }
+}
+
+// Metric Stat Cards
+.app-card {
+    background-color: var(--color-card-bg);
+    border: 1px solid var(--color-card-border);
+    box-shadow: var(--color-card-shadow);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.app-metric-label {
+    color: var(--color-text-muted);
+}
+
+.app-metric-val {
+    color: var(--color-text-main);
+}
+
+.app-icon-box-blue {
+    background-color: var(--color-metric-total-bg);
+    border: 1px solid var(--color-metric-total-border);
+    color: var(--color-metric-total-text);
+}
+
+.app-icon-box-indigo {
+    background-color: var(--color-metric-channel-bg);
+    border: 1px solid var(--color-metric-channel-border);
+    color: var(--color-metric-channel-text);
+}
+
+.app-metric-val-indigo {
+    color: var(--color-metric-channel-text);
+}
+
+.app-icon-box-cyan {
+    background-color: var(--color-metric-reader-bg);
+    border: 1px solid var(--color-metric-reader-border);
+    color: var(--color-metric-reader-text);
+}
+
+.app-metric-val-cyan {
+    color: var(--color-metric-reader-text);
+}
+
+.app-icon-box-emerald {
+    background-color: var(--color-metric-uptime-bg);
+    border: 1px solid var(--color-metric-uptime-border);
+    color: var(--color-metric-uptime-text);
+}
+
+.app-metric-val-emerald {
+    color: var(--color-metric-uptime-text);
+}
+
+// Main Panel & Toolbar
+.app-panel {
+    background: var(--color-panel-bg);
+    border-color: var(--color-panel-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+
+.app-panel-toolbar {
+    background-color: var(--color-panel-toolbar-bg);
+    border-color: var(--color-panel-toolbar-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.app-panel-title {
+    color: var(--color-text-main);
+}
+
+.app-count-badge {
+    background-color: var(--color-badge-count-bg);
+    color: var(--color-badge-count-text);
+    border: 1px solid var(--color-badge-count-border);
+}
+
+.app-input {
+    background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-input-text);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    &::placeholder {
+        color: var(--color-input-placeholder);
+    }
+}
+
+.app-clear-btn {
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+
+    &:hover {
+        background-color: var(--color-tag-crc-err-bg);
+        color: var(--color-tag-crc-err-text);
+        border-color: var(--color-tag-crc-err-border);
+    }
+}
+
+// Action Status Notification Banners
+.app-notification-success {
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    border-color: rgba(16, 185, 129, 0.3) !important;
+    color: #047857 !important;
+}
+
+.dark .app-notification-success {
+    background-color: rgba(16, 185, 129, 0.18) !important;
+    border-color: rgba(52, 211, 153, 0.35) !important;
+    color: #34d399 !important;
+}
+
+.app-notification-error {
+    background-color: rgba(244, 63, 94, 0.12) !important;
+    border-color: rgba(244, 63, 94, 0.3) !important;
+    color: #be123c !important;
+}
+
+.dark .app-notification-error {
+    background-color: rgba(244, 63, 94, 0.2) !important;
+    border-color: rgba(251, 113, 133, 0.35) !important;
+    color: #fda4af !important;
+}

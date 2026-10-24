@@ -1,0 +1,124 @@
+// ==========================================================================
+// Base Layout, Typography, Animations & Global Utilities
+// ==========================================================================
+
+// Base Body Theme with Ambient Background Image & Glassmorphism
+.app-body {
+    background-color: var(--color-bg-body);
+    background-image: var(--color-bg-overlay), var(--color-bg-image);
+    background-size: cover;
+    background-position: center center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    color: var(--color-text-main);
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+// Header & Meta
+.app-header {
+    border-color: var(--color-border-subtle);
+}
+
+.app-title {
+    color: var(--color-text-main);
+}
+
+.app-badge-status {
+    background-color: var(--color-badge-status-bg);
+    color: var(--color-badge-status-text);
+    border: 1px solid var(--color-badge-status-border);
+}
+
+.app-badge-status-cleared {
+    background-color: var(--color-tag-single-bg);
+    color: var(--color-tag-single-text);
+    border: 1px solid var(--color-tag-single-border);
+}
+
+.app-meta-text {
+    color: var(--color-text-muted);
+
+    strong {
+        color: var(--color-text-main);
+    }
+}
+
+// Footer
+.app-footer {
+    border-color: var(--color-border-subtle);
+    color: var(--color-text-dim);
+
+    .server-addr {
+        color: var(--color-text-muted);
+    }
+
+    .broker-addr {
+        color: var(--color-metric-total-text);
+    }
+}
+
+// Animations & Effects
+@keyframes scan-flash {
+    0% {
+        background-color: var(--scan-flash-bg);
+        box-shadow: 0 0 15px var(--scan-flash-shadow);
+    }
+    100% {
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+
+.animate-scan-flash {
+    animation: scan-flash 2.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-ring {
+    0% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+    50% {
+        transform: scale(1.15);
+        opacity: 0.3;
+    }
+    100% {
+        transform: scale(0.95);
+        opacity: 0.8;
+    }
+}
+
+.pulse-indicator {
+    animation: pulse-ring 2s infinite ease-in-out;
+}
+
+// Global Scrollbar
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: 9999px;
+
+    &:hover {
+        background: var(--color-scrollbar-thumb-hover);
+    }
+}
+
+// Fallback SVG & IMG scaling safeguards (ensures icons never blow up or distort)
+svg.w-3, img.w-3 { width: 0.75rem !important; height: 0.75rem !important; max-width: 0.75rem !important; max-height: 0.75rem !important; flex-shrink: 0 !important; }
+svg.w-3\.5, img.w-3\.5 { width: 0.875rem !important; height: 0.875rem !important; max-width: 0.875rem !important; max-height: 0.875rem !important; flex-shrink: 0 !important; }
+svg.w-4, img.w-4 { width: 1rem !important; height: 1rem !important; max-width: 1rem !important; max-height: 1rem !important; flex-shrink: 0 !important; }
+svg.w-5, img.w-5 { width: 1.25rem !important; height: 1.25rem !important; max-width: 1.25rem !important; max-height: 1.25rem !important; flex-shrink: 0 !important; }
+svg.w-6, img.w-6 { width: 1.5rem !important; height: 1.5rem !important; max-width: 1.5rem !important; max-height: 1.5rem !important; flex-shrink: 0 !important; }
+svg.w-7, img.w-7 { width: 1.75rem !important; height: 1.75rem !important; max-width: 1.75rem !important; max-height: 1.75rem !important; flex-shrink: 0 !important; }
+svg.w-8, img.w-8 { width: 2rem !important; height: 2rem !important; max-width: 2rem !important; max-height: 2rem !important; flex-shrink: 0 !important; }
+svg.w-10, img.w-10 { width: 2.5rem !important; height: 2.5rem !important; max-width: 2.5rem !important; max-height: 2.5rem !important; flex-shrink: 0 !important; }
+svg.w-11, img.w-11 { width: 2.75rem !important; height: 2.75rem !important; max-width: 2.75rem !important; max-height: 2.75rem !important; flex-shrink: 0 !important; }
+svg.w-12, img.w-12 { width: 3rem !important; height: 3rem !important; max-width: 3rem !important; max-height: 3rem !important; flex-shrink: 0 !important; }

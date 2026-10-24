@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="../static/css/tailwind.min.css">
     <script src="../static/js/htmx-4.0.js"></script>
     <script src="../static/js/hx-sse.js"></script>
-    <link rel="stylesheet" href="../static/css/desk.css">
+    <link rel="stylesheet" href="../static/scss/desk.css">
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
@@ -87,20 +87,20 @@
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-3">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-all inline-flex items-center gap-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
-                        <img src="../static/img/copy.svg" class="w-4 h-4" alt="Kopieren" />
+                    <button id="btn-copy-all-itemids" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-all inline-flex items-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                        <img src="../static/img/copy.svg" class="w-4 h-4 shrink-0 block" alt="Kopieren" />
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-all inline-flex items-center gap-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
-                        <img src="../static/img/lock-open-emerald.svg" class="w-4 h-4" alt="Entsichern" />
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-all inline-flex items-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                        <img src="../static/img/lock-open-emerald.svg" class="w-4 h-4 shrink-0 block" alt="Entsichern" />
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-all inline-flex items-center gap-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
-                        <img src="../static/img/lock-blue.svg" class="w-4 h-4" alt="Sichern" />
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-all inline-flex items-center gap-1.5 whitespace-nowrap focus:ring-2 focus:ring-blue-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                        <img src="../static/img/lock-blue.svg" class="w-4 h-4 shrink-0 block" alt="Sichern" />
                         <span>Sichern</span>
                     </button>
                 </div>

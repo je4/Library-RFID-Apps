@@ -225,18 +225,18 @@
                     hx-post="loan/afi/unsecure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
-                    class="px-2 py-1 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                    class="px-2.5 py-1 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
                     title="Diesen Transponder einzeln entsichern (C2)">
-                <img src="../static/img/lock-open-emerald.svg" class="w-3 h-3" alt="Entsichern" />
+                <img src="../static/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Entsichern" />
                 <span>Entsichern</span>
             </button>
             <button type="button"
                     hx-post="loan/afi/secure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
-                    class="px-2 py-1 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                    class="px-2.5 py-1 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
                     title="Diesen Transponder einzeln sichern (07)">
-                <img src="../static/img/lock-blue.svg" class="w-3 h-3" alt="Sichern" />
+                <img src="../static/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Sichern" />
                 <span>Sichern</span>
             </button>
         </div>

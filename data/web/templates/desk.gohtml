@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="../static/css/tailwind.min.css">
     <script src="../static/js/htmx-4.0.js"></script>
     <script src="../static/js/hx-sse.js"></script>
-    <link rel="stylesheet" href="../static/css/desk.css">
+    <link rel="stylesheet" href="../static/scss/desk.css">
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
@@ -122,8 +122,8 @@
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
-                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-clear-btn transition-colors inline-flex items-center gap-1.5" title="Transponder-Liste leeren">
-                        <img src="../static/img/trash.svg" class="w-3.5 h-3.5" alt="Leeren" />
+                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-clear-btn transition-colors inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer" title="Transponder-Liste leeren">
+                        <img src="../static/img/trash.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Leeren" />
                         <span>Leeren</span>
                     </button>
                 </div>

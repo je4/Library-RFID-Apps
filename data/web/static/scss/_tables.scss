@@ -1,0 +1,329 @@
+// ==========================================================================
+// Table Styles: Rows, Cells, Status Tags, Stream Scroll & Row Actions
+// ==========================================================================
+
+// Table Rows & Tag Container
+.app-tag-row {
+    border-color: var(--color-table-row-border);
+    position: relative;
+
+    &:hover {
+        background-color: var(--color-table-row-hover);
+        z-index: 40;
+
+        .app-uid-box {
+            border-color: var(--color-tag-uid-hover-border);
+        }
+    }
+
+    &:focus-within {
+        z-index: 50;
+    }
+}
+
+.app-tag-item-id {
+    color: var(--color-tag-item-id);
+}
+
+.app-text-dim {
+    color: var(--color-text-dim);
+}
+
+// UID Tag Box & Copy Button
+.app-uid-box {
+    background-color: var(--color-tag-uid-bg);
+    border: 1px solid var(--color-tag-uid-border);
+    color: var(--color-tag-uid-text);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.app-copy-btn {
+    color: var(--color-text-dim);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+    vertical-align: middle;
+
+    &:hover {
+        color: var(--color-text-main);
+    }
+
+    img,
+    svg {
+        width: 0.875rem !important;
+        height: 0.875rem !important;
+        min-width: 0.875rem !important;
+        min-height: 0.875rem !important;
+        max-width: 0.875rem !important;
+        max-height: 0.875rem !important;
+        flex-shrink: 0 !important;
+        display: block;
+    }
+}
+
+// Country & Reader Badges
+.app-country-badge {
+    background-color: var(--color-tag-country-bg);
+    color: var(--color-tag-country-text);
+}
+
+.app-reader-badge {
+    background-color: var(--color-tag-reader-bg);
+    color: var(--color-tag-reader-text);
+    border: 1px solid var(--color-tag-reader-border);
+}
+
+.app-channel-badge {
+    background-color: rgba(6, 182, 212, 0.12);
+    color: #0891b2;
+    border: 1px solid rgba(6, 182, 212, 0.3);
+}
+
+.dark .app-channel-badge {
+    background-color: rgba(6, 182, 212, 0.18);
+    color: #38bdf8;
+    border-color: rgba(6, 182, 212, 0.35);
+}
+
+.app-isil-text {
+    color: var(--color-tag-isil-text);
+}
+
+// Status Badges (Multipart, CRC, AFI)
+.app-badge-multipart {
+    background-color: var(--color-tag-multipart-bg);
+    color: var(--color-tag-multipart-text);
+    border: 1px solid var(--color-tag-multipart-border);
+}
+
+.app-badge-single {
+    background-color: var(--color-tag-single-bg);
+    color: var(--color-tag-single-text);
+    border: 1px solid var(--color-tag-single-border);
+}
+
+.app-badge-crc-ok {
+    background-color: var(--color-tag-crc-ok-bg);
+    color: var(--color-tag-crc-ok-text);
+    border: 1px solid var(--color-tag-crc-ok-border);
+}
+
+.app-badge-crc-err {
+    background-color: var(--color-tag-crc-err-bg);
+    color: var(--color-tag-crc-err-text);
+    border: 1px solid var(--color-tag-crc-err-border);
+}
+
+.app-badge-afi {
+    background-color: var(--color-tag-afi-bg);
+    color: var(--color-tag-afi-text);
+    border: 1px solid var(--color-tag-afi-border);
+}
+
+.app-badge-afi-secured {
+    background-color: var(--color-tag-afi-secured-bg);
+    color: var(--color-tag-afi-secured-text);
+    border: 1px solid var(--color-tag-afi-secured-border);
+}
+
+.app-badge-afi-unsecured {
+    background-color: var(--color-tag-afi-unsecured-bg);
+    color: var(--color-tag-afi-unsecured-text);
+    border: 1px solid var(--color-tag-afi-unsecured-border);
+}
+
+// AFI Status column & multiline error message
+.app-afi-status-cell {
+    max-width: 240px;
+    min-width: 160px;
+    width: 220px;
+}
+
+.app-afi-error-text {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #e11d48;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    margin-top: 0.25rem;
+}
+
+.dark .app-afi-error-text {
+    color: #fb7185;
+}
+
+.app-afi-write-success {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.dark .app-afi-write-success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.app-afi-write-error {
+    background-color: rgba(244, 63, 94, 0.15);
+    color: #e11d48;
+    border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.dark .app-afi-write-error {
+    background-color: rgba(244, 63, 94, 0.2);
+    color: #fb7185;
+    border-color: rgba(244, 63, 94, 0.4);
+}
+
+.app-afi-write-pending {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.dark .app-afi-write-pending {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+// Primary Action Buttons (Loan Toolbar)
+.app-btn-action-copy,
+.app-btn-action-unsecure,
+.app-btn-action-secure {
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
+
+    &:hover {
+        background-color: var(--color-btn-hover-bg);
+        color: var(--color-btn-hover-text);
+    }
+
+    &.copied {
+        background-color: var(--color-btn-hover-bg);
+        border-color: var(--color-btn-border);
+        color: var(--color-btn-hover-text);
+    }
+}
+
+.dark {
+    .app-btn-action-copy,
+    .app-btn-action-unsecure,
+    .app-btn-action-secure {
+        background-color: var(--color-btn-bg);
+        color: var(--color-btn-text);
+        border: 1px solid var(--color-btn-border);
+
+        &:hover {
+            background-color: var(--color-btn-hover-bg);
+            color: var(--color-btn-hover-text);
+        }
+
+        &.copied {
+            background-color: var(--color-btn-hover-bg);
+            border-color: var(--color-btn-border);
+            color: var(--color-btn-hover-text);
+        }
+    }
+}
+
+// Row Action Buttons (Loan Table)
+.app-row-btn-unsecure,
+.app-row-btn-secure {
+    background-color: var(--color-btn-bg);
+    color: var(--color-btn-text);
+    border: 1px solid var(--color-btn-border);
+
+    &:hover {
+        background-color: var(--color-btn-hover-bg);
+        color: var(--color-btn-hover-text);
+    }
+}
+
+.dark {
+    .app-row-btn-unsecure,
+    .app-row-btn-secure {
+        background-color: var(--color-btn-bg);
+        color: var(--color-btn-text);
+        border: 1px solid var(--color-btn-border);
+
+        &:hover {
+            background-color: var(--color-btn-hover-bg);
+            color: var(--color-btn-hover-text);
+        }
+    }
+}
+
+// Table Action Banners
+.app-loan-banner-error {
+    background-color: rgba(244, 63, 94, 0.1);
+    border-bottom: 1px solid rgba(244, 63, 94, 0.3);
+    color: #e11d48;
+}
+
+.dark .app-loan-banner-error {
+    background-color: rgba(244, 63, 94, 0.15);
+    border-bottom-color: rgba(244, 63, 94, 0.35);
+    color: #fb7185;
+}
+
+.app-loan-banner-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+.dark .app-loan-banner-success {
+    background-color: rgba(16, 185, 129, 0.15);
+    border-bottom-color: rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+
+// Timestamps & Empty State
+.app-time-text {
+    color: var(--color-text-main);
+}
+
+.app-time-ago {
+    color: var(--color-text-dim);
+}
+
+.app-empty-icon {
+    color: var(--color-text-dim);
+}
+
+.app-empty-title {
+    color: var(--color-text-muted);
+}
+
+.app-empty-desc {
+    color: var(--color-text-dim);
+}
+
+// Transponder stream scroll container & sticky header styling
+.transponder-stream-scroll {
+    overflow-y: auto;
+    overflow-x: auto;
+    max-height: 560px;
+    min-height: 360px;
+    scroll-behavior: smooth;
+
+    thead th {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background-color: var(--color-table-header-bg);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--color-table-header-text);
+        border-bottom: 1px solid var(--color-table-header-border);
+    }
+}
