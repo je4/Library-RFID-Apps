@@ -214,12 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(clipboardText).then(() => {
                     if (copyLabel) copyLabel.textContent = `Kopiert (${itemIds.length})`;
-                    copyAllBtn.classList.add('bg-emerald-600');
-                    copyAllBtn.classList.remove('bg-indigo-600');
+                    copyAllBtn.classList.add('copied');
                     setTimeout(() => {
                         if (copyLabel) copyLabel.textContent = originalLabel;
-                        copyAllBtn.classList.remove('bg-emerald-600');
-                        copyAllBtn.classList.add('bg-indigo-600');
+                        copyAllBtn.classList.remove('copied');
                     }, 2000);
                 }).catch((err) => {
                     console.error('Clipboard copy failed:', err);

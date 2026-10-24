@@ -655,6 +655,203 @@
     border: 1px solid var(--color-tag-afi-unsecured-border);
 }
 
+/* AFI Status column & multiline error message */
+.app-afi-status-cell {
+    max-width: 240px;
+    min-width: 160px;
+    width: 220px;
+}
+
+.app-afi-error-text {
+    font-size: 11px;
+    line-height: 1.35;
+    color: #e11d48;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+    margin-top: 0.25rem;
+}
+
+.dark .app-afi-error-text {
+    color: #fb7185;
+}
+
+.app-afi-write-success {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #059669;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.dark .app-afi-write-success {
+    background-color: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.app-afi-write-error {
+    background-color: rgba(244, 63, 94, 0.15);
+    color: #e11d48;
+    border: 1px solid rgba(244, 63, 94, 0.35);
+}
+
+.dark .app-afi-write-error {
+    background-color: rgba(244, 63, 94, 0.2);
+    color: #fb7185;
+    border-color: rgba(244, 63, 94, 0.4);
+}
+
+.app-afi-write-pending {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #2563eb;
+    border: 1px solid rgba(59, 130, 246, 0.35);
+}
+
+.dark .app-afi-write-pending {
+    background-color: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+    border-color: rgba(59, 130, 246, 0.4);
+}
+
+/* Primary Action Buttons (Loan Toolbar) */
+.app-btn-action-copy {
+    background-color: #4f46e5;
+    color: #ffffff !important;
+    border: 1px solid #4338ca;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.25), 0 2px 4px -2px rgba(79, 70, 229, 0.25);
+}
+
+.app-btn-action-copy:hover {
+    background-color: #4338ca;
+    color: #ffffff !important;
+}
+
+.app-btn-action-copy.copied {
+    background-color: #059669;
+    border-color: #047857;
+    color: #ffffff !important;
+}
+
+.app-btn-action-unsecure {
+    background-color: #d97706;
+    color: #ffffff !important;
+    border: 1px solid #b45309;
+    box-shadow: 0 4px 6px -1px rgba(217, 119, 6, 0.25), 0 2px 4px -2px rgba(217, 119, 6, 0.25);
+}
+
+.app-btn-action-unsecure:hover {
+    background-color: #b45309;
+    color: #ffffff !important;
+}
+
+.app-btn-action-secure {
+    background-color: #059669;
+    color: #ffffff !important;
+    border: 1px solid #047857;
+    box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.25), 0 2px 4px -2px rgba(5, 150, 105, 0.25);
+}
+
+.app-btn-action-secure:hover {
+    background-color: #047857;
+    color: #ffffff !important;
+}
+
+.dark .app-btn-action-copy {
+    background-color: #4338ca;
+    border-color: #3730a3;
+}
+
+.dark .app-btn-action-copy:hover {
+    background-color: #3730a3;
+}
+
+.dark .app-btn-action-unsecure {
+    background-color: #b45309;
+    border-color: #92400e;
+}
+
+.dark .app-btn-action-unsecure:hover {
+    background-color: #92400e;
+}
+
+.dark .app-btn-action-secure {
+    background-color: #047857;
+    border-color: #065f46;
+}
+
+.dark .app-btn-action-secure:hover {
+    background-color: #065f46;
+}
+
+/* Row Action Buttons (Loan Table) */
+.app-row-btn-unsecure {
+    background-color: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.35);
+}
+
+.app-row-btn-unsecure:hover {
+    background-color: rgba(245, 158, 11, 0.22);
+    color: #92400e;
+}
+
+.dark .app-row-btn-unsecure {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+    border-color: rgba(245, 158, 11, 0.3);
+}
+
+.dark .app-row-btn-unsecure:hover {
+    background-color: rgba(245, 158, 11, 0.25);
+    color: #fef3c7;
+}
+
+.app-row-btn-secure {
+    background-color: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+}
+
+.app-row-btn-secure:hover {
+    background-color: rgba(16, 185, 129, 0.22);
+    color: #065f46;
+}
+
+.dark .app-row-btn-secure {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.3);
+}
+
+.dark .app-row-btn-secure:hover {
+    background-color: rgba(16, 185, 129, 0.25);
+    color: #d1fae5;
+}
+
+/* Table Action Banners */
+.app-loan-banner-error {
+    background-color: rgba(244, 63, 94, 0.1);
+    border-bottom: 1px solid rgba(244, 63, 94, 0.3);
+    color: #e11d48;
+}
+
+.dark .app-loan-banner-error {
+    background-color: rgba(244, 63, 94, 0.15);
+    border-bottom-color: rgba(244, 63, 94, 0.35);
+    color: #fb7185;
+}
+
+.app-loan-banner-success {
+    background-color: rgba(16, 185, 129, 0.1);
+    border-bottom: 1px solid rgba(16, 185, 129, 0.3);
+    color: #059669;
+}
+
+.dark .app-loan-banner-success {
+    background-color: rgba(16, 185, 129, 0.15);
+    border-bottom-color: rgba(16, 185, 129, 0.35);
+    color: #34d399;
+}
+
 .app-time-text {
     color: var(--color-text-main);
 }

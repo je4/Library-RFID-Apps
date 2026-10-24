@@ -127,6 +127,16 @@ func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
+	// If tag already exists in active tags and has write status, preserve status on re-scan
+	if existing, ok := h.activeTags[item.UID]; ok {
+		if item.AFIWriteStatus == "" && existing.AFIWriteStatus != "" {
+			item.AFIWriteStatus = existing.AFIWriteStatus
+			item.AFIWriteError = existing.AFIWriteError
+			item.AFIWriteTime = existing.AFIWriteTime
+			item.AFIWritePending = existing.AFIWritePending
+		}
+	}
+
 	// Prepend tag to front (newest first)
 	h.tags = append([]*TagItem{item}, h.tags...)
 	if len(h.tags) > h.maxTags {
@@ -257,14 +267,93 @@ func (h *Hub) UpdateActiveAFI(afi string, uids ...string) {
 	// Update active tags
 	for uid, item := range h.activeTags {
 		if len(uidMap) == 0 || uidMap[uid] {
-			item.SetAFI(afi)
+			item.SetAFIWriteSuccess(afi)
 		}
 	}
 
 	// Also update recent history items for consistency
 	for _, item := range h.tags {
 		if len(uidMap) == 0 || uidMap[item.UID] {
-			item.SetAFI(afi)
+			item.SetAFIWriteSuccess(afi)
+		}
+	}
+}
+
+// SetTagAFIResult records individual success or failure for a given tag UID.
+func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	trimmedUID := strings.TrimSpace(uid)
+	if trimmedUID == "" {
+		return
+	}
+
+	if item, ok := h.activeTags[trimmedUID]; ok {
+		if success {
+			item.SetAFIWriteSuccess(afi)
+		} else {
+			item.SetAFIWriteError(errStr)
+		}
+	}
+
+	for _, item := range h.tags {
+		if item.UID == trimmedUID {
+			if success {
+				item.SetAFIWriteSuccess(afi)
+			} else {
+				item.SetAFIWriteError(errStr)
+			}
+		}
+	}
+}
+
+// SetTagAFIPending marks specified UIDs (or all active tags) as pending write operation.
+func (h *Hub) SetTagAFIPending(uids ...string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	uidMap := make(map[string]bool)
+	for _, u := range uids {
+		if strings.TrimSpace(u) != "" {
+			uidMap[strings.TrimSpace(u)] = true
+		}
+	}
+
+	for uid, item := range h.activeTags {
+		if len(uidMap) == 0 || uidMap[uid] {
+			item.SetAFIWritePending()
+		}
+	}
+
+	for _, item := range h.tags {
+		if len(uidMap) == 0 || uidMap[item.UID] {
+			item.SetAFIWritePending()
+		}
+	}
+}
+
+// ClearActiveAFIWriteStatus clears the write status indicators on active tags.
+func (h *Hub) ClearActiveAFIWriteStatus(uids ...string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	uidMap := make(map[string]bool)
+	for _, u := range uids {
+		if strings.TrimSpace(u) != "" {
+			uidMap[strings.TrimSpace(u)] = true
+		}
+	}
+
+	for uid, item := range h.activeTags {
+		if len(uidMap) == 0 || uidMap[uid] {
+			item.ClearAFIWriteStatus()
+		}
+	}
+
+	for _, item := range h.tags {
+		if len(uidMap) == 0 || uidMap[item.UID] {
+			item.ClearAFIWriteStatus()
 		}
 	}
 }

@@ -358,3 +358,90 @@ func TestHub_MatchReader(t *testing.T) {
 		}
 	}
 }
+
+func TestHub_SetTagAFIResult(t *testing.T) {
+	hub := NewHub(10)
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "TAG-001",
+		ItemID: "BOOK-001",
+		AFI:    "07",
+	})
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "TAG-002",
+		ItemID: "BOOK-002",
+		AFI:    "07",
+	})
+
+	// Set success on TAG-001
+	hub.SetTagAFIResult("TAG-001", "C2", true, "")
+	// Set error on TAG-002
+	hub.SetTagAFIResult("TAG-002", "C2", false, "Antenna communication failure")
+
+	active := hub.GetActiveTags()
+	if len(active) != 2 {
+		t.Fatalf("expected 2 active tags, got %d", len(active))
+	}
+
+	var item1, item2 *TagItem
+	for _, item := range active {
+		if item.UID == "TAG-001" {
+			item1 = item
+		}
+		if item.UID == "TAG-002" {
+			item2 = item
+		}
+	}
+
+	if item1 == nil || item2 == nil {
+		t.Fatalf("could not find both active tags: item1=%v, item2=%v", item1, item2)
+	}
+
+	if item1.AFI != "C2" || item1.AFIWriteStatus != "success" || item1.AFIWriteError != "" {
+		t.Errorf("unexpected status for TAG-001: AFI=%s, Status=%s, Error=%s", item1.AFI, item1.AFIWriteStatus, item1.AFIWriteError)
+	}
+
+	if item2.AFI != "07" || item2.AFIWriteStatus != "error" || item2.AFIWriteError != "Antenna communication failure" {
+		t.Errorf("unexpected status for TAG-002: AFI=%s, Status=%s, Error=%s", item2.AFI, item2.AFIWriteStatus, item2.AFIWriteError)
+	}
+}
+
+func TestHub_AFIWriteStatusLifecycle(t *testing.T) {
+	hub := NewHub(10)
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "TAG-001",
+		ItemID: "BOOK-001",
+		AFI:    "07",
+	})
+
+	// Mark pending
+	hub.SetTagAFIPending("TAG-001")
+	tags := hub.GetActiveTags()
+	if len(tags) != 1 || !tags[0].AFIWritePending || tags[0].AFIWriteStatus != "pending" {
+		t.Fatalf("expected tag to be pending, got %+v", tags[0])
+	}
+
+	// Update with success
+	hub.SetTagAFIResult("TAG-001", "C2", true, "")
+	tags = hub.GetActiveTags()
+	if tags[0].AFIWritePending || tags[0].AFIWriteStatus != "success" || tags[0].AFI != "C2" {
+		t.Fatalf("expected tag to be success, got %+v", tags[0])
+	}
+
+	// Re-reading tag on reader pad preserves write status
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "TAG-001",
+		ItemID: "BOOK-001",
+		AFI:    "C2",
+	})
+	tags = hub.GetActiveTags()
+	if tags[0].AFIWriteStatus != "success" {
+		t.Fatalf("expected write status to be preserved on re-scan, got %s", tags[0].AFIWriteStatus)
+	}
+
+	// Clear write status
+	hub.ClearActiveAFIWriteStatus("TAG-001")
+	tags = hub.GetActiveTags()
+	if tags[0].AFIWriteStatus != "" || tags[0].AFIWriteError != "" {
+		t.Fatalf("expected write status to be cleared, got %+v", tags[0])
+	}
+}

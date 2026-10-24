@@ -75,26 +75,83 @@
     </td>
 
     <!-- AFI / Security Status -->
-    <td class="py-3.5 px-4 text-xs font-mono">
-        {{if .AFISecured}}
-        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold app-badge-afi-secured" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
-            <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
-            <span>Gesichert (07)</span>
-        </span>
-        {{else if .AFIUnsecured}}
-        <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold app-badge-afi-unsecured" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
-            <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
-            </svg>
-            <span>Entsichert (C2)</span>
-        </span>
-        {{else if .AFI}}
-        <span class="px-1.5 py-0.5 rounded app-badge-afi text-[11px]" title="AFI: {{.AFI}}">AFI: {{.AFI}}</span>
-        {{else}}
-        <span class="app-text-dim">-</span>
-        {{end}}
+    <td class="py-3.5 px-4 text-xs font-mono app-afi-status-cell">
+        <div class="flex flex-col space-y-1">
+            <div class="flex items-center space-x-1.5 flex-wrap gap-1">
+                {{if .AFISecured}}
+                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold app-badge-afi-secured" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
+                    <svg class="w-3 h-3 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                    <span>Gesichert (07)</span>
+                </span>
+                {{else if .AFIUnsecured}}
+                <span class="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold app-badge-afi-unsecured" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
+                    <svg class="w-3 h-3 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>Entsichert (C2)</span>
+                </span>
+                {{else if .AFI}}
+                <span class="px-1.5 py-0.5 rounded app-badge-afi text-[11px]" title="AFI: {{.AFI}}">AFI: {{.AFI}}</span>
+                {{else}}
+                <span class="app-text-dim">-</span>
+                {{end}}
+
+                {{if eq .AFIWriteStatus "success"}}
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold app-afi-write-success" title="AFI erfolgreich geschrieben">
+                    <svg class="w-2.5 h-2.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    <span>Erfolg</span>
+                </span>
+                {{else if eq .AFIWriteStatus "error"}}
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[10px] font-semibold app-afi-write-error" title="{{if .AFIWriteError}}{{.AFIWriteError}}{{else}}Fehler beim AFI-Schreiben{{end}}">
+                    <svg class="w-2.5 h-2.5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                    <span>Fehler</span>
+                </span>
+                {{else if or (eq .AFIWriteStatus "pending") .AFIWritePending}}
+                <span class="inline-flex items-center space-x-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium app-afi-write-pending animate-pulse">
+                    <span>Schreiben...</span>
+                </span>
+                {{end}}
+            </div>
+            {{if and (eq .AFIWriteStatus "error") .AFIWriteError}}
+            <div class="app-afi-error-text" title="{{.AFIWriteError}}">
+                {{.AFIWriteError}}
+            </div>
+            {{end}}
+        </div>
+    </td>
+
+    <!-- Individual Actions -->
+    <td class="py-3.5 px-4 text-xs whitespace-nowrap">
+        <div class="inline-flex items-center space-x-1.5">
+            <button type="button"
+                    hx-post="/loan/afi/unsecure?uid={{.UID}}"
+                    hx-target="#loan-table-body"
+                    hx-swap="innerHTML"
+                    class="px-2 py-1 text-[11px] font-medium rounded app-row-btn-unsecure transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                    title="Diesen Transponder einzeln entsichern (C2)">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
+                </svg>
+                <span>Entsichern</span>
+            </button>
+            <button type="button"
+                    hx-post="/loan/afi/secure?uid={{.UID}}"
+                    hx-target="#loan-table-body"
+                    hx-swap="innerHTML"
+                    class="px-2 py-1 text-[11px] font-medium rounded app-row-btn-secure transition-colors inline-flex items-center space-x-1 cursor-pointer"
+                    title="Diesen Transponder einzeln sichern (07)">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+                <span>Sichern</span>
+            </button>
+        </div>
     </td>
 
     <!-- Erfassungszeit -->

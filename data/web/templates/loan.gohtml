@@ -137,7 +137,7 @@
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2.5">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white shadow-md shadow-indigo-600/20 transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                    <button id="btn-copy-all-itemids" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg app-btn-action-copy transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
@@ -145,7 +145,7 @@
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="/loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white shadow-md shadow-amber-600/20 transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                    <button id="btn-unsecure" hx-post="/loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg app-btn-action-unsecure transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                         </svg>
@@ -153,7 +153,7 @@
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="/loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                    <button id="btn-secure" hx-post="/loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg app-btn-action-secure transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
                         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>
@@ -177,7 +177,8 @@
                             <th scope="col" class="py-3 px-4">Teile (Multi-Part)</th>
                             <th scope="col" class="py-3 px-4">ISIL / Land</th>
                             <th scope="col" class="py-3 px-4">CRC Prüfsumme</th>
-                            <th scope="col" class="py-3 px-4">AFI Sicherheitsstatus</th>
+                            <th scope="col" class="py-3 px-4 app-afi-status-cell">AFI Sicherheitsstatus</th>
+                            <th scope="col" class="py-3 px-4">Aktionen</th>
                             <th scope="col" class="py-3 px-4 text-right">Zuletzt erfasst</th>
                         </tr>
                     </thead>

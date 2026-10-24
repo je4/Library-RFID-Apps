@@ -113,6 +113,7 @@ func (ctrl *Controller) init() error {
 	ctrl.router.GET("/loan/tags", ctrl.handleLoanTagsFragment)
 	ctrl.router.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
 	ctrl.router.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)
+	ctrl.router.POST("/loan/afi/single", ctrl.handleLoanAFISingle)
 	ctrl.router.GET("/events", ctrl.handleSSE)
 	ctrl.router.POST("/tags/clear", ctrl.handleClearTags)
 
@@ -209,15 +210,25 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *rfidclient.WriteAFIResponse
 		return
 	}
 
-	data := ctrl.getLoanData()
 	if resp.IsSuccess() {
 		if resp.UID != "" {
-			ctrl.hub.UpdateActiveAFI(resp.AFI, resp.UID)
+			ctrl.hub.SetTagAFIResult(resp.UID, resp.AFI, true, "")
 		} else {
 			ctrl.hub.UpdateActiveAFI(resp.AFI)
 		}
-		data = ctrl.getLoanData()
-		statusName := rfidclient.AFISecurityStatus(resp.AFI)
+	} else {
+		errMsg := resp.GetError()
+		if errMsg == "" {
+			errMsg = "Unbekannter Fehler beim Schreiben der AFI"
+		}
+		if resp.UID != "" {
+			ctrl.hub.SetTagAFIResult(resp.UID, resp.AFI, false, errMsg)
+		}
+	}
+
+	data := ctrl.getLoanData()
+	statusName := rfidclient.AFISecurityStatus(resp.AFI)
+	if resp.IsSuccess() {
 		if resp.UID != "" {
 			data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) für Transponder %s gesetzt.", statusName, resp.AFI, resp.UID)
 		} else {
@@ -272,15 +283,39 @@ func (ctrl *Controller) getDeskData() desk.DeskData {
 
 func (ctrl *Controller) getLoanData() desk.LoanData {
 	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
+	tags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+	successCount := 0
+	errorCount := 0
+	var failedItems []string
+	for _, item := range tags {
+		if item.AFIWriteStatus == "success" {
+			successCount++
+		} else if item.AFIWriteStatus == "error" {
+			errorCount++
+			label := item.ItemID
+			if label == "" {
+				label = item.UID
+			}
+			if item.AFIWriteError != "" {
+				failedItems = append(failedItems, fmt.Sprintf("%s (%s)", label, item.AFIWriteError))
+			} else {
+				failedItems = append(failedItems, label)
+			}
+		}
+	}
+
 	return desk.LoanData{
-		ClientName:    ctrl.cfg.ClientName,
-		WSBroker:      ctrl.cfg.WSBroker,
-		Channels:      ctrl.cfg.Channels,
-		DefaultReader: ctrl.cfg.DefaultReader,
-		Addr:          ctrl.cfg.Addr,
-		ExtAddr:       ctrl.cfg.ExtAddr,
-		Uptime:        uptime,
-		Tags:          ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader),
+		ClientName:        ctrl.cfg.ClientName,
+		WSBroker:          ctrl.cfg.WSBroker,
+		Channels:          ctrl.cfg.Channels,
+		DefaultReader:     ctrl.cfg.DefaultReader,
+		Addr:              ctrl.cfg.Addr,
+		ExtAddr:           ctrl.cfg.ExtAddr,
+		Uptime:            uptime,
+		Tags:              tags,
+		WriteSuccessCount: successCount,
+		WriteErrorCount:   errorCount,
+		FailedItems:       failedItems,
 	}
 }
 
@@ -306,9 +341,37 @@ func (ctrl *Controller) handleLoanTagsFragment(c *gin.Context) {
 
 func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	ctx := c.Request.Context()
+	targetUID := strings.TrimSpace(c.Query("uid"))
+	if targetUID == "" {
+		targetUID = strings.TrimSpace(c.PostForm("uid"))
+	}
+	if targetUID == "" {
+		var reqBody struct {
+			UID string `json:"uid"`
+		}
+		if err := c.ShouldBindJSON(&reqBody); err == nil && reqBody.UID != "" {
+			targetUID = strings.TrimSpace(reqBody.UID)
+		}
+	}
+
 	activeTags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
-	uids := make([]string, 0, len(activeTags))
-	for _, t := range activeTags {
+	var targets []*desk.TagItem
+	if targetUID != "" {
+		for _, t := range activeTags {
+			if t.UID == targetUID {
+				targets = append(targets, t)
+				break
+			}
+		}
+		if len(targets) == 0 {
+			targets = append(targets, &desk.TagItem{UID: targetUID})
+		}
+	} else {
+		targets = activeTags
+	}
+
+	uids := make([]string, 0, len(targets))
+	for _, t := range targets {
 		if t.UID != "" {
 			uids = append(uids, t.UID)
 		}
@@ -318,64 +381,46 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 		ctrl.logger.Info().
 			Str("afi", afi).
 			Str("status", rfidclient.AFISecurityStatus(afi)).
-			Int("activeTags", len(uids)).
+			Int("targets", len(uids)).
 			Strs("uids", uids).
 			Msg("AFI security update triggered from web desk")
 	}
 
-	var writeErr error
+	// Mark targeted tags as pending
+	if len(uids) > 0 {
+		ctrl.hub.SetTagAFIPending(uids...)
+	}
+
 	hadSyncWrite := false
+	var writeErrors []string
 
 	if ctrl.rfidClient != nil {
-		req := rfidclient.NewWriteAFIRequest(afi)
-		for _, ch := range ctrl.cfg.Channels {
-			if strings.TrimSpace(ch) != "" {
-				if err := ctrl.rfidClient.BroadcastAFI(ctx, ch, req); err != nil {
-					if writeErr == nil {
-						writeErr = err
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("channel", ch).Msg("failed to broadcast AFI update to channel")
-					}
+		if len(targets) == 0 {
+			req := rfidclient.NewWriteAFIRequest(afi)
+			for _, ch := range ctrl.cfg.Channels {
+				if strings.TrimSpace(ch) != "" {
+					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, req)
 				}
 			}
-		}
-
-		if len(activeTags) == 0 {
 			if ctrl.cfg.DefaultReader != "" {
 				hadSyncWrite = true
 				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
 				if err != nil {
-					if writeErr == nil {
-						writeErr = err
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("reader", ctrl.cfg.DefaultReader).Msg("failed to write AFI update to reader")
-					}
+					writeErrors = append(writeErrors, err.Error())
 				} else if resp != nil && !resp.IsSuccess() {
-					if writeErr == nil {
-						writeErr = errors.New(resp.GetError())
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Str("reader", ctrl.cfg.DefaultReader).Str("error", resp.GetError()).Msg("failed to write AFI update to reader")
-					}
+					writeErrors = append(writeErrors, resp.GetError())
 				}
 			}
 		} else {
-			for _, tag := range activeTags {
+			for _, tag := range targets {
 				if tag.UID == "" {
 					continue
 				}
 				uidReq := rfidclient.NewWriteAFIRequest(afi, tag.UID)
 				for _, ch := range ctrl.cfg.Channels {
 					if strings.TrimSpace(ch) != "" {
-						if err := ctrl.rfidClient.BroadcastAFI(ctx, ch, uidReq); err != nil {
-							if writeErr == nil {
-								writeErr = err
-							}
-							if ctrl.logger != nil {
-								ctrl.logger.Warn().Err(err).Str("channel", ch).Str("uid", tag.UID).Msg("failed to broadcast tag AFI update to channel")
-							}
+						if err := ctrl.rfidClient.BroadcastAFI(ctx, ch, uidReq); err != nil && ctrl.logger != nil {
+							ctrl.logger.Warn().Err(err).Str("channel", ch).Str("uid", tag.UID).Msg("failed to broadcast tag AFI update to channel")
 						}
 					}
 				}
@@ -389,19 +434,23 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 					hadSyncWrite = true
 					resp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, uidReq)
 					if err != nil {
-						if writeErr == nil {
-							writeErr = err
-						}
+						ctrl.hub.SetTagAFIResult(tag.UID, afi, false, err.Error())
+						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", tag.UID, err.Error()))
 						if ctrl.logger != nil {
 							ctrl.logger.Warn().Err(err).Str("reader", targetReader).Str("uid", tag.UID).Msg("failed to write tag AFI update to reader")
 						}
 					} else if resp != nil && !resp.IsSuccess() {
-						if writeErr == nil {
-							writeErr = errors.New(resp.GetError())
+						errMsg := resp.GetError()
+						if errMsg == "" {
+							errMsg = "AFI-Schreibfehler"
 						}
+						ctrl.hub.SetTagAFIResult(tag.UID, afi, false, errMsg)
+						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", tag.UID, errMsg))
 						if ctrl.logger != nil {
-							ctrl.logger.Warn().Str("reader", targetReader).Str("uid", tag.UID).Str("error", resp.GetError()).Msg("failed to write tag AFI update to reader")
+							ctrl.logger.Warn().Str("reader", targetReader).Str("uid", tag.UID).Str("error", errMsg).Msg("failed to write tag AFI update to reader")
 						}
+					} else {
+						ctrl.hub.SetTagAFIResult(tag.UID, afi, true, "")
 					}
 				}
 			}
@@ -409,24 +458,56 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	}
 
 	data := ctrl.getLoanData()
-	if writeErr != nil {
-		data.ErrorMessage = writeErr.Error()
-	} else if hadSyncWrite {
-		// Update active tags and recent scans in hub only when synchronous write confirmed
-		ctrl.hub.UpdateActiveAFI(afi, uids...)
-		data = ctrl.getLoanData()
-		statusName := rfidclient.AFISecurityStatus(afi)
-		if len(uids) > 0 {
-			data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medium/Medien gesetzt.", statusName, afi, len(uids))
+	successCount := 0
+	errorCount := 0
+	var failedItems []string
+	for _, item := range data.Tags {
+		if item.AFIWriteStatus == "success" {
+			successCount++
+		} else if item.AFIWriteStatus == "error" {
+			errorCount++
+			label := item.ItemID
+			if label == "" {
+				label = item.UID
+			}
+			if item.AFIWriteError != "" {
+				failedItems = append(failedItems, fmt.Sprintf("%s: %s", label, item.AFIWriteError))
+			} else {
+				failedItems = append(failedItems, label)
+			}
+		}
+	}
+	data.WriteSuccessCount = successCount
+	data.WriteErrorCount = errorCount
+	data.FailedItems = failedItems
+
+	statusName := rfidclient.AFISecurityStatus(afi)
+	if hadSyncWrite {
+		if errorCount == 0 && successCount > 0 {
+			if targetUID != "" {
+				data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) für Transponder %s gesetzt.", statusName, afi, targetUID)
+			} else {
+				data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) für alle %d Medien gesetzt.", statusName, afi, successCount)
+			}
+		} else if errorCount > 0 && successCount > 0 {
+			data.SuccessMessage = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
+			data.ErrorMessage = fmt.Sprintf("%d fehlgeschlagen: %s", errorCount, strings.Join(failedItems, "; "))
+		} else if errorCount > 0 && successCount == 0 {
+			data.ErrorMessage = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler): %s", errorCount, strings.Join(failedItems, "; "))
+		} else if len(writeErrors) > 0 {
+			data.ErrorMessage = strings.Join(writeErrors, "; ")
 		} else {
-			data.SuccessMessage = fmt.Sprintf("AFI-Befehl für %s (%s) erfolgreich gesendet.", statusName, afi)
+			data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) gesetzt.", statusName, afi)
 		}
 		// Broadcast updated loan table via SSE
 		ctrl.broadcastLoanTableWithData(data)
 	} else {
-		// Asynchronous / broadcast write: do not falsely mark as written yet
-		statusName := rfidclient.AFISecurityStatus(afi)
-		data.SuccessMessage = fmt.Sprintf("AFI-Schreibbefehl für %s (%s) an Broker übermittelt.", statusName, afi)
+		// Asynchronous / broadcast write
+		if targetUID != "" {
+			data.SuccessMessage = fmt.Sprintf("AFI-Schreibbefehl für %s (%s) für Transponder %s an Broker übermittelt.", statusName, afi, targetUID)
+		} else {
+			data.SuccessMessage = fmt.Sprintf("AFI-Schreibbefehl für %s (%s) an Broker übermittelt.", statusName, afi)
+		}
 	}
 
 	// Return updated table fragment for HTMX swap
@@ -444,6 +525,25 @@ func (ctrl *Controller) handleLoanAFISecure(c *gin.Context) {
 
 func (ctrl *Controller) handleLoanAFIUnsecure(c *gin.Context) {
 	ctrl.setAFIAndRespond(c, rfidclient.AFIUnsecured)
+}
+
+func (ctrl *Controller) handleLoanAFISingle(c *gin.Context) {
+	afi := strings.TrimSpace(c.Query("afi"))
+	if afi == "" {
+		afi = strings.TrimSpace(c.PostForm("afi"))
+	}
+	action := strings.TrimSpace(c.Query("action"))
+	if action == "" {
+		action = strings.TrimSpace(c.PostForm("action"))
+	}
+	if afi == "" {
+		if strings.EqualFold(action, "unsecure") || strings.EqualFold(action, "entsichern") {
+			afi = rfidclient.AFIUnsecured
+		} else {
+			afi = rfidclient.AFISecured
+		}
+	}
+	ctrl.setAFIAndRespond(c, afi)
 }
 
 func (ctrl *Controller) handleAPILoanTags(c *gin.Context) {
@@ -500,41 +600,27 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 			Msg("AFI security update triggered via API")
 	}
 
-	var writeErr error
+	if len(uids) > 0 {
+		ctrl.hub.SetTagAFIPending(uids...)
+	}
+
+	var writeErrors []string
 	hadSyncWrite := false
 	if ctrl.rfidClient != nil {
-		req := rfidclient.NewWriteAFIRequest(afi)
-		for _, ch := range ctrl.cfg.Channels {
-			if strings.TrimSpace(ch) != "" {
-				if err := ctrl.rfidClient.BroadcastAFI(ctx, ch, req); err != nil {
-					if writeErr == nil {
-						writeErr = err
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("channel", ch).Msg("failed to broadcast API AFI update to channel")
-					}
+		if len(uids) == 0 {
+			req := rfidclient.NewWriteAFIRequest(afi)
+			for _, ch := range ctrl.cfg.Channels {
+				if strings.TrimSpace(ch) != "" {
+					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, req)
 				}
 			}
-		}
-
-		if len(uids) == 0 {
 			if ctrl.cfg.DefaultReader != "" {
 				hadSyncWrite = true
 				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
 				if err != nil {
-					if writeErr == nil {
-						writeErr = err
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("reader", ctrl.cfg.DefaultReader).Msg("failed to write API AFI update to reader")
-					}
+					writeErrors = append(writeErrors, err.Error())
 				} else if resp != nil && !resp.IsSuccess() {
-					if writeErr == nil {
-						writeErr = errors.New(resp.GetError())
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Str("reader", ctrl.cfg.DefaultReader).Str("error", resp.GetError()).Msg("failed to write API AFI update to reader")
-					}
+					writeErrors = append(writeErrors, resp.GetError())
 				}
 			}
 		} else {
@@ -542,14 +628,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 				uidReq := rfidclient.NewWriteAFIRequest(afi, uid)
 				for _, ch := range ctrl.cfg.Channels {
 					if strings.TrimSpace(ch) != "" {
-						if err := ctrl.rfidClient.BroadcastAFI(ctx, ch, uidReq); err != nil {
-							if writeErr == nil {
-								writeErr = err
-							}
-							if ctrl.logger != nil {
-								ctrl.logger.Warn().Err(err).Str("channel", ch).Str("uid", uid).Msg("failed to broadcast API tag AFI update to channel")
-							}
-						}
+						_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, uidReq)
 					}
 				}
 
@@ -562,46 +641,57 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 					hadSyncWrite = true
 					resp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, uidReq)
 					if err != nil {
-						if writeErr == nil {
-							writeErr = err
-						}
-						if ctrl.logger != nil {
-							ctrl.logger.Warn().Err(err).Str("reader", targetReader).Str("uid", uid).Msg("failed to write API tag AFI update to reader")
-						}
+						ctrl.hub.SetTagAFIResult(uid, afi, false, err.Error())
+						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, err.Error()))
 					} else if resp != nil && !resp.IsSuccess() {
-						if writeErr == nil {
-							writeErr = errors.New(resp.GetError())
+						errMsg := resp.GetError()
+						if errMsg == "" {
+							errMsg = "AFI-Schreibfehler"
 						}
-						if ctrl.logger != nil {
-							ctrl.logger.Warn().Str("reader", targetReader).Str("uid", uid).Str("error", resp.GetError()).Msg("failed to write API tag AFI update to reader")
-						}
+						ctrl.hub.SetTagAFIResult(uid, afi, false, errMsg)
+						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, errMsg))
+					} else {
+						ctrl.hub.SetTagAFIResult(uid, afi, true, "")
 					}
 				}
 			}
 		}
 	}
 
-	if writeErr != nil {
+	if hadSyncWrite {
+		ctrl.broadcastLoanTable()
+	}
+
+	data := ctrl.getLoanData()
+	if len(writeErrors) > 0 && data.WriteSuccessCount == 0 {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"status":   "error",
-			"error":    writeErr.Error(),
-			"afi":      afi,
-			"affected": len(uids),
-			"uids":     uids,
+			"status":       "error",
+			"error":        strings.Join(writeErrors, "; "),
+			"errors":       writeErrors,
+			"afi":          afi,
+			"affected":     len(uids),
+			"uids":         uids,
+			"successCount": 0,
+			"errorCount":   data.WriteErrorCount,
+			"tags":         data.Tags,
 		})
 		return
 	}
 
-	if hadSyncWrite {
-		ctrl.hub.UpdateActiveAFI(afi, uids...)
-		ctrl.broadcastLoanTable()
+	status := "ok"
+	if len(writeErrors) > 0 && data.WriteSuccessCount > 0 {
+		status = "partial"
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"status":   "ok",
-		"afi":      afi,
-		"affected": len(uids),
-		"uids":     uids,
+		"status":       status,
+		"afi":          afi,
+		"affected":     len(uids),
+		"uids":         uids,
+		"successCount": data.WriteSuccessCount,
+		"errorCount":   data.WriteErrorCount,
+		"errors":       writeErrors,
+		"tags":         data.Tags,
 	})
 }
 

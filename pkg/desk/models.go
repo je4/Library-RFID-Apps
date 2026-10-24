@@ -25,6 +25,10 @@ type TagItem struct {
 	AFIUnsecured      bool      `json:"afiUnsecured"`
 	AFISecurityStatus string    `json:"afiSecurityStatus"`
 	UsageType         int       `json:"usageType"`
+	AFIWriteStatus    string    `json:"afiWriteStatus,omitempty"` // "success", "error", "pending"
+	AFIWriteError     string    `json:"afiWriteError,omitempty"`  // specific error message
+	AFIWriteTime      time.Time `json:"afiWriteTime,omitempty"`   // timestamp of last write attempt
+	AFIWritePending   bool      `json:"afiWritePending,omitempty"`
 	Timestamp         int64     `json:"timestamp"`
 	TimeFormatted     string    `json:"timeFormatted"`
 	DateFormatted     string    `json:"dateFormatted"`
@@ -108,6 +112,38 @@ func (item *TagItem) SetAFI(afi string) {
 	item.AFISecurityStatus = rfidclient.AFISecurityStatus(afi)
 }
 
+// SetAFIWriteSuccess records a successful AFI write operation.
+func (item *TagItem) SetAFIWriteSuccess(afi string) {
+	item.SetAFI(afi)
+	item.AFIWriteStatus = "success"
+	item.AFIWriteError = ""
+	item.AFIWritePending = false
+	item.AFIWriteTime = time.Now()
+}
+
+// SetAFIWriteError records a failed AFI write operation.
+func (item *TagItem) SetAFIWriteError(errStr string) {
+	item.AFIWriteStatus = "error"
+	item.AFIWriteError = strings.TrimSpace(errStr)
+	item.AFIWritePending = false
+	item.AFIWriteTime = time.Now()
+}
+
+// SetAFIWritePending marks an AFI write operation as in-progress.
+func (item *TagItem) SetAFIWritePending() {
+	item.AFIWriteStatus = "pending"
+	item.AFIWritePending = true
+	item.AFIWriteTime = time.Now()
+}
+
+// ClearAFIWriteStatus clears the write operation state and errors.
+func (item *TagItem) ClearAFIWriteStatus() {
+	item.AFIWriteStatus = ""
+	item.AFIWriteError = ""
+	item.AFIWritePending = false
+	item.AFIWriteTime = time.Time{}
+}
+
 // DeskData encapsulates the view model passed to web templates.
 type DeskData struct {
 	ClientName    string
@@ -122,14 +158,17 @@ type DeskData struct {
 
 // LoanData encapsulates the view model passed to loan and return web templates.
 type LoanData struct {
-	ClientName     string
-	WSBroker       string
-	Channels       []string
-	DefaultReader  string
-	Addr           string
-	ExtAddr        string
-	Uptime         string
-	Tags           []*TagItem
-	ErrorMessage   string
-	SuccessMessage string
+	ClientName        string
+	WSBroker          string
+	Channels          []string
+	DefaultReader     string
+	Addr              string
+	ExtAddr           string
+	Uptime            string
+	Tags              []*TagItem
+	ErrorMessage      string
+	SuccessMessage    string
+	WriteSuccessCount int
+	WriteErrorCount   int
+	FailedItems       []string
 }
