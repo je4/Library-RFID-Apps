@@ -210,6 +210,7 @@ func main() {
 	fmt.Printf(" Broker:    %s\n", conf.WSBroker)
 	fmt.Printf(" Channels:  %v\n", conf.Channels)
 	fmt.Printf(" Web UI:    %s (%s/desk)\n", extAddr, extAddr)
+	fmt.Printf(" Alma SOAP: %s/TagService\n", extAddr)
 	fmt.Printf(" SSE Stream:%s/events\n", extAddr)
 	fmt.Println("==================================================")
 	fmt.Println("Press Ctrl+C to terminate...")

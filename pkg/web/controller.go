@@ -86,7 +86,7 @@ func (ctrl *Controller) init() error {
 	ctrl.router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
 		AllowMethods:     []string{"GET", "POST", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "HX-Request", "HX-Target", "HX-Current-URL"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Content-Length", "Accept", "Accept-Encoding", "X-CSRF-Token", "Authorization", "Cache-Control", "X-Requested-With", "SOAPAction", "HX-Request", "HX-Target", "HX-Current-URL"},
 		AllowCredentials: true,
 	}))
 
@@ -107,6 +107,17 @@ func (ctrl *Controller) init() error {
 
 	// Web Index (Channel Selection) route
 	ctrl.router.GET("/", ctrl.handleIndex)
+
+	// Global Alma RFID SOAP Service routes (/TagService)
+	tagServiceGroup := ctrl.router.Group("/TagService")
+	{
+		tagServiceGroup.POST("", ctrl.handleSOAPTagService)
+		tagServiceGroup.POST("/", ctrl.handleSOAPTagService)
+		tagServiceGroup.GET("", ctrl.handleSOAPWSDL)
+		tagServiceGroup.GET("/", ctrl.handleSOAPWSDL)
+		tagServiceGroup.OPTIONS("", func(c *gin.Context) { c.Status(http.StatusOK) })
+		tagServiceGroup.OPTIONS("/", func(c *gin.Context) { c.Status(http.StatusOK) })
+	}
 
 	channelGroup := ctrl.router.Group("/:channel")
 	{
@@ -129,6 +140,17 @@ func (ctrl *Controller) init() error {
 		channelGroup.POST("/loan/afi/single", ctrl.handleLoanAFISingle)
 		channelGroup.GET("/events", ctrl.handleSSE)
 		channelGroup.POST("/tags/clear", ctrl.handleClearTags)
+
+		// Channel-specific Alma RFID SOAP Service routes (/:channel/TagService)
+		channelTagGroup := channelGroup.Group("/TagService")
+		{
+			channelTagGroup.POST("", ctrl.handleSOAPTagService)
+			channelTagGroup.POST("/", ctrl.handleSOAPTagService)
+			channelTagGroup.GET("", ctrl.handleSOAPWSDL)
+			channelTagGroup.GET("/", ctrl.handleSOAPWSDL)
+			channelTagGroup.OPTIONS("", func(c *gin.Context) { c.Status(http.StatusOK) })
+			channelTagGroup.OPTIONS("/", func(c *gin.Context) { c.Status(http.StatusOK) })
+		}
 	}
 
 	// Global events and tags clear routes

@@ -17,8 +17,9 @@ High-performance, modular Go client library for communicating with `rfid-headles
    - [AFI-Byte schreiben / Sicherheitstoggle (EAS)](#5-afi-byte-schreiben--sicherheitstoggle-eas)
    - [Channel-Streaming (`SubscribeTags`)](#6-channel-streaming-subscribetags)
    - [Integration in bestehende Controller (`HandleEvent`)](#7-integration-in-bestehende-controller-handleevent)
-5. [Datenstrukturen & Events](#datenstrukturen--events)
-6. [Sicherheit & mTLS (MiniVault)](#sicherheit--mtls-minivault)
+5. [Alma RFID SOAP Service (`/TagService`)](#alma-rfid-soap-service-tagservice)
+6. [Datenstrukturen & Events](#datenstrukturen--events)
+7. [Sicherheit & mTLS (MiniVault)](#sicherheit--mtls-minivault)
 
 ---
 
@@ -287,6 +288,23 @@ func OnIncomingRawEvent(rawEvt *wsbrokerclient.Event) error {
     return nil
 }
 ```
+
+---
+
+## Alma RFID SOAP Service (`/TagService`)
+
+Für die direkte Integration mit dem **Ex Libris Alma Bibliotheksmanagementsystem** stellt die Webanwendung einen vollständigen, standardkonformen SOAP-1.1-Endpunkt unter `/TagService` bereit.
+
+* **WSDL-Definition**: Abrufbar über `GET /TagService?wsdl`
+* **CORS-Unterstützung**: Vollständige Unterstützung von Preflight-Requests (`OPTIONS`) und CORS-Headern (inklusive `SOAPAction`) für Browser- und CloudApp-Anfragen aus Alma.
+* **GetTag & GetItems (3M 896 / Bibliotheca)**:
+  * Liest das aktuell auf der Antenne liegende Medium aus dem `Hub`.
+  * Unterstützt sowohl `GetTag` als auch das von Alma für 3M896 verwendete `GetItems` (`GetDetectedItems`).
+  * Antwortet mit `Success`, `ItemIdentifier` (Barcode / Mediennummer) und `SecurityStatus` (`Protected` bei AFI `07`, `Unprotected` bei AFI `C2`, oder `Undefined`).
+* **WriteTag & WriteItems**:
+  * Schreibt/toggelt das AFI-Sicherheitsbyte synchron über `WriteAFI` (z. B. bei Ausleihe `Unprotected` &rarr; AFI `C2`, bei Rückgabe `Protected` &rarr; AFI `07`).
+  * Unterstützt das Neu-Etikettieren / Überschreiben von Mediennummern und AFI über `WriteTag` bzw. `WriteItems`.
+* **Channel-Scoping**: Neben dem globalen Endpunkt `/TagService` kann auch kanalspezifisch unter `/:channel/TagService` gearbeitet werden (z. B. `/rfid/TagService`).
 
 ---
 
