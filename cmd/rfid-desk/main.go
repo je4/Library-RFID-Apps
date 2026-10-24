@@ -46,6 +46,13 @@ func main() {
 
 	appStartTime := time.Now().UTC()
 
+	// Initialize ISIL list
+	isilList, err := desk.LoadISILList(logger)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("cannot load ISIL list")
+	}
+	_ = isilList
+
 	// 3. Initialize in-memory Event Hub
 	maxTags := conf.MaxTags
 	if maxTags <= 0 {
