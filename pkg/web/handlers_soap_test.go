@@ -29,6 +29,16 @@ func (m *mockSOAPRfidClient) WriteAFI(ctx context.Context, target string, req rf
 	}, nil
 }
 
+func (m *mockSOAPRfidClient) BroadcastAFI(ctx context.Context, channel string, req rfidclient.WriteAFIRequest) error {
+	m.lastWriteAFIReq = &req
+	return nil
+}
+
+func (m *mockSOAPRfidClient) SendAFI(ctx context.Context, target string, req rfidclient.WriteAFIRequest) error {
+	m.lastWriteAFIReq = &req
+	return nil
+}
+
 func (m *mockSOAPRfidClient) WriteTag(ctx context.Context, target string, req rfidclient.WriteTagRequest) (*rfidclient.WriteTagResponse, error) {
 	m.lastWriteTagReq = &req
 	return &rfidclient.WriteTagResponse{
