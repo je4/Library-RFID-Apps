@@ -3,33 +3,37 @@
 document.addEventListener('DOMContentLoaded', () => {
     let beepEnabled = false;
     let audioCtx = null;
+    let lastBeepTime = 0;
 
     // Toggle audio beep
     const soundToggle = document.getElementById('sound-toggle');
     if (soundToggle) {
         soundToggle.addEventListener('click', () => {
             beepEnabled = !beepEnabled;
-            soundToggle.classList.toggle('active', beepEnabled);
-            const iconEnable = soundToggle.querySelector('.sound-icon-enable');
-            const iconDisable = soundToggle.querySelector('.sound-icon-disable');
-            if (iconEnable && iconDisable) {
-                if (beepEnabled) {
-                    // Sound is ON -> display symbol to turn sound OFF
-                    iconEnable.classList.add('hidden');
-                    iconDisable.classList.remove('hidden');
-                    soundToggle.setAttribute('title', 'Signalton ausschalten');
-                } else {
-                    // Sound is OFF -> display symbol to turn sound ON
-                    iconEnable.classList.remove('hidden');
-                    iconDisable.classList.add('hidden');
-                    soundToggle.setAttribute('title', 'Signalton einschalten');
+            if (beepEnabled) {
+                try {
+                    if (!audioCtx) {
+                        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                } catch (e) {
+                    console.debug('AudioContext activation error:', e);
                 }
             }
+            soundToggle.classList.toggle('active', beepEnabled);
+            soundToggle.setAttribute('aria-pressed', beepEnabled ? 'true' : 'false');
+            soundToggle.setAttribute('title', beepEnabled ? 'Signalton ausschalten (Aktiv)' : 'Signalton einschalten (Inaktiv)');
         });
     }
 
     function playBeep() {
         if (!beepEnabled) return;
+        const now = Date.now();
+        if (now - lastBeepTime < 100) return; // Prevent multiple overlapping bursts
+        lastBeepTime = now;
+
         try {
             if (!audioCtx) {
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -40,13 +44,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(880, audioCtx.currentTime); // 880 Hz
-            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
-            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + 0.12);
+            const startTime = audioCtx.currentTime;
+            osc.frequency.setValueAtTime(880, startTime); // 880 Hz
+            gain.gain.setValueAtTime(0.08, startTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.12);
             osc.connect(gain);
             gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + 0.12);
+            osc.start(startTime);
+            osc.stop(startTime + 0.12);
         } catch (e) {
             console.debug('Audio play error:', e);
         }
@@ -112,36 +117,47 @@ document.addEventListener('DOMContentLoaded', () => {
         applyFilter();
     }
 
+    let lastLoanTagCount = 0;
     function onLoanTagsReceived() {
-        playBeep();
+        const loanRows = document.querySelectorAll('#loan-table-body tr.tag-row');
+        const count = loanRows.length;
+        if (count > 0 && count !== lastLoanTagCount) {
+            playBeep();
+        }
+        lastLoanTagCount = count;
         updateLoanCounters();
     }
 
-    document.body.addEventListener('htmx:sse:message', (evt) => {
-        const eventName = evt.detail?.eventName;
-        if (eventName === 'tag_read') {
-            onTagReceived();
-        } else if (eventName === 'tags_cleared') {
-            showClearedNotification();
-            updateCounters();
-            updateLoanCounters();
-        } else if (eventName === 'loan_tags' || eventName === 'loan_updated') {
-            onLoanTagsReceived();
-        }
-    });
+    // Deduplicate SSE messages (dual dispatch compatibility)
+    let lastHandledEventId = null;
+    let lastHandledTimestamp = 0;
 
-    document.body.addEventListener('htmx:sseMessage', (evt) => {
+    function handleSSEMessage(evt) {
         const eventName = evt.detail?.eventName;
+        if (!eventName) return;
+
+        const now = Date.now();
+        const eventKey = `${eventName}:${evt.detail?.data?.length || 0}`;
+        if (eventKey === lastHandledEventId && (now - lastHandledTimestamp) < 30) {
+            return;
+        }
+        lastHandledEventId = eventKey;
+        lastHandledTimestamp = now;
+
         if (eventName === 'tag_read') {
             onTagReceived();
         } else if (eventName === 'tags_cleared') {
             showClearedNotification();
             updateCounters();
             updateLoanCounters();
+            lastLoanTagCount = 0;
         } else if (eventName === 'loan_tags' || eventName === 'loan_updated') {
             onLoanTagsReceived();
         }
-    });
+    }
+
+    document.body.addEventListener('htmx:sse:message', handleSSEMessage);
+    document.body.addEventListener('htmx:sseMessage', handleSSEMessage);
 
     document.body.addEventListener('htmx:after:swap', () => {
         pruneTags();

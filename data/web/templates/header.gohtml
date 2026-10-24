@@ -69,12 +69,11 @@
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
-        <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton einschalten">
-            <!-- Icon when sound is OFF: Speaker with waves (Click to enable) -->
-            <img src="../static/img/volume-high.svg" class="w-4 h-4 sound-icon-enable" alt="Ton einschalten" />
-            <!-- Icon when sound is ON: Speaker muted with X (Click to disable) -->
-            <img src="../static/img/volume-off.svg" class="w-4 h-4 sound-icon-disable hidden" alt="Ton ausschalten" />
+        <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-2 cursor-pointer" title="Signalton einschalten" aria-pressed="false">
+            <img src="../static/img/volume-off.svg" class="w-4 h-4 sound-icon-off shrink-0 block" alt="Ton Aus" />
+            <img src="../static/img/volume-high.svg" class="w-4 h-4 sound-icon-on shrink-0 block hidden" alt="Ton An" />
             <span>Ton</span>
+            <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block"></span>
         </button>
 
         <!-- SSE Status Badge -->

@@ -220,25 +220,29 @@
 
     <!-- Individual Actions -->
     <td class="py-3.5 px-4 text-xs whitespace-nowrap">
-        <div class="inline-flex items-center space-x-1.5">
+        <div class="inline-flex items-center gap-2">
+            {{if or .AFISecured (not .AFIUnsecured)}}
             <button type="button"
                     hx-post="loan/afi/unsecure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
-                    class="px-2.5 py-1 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                    class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer"
                     title="Diesen Transponder einzeln entsichern (C2)">
                 <img src="../static/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Entsichern" />
                 <span>Entsichern</span>
             </button>
+            {{end}}
+            {{if or .AFIUnsecured (not .AFISecured)}}
             <button type="button"
                     hx-post="loan/afi/secure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
-                    class="px-2.5 py-1 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-1.5 whitespace-nowrap cursor-pointer"
+                    class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer"
                     title="Diesen Transponder einzeln sichern (07)">
                 <img src="../static/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Sichern" />
                 <span>Sichern</span>
             </button>
+            {{end}}
         </div>
     </td>
 

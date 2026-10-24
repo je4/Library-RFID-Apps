@@ -492,6 +492,39 @@ svg.w-12, img.w-12 {
   flex-shrink: 0;
   display: block;
 }
+.app-btn img.hidden, .app-btn img[hidden],
+.app-btn svg.hidden,
+.app-btn svg[hidden] {
+  display: none !important;
+}
+
+#sound-toggle .sound-icon-off {
+  display: block;
+}
+#sound-toggle .sound-icon-on {
+  display: none !important;
+}
+#sound-toggle .sound-toggle-indicator {
+  background-color: var(--color-text-dim);
+  opacity: 0.5;
+  transition: background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease;
+}
+#sound-toggle.active {
+  background-color: var(--color-metric-total-bg);
+  border-color: var(--color-metric-total-border);
+  color: var(--color-metric-total-text);
+}
+#sound-toggle.active .sound-icon-off {
+  display: none !important;
+}
+#sound-toggle.active .sound-icon-on {
+  display: block !important;
+}
+#sound-toggle.active .sound-toggle-indicator {
+  background-color: #10b981;
+  opacity: 1;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
+}
 
 .app-sse-badge {
   background-color: var(--color-sse-connecting-bg);
