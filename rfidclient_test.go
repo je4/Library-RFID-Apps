@@ -20,9 +20,6 @@ func TestRootPackageExports(t *testing.T) {
 	if afiReq.Event != rfidapps.EventWriteAFI {
 		t.Errorf("expected EventWriteAFI, got %s", afiReq.Event)
 	}
-	if rfidapps.EventWriteAFIAlt != "rfid:afi" {
-		t.Errorf("expected EventWriteAFIAlt = 'rfid:afi', got %s", rfidapps.EventWriteAFIAlt)
-	}
 
 	// Verify AFI security constants and helper functions
 	if rfidapps.AFISecured != "07" {

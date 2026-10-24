@@ -17,14 +17,12 @@ const (
 	EventTagsCleared            = "rfid:tags_cleared"
 	EventTagsRemoved            = "rfid:tags_removed"
 	EventAntennaFieldCleared    = "rfid:antenna_field_cleared"
-	EventAntennaFieldClearedAlt = "rfid:antenna_cleared"
 	EventGetDeviceMetadata      = "rfid:get_device_metadata"
 	EventDeviceMetadata         = "rfid:device_metadata"
 	EventDeviceMetadataResponse = "rfid:device_metadata_response"
 	EventWriteTag               = "rfid:write_tag"
 	EventWriteTagResponse       = "rfid:write_tag_response"
 	EventWriteAFI               = "rfid:write_afi"
-	EventWriteAFIAlt            = "rfid:afi"
 	EventWriteAFIResponse       = "rfid:write_afi_response"
 )
 
@@ -43,6 +41,7 @@ type BaseRFIDPayload struct {
 	Session   string `json:"session,omitempty"`
 	Timestamp int64  `json:"timestamp,omitempty"`
 	ClientID  string `json:"clientId,omitempty"`
+	Channel   string `json:"channel,omitempty"`
 }
 
 // Time converts the millisecond epoch timestamp to a standard time.Time.
@@ -169,111 +168,6 @@ func (e *TagReadEvent) Summary() string {
 		e.UID, e.ItemID, e.ISIL, e.Country, afiStr, crcStatus)
 }
 
-// UnmarshalJSON custom unmarshaler supporting field aliases from diverse reader drivers and historical payloads.
-func (e *TagReadEvent) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event       string `json:"event"`
-		ID          string `json:"id"`
-		IDAlt       string `json:"ID"`
-		RefID       string `json:"ref_id"`
-		RefIDAlt    string `json:"refId"`
-		RefIDAlt2   string `json:"RefID"`
-		Session     string `json:"session"`
-		Timestamp   int64  `json:"timestamp"`
-		ClientID    string `json:"clientId"`
-		UID         string `json:"uid"`
-		ItemID      string `json:"itemId"`
-		ImtemID     string `json:"imtemId"`
-		PrimaryItem string `json:"primaryItemId"`
-		Barcode     string `json:"barcode"`
-		ISIL        string `json:"isil"`
-		Country     string `json:"country"`
-		CRCOk       bool   `json:"crcOk"`
-		IsCrcValid  bool   `json:"isCrcValid"`
-		CRC         string `json:"crc"`
-		TagName     string `json:"tagName"`
-		Raw         string `json:"raw"`
-		Parts       *int   `json:"parts"`
-		PartNo      *int   `json:"partNo"`
-		PartnoAlt   *int   `json:"partno"`
-		PartNumber  *int   `json:"partNumber"`
-		UsageType   *int   `json:"usageType"`
-		TypeOfUsage *int   `json:"typeOfUsage"`
-		Version     *int   `json:"version"`
-		AFI         string `json:"afi"`
-		AFIAlt      string `json:"afiByte"`
-		AFIOpt      string `json:"afiHex"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	e.Event = raw.Event
-	if raw.ID != "" {
-		e.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		e.ID = raw.IDAlt
-	}
-	if raw.RefID != "" {
-		e.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		e.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		e.RefID = raw.RefIDAlt2
-	}
-	e.Session = raw.Session
-	e.Timestamp = raw.Timestamp
-	e.ClientID = raw.ClientID
-	e.UID = raw.UID
-
-	if raw.ItemID != "" {
-		e.ItemID = raw.ItemID
-	} else if raw.ImtemID != "" {
-		e.ItemID = raw.ImtemID
-	} else if raw.PrimaryItem != "" {
-		e.ItemID = raw.PrimaryItem
-	} else if raw.Barcode != "" {
-		e.ItemID = raw.Barcode
-	}
-
-	e.ISIL = raw.ISIL
-	e.Country = raw.Country
-	e.CRCOk = raw.CRCOk || raw.IsCrcValid
-	e.IsCRCValid = raw.IsCrcValid || raw.CRCOk
-	e.CRC = raw.CRC
-	e.TagName = raw.TagName
-	e.Raw = raw.Raw
-	e.Parts = raw.Parts
-
-	if raw.PartNo != nil {
-		e.PartNo = raw.PartNo
-	} else if raw.PartnoAlt != nil {
-		e.PartNo = raw.PartnoAlt
-	} else if raw.PartNumber != nil {
-		e.PartNo = raw.PartNumber
-	}
-
-	if raw.UsageType != nil {
-		e.UsageType = raw.UsageType
-	} else if raw.TypeOfUsage != nil {
-		e.UsageType = raw.TypeOfUsage
-	}
-
-	e.Version = raw.Version
-
-	if raw.AFI != "" {
-		e.AFI = raw.AFI
-	} else if raw.AFIAlt != "" {
-		e.AFI = raw.AFIAlt
-	} else if raw.AFIOpt != "" {
-		e.AFI = raw.AFIOpt
-	}
-
-	return nil
-}
-
 // TagsClearedEvent represents a reader cleared event (all RFID tags removed from reader field).
 type TagsClearedEvent struct {
 	BaseRFIDPayload
@@ -299,40 +193,6 @@ func NewDeviceMetadataRequest() DeviceMetadataRequest {
 		Event: EventGetDeviceMetadata,
 		ID:    wsbrokerclient.GenerateEventID(),
 	}
-}
-
-// UnmarshalJSON custom unmarshaler supporting field aliases for device metadata request.
-func (r *DeviceMetadataRequest) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event     string `json:"event"`
-		ID        string `json:"id"`
-		IDAlt     string `json:"ID"`
-		RefID     string `json:"ref_id"`
-		RefIDAlt  string `json:"refId"`
-		RefIDAlt2 string `json:"RefID"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	r.Event = raw.Event
-	if raw.ID != "" {
-		r.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		r.ID = raw.IDAlt
-	}
-
-	if raw.RefID != "" {
-		r.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		r.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		r.RefID = raw.RefIDAlt2
-	}
-
-	return nil
 }
 
 // DeviceMetadataResponse represents reader hardware metadata and initialization diagnostics.
@@ -368,93 +228,6 @@ func (r *DeviceMetadataResponse) Summary() string {
 		r.Status, r.DeviceID, r.DeviceType, desc)
 }
 
-// UnmarshalJSON custom unmarshaler supporting field aliases for device metadata.
-func (r *DeviceMetadataResponse) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event               string `json:"event"`
-		ID                  string `json:"id"`
-		IDAlt               string `json:"ID"`
-		RefID               string `json:"ref_id"`
-		RefIDAlt            string `json:"refId"`
-		RefIDAlt2           string `json:"RefID"`
-		Session             string `json:"session"`
-		Timestamp           int64  `json:"timestamp"`
-		ClientID            string `json:"clientId"`
-		Status              string `json:"status"`
-		DeviceID            string `json:"deviceId"`
-		DeviceIDAlt1        string `json:"deviceID"`
-		DeviceIDAlt2        string `json:"Device ID"`
-		DeviceIDAlt3        string `json:"device_id"`
-		DeviceType          string `json:"deviceType"`
-		DeviceTypeAlt1      string `json:"Device Type"`
-		DeviceTypeAlt2      string `json:"device_type"`
-		InitDescription     string `json:"initDescription"`
-		Description         string `json:"description"`
-		CompleteDescription string `json:"completeDescription"`
-		InitDescAlt1        string `json:"Komplettbeschreibung aus dem init"`
-		InitDescAlt2        string `json:"init_description"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	r.Event = raw.Event
-	if raw.ID != "" {
-		r.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		r.ID = raw.IDAlt
-	}
-	if raw.RefID != "" {
-		r.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		r.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		r.RefID = raw.RefIDAlt2
-	}
-	r.Session = raw.Session
-	r.Timestamp = raw.Timestamp
-	r.ClientID = raw.ClientID
-	r.Status = raw.Status
-	if r.Status == "" {
-		r.Status = "ok"
-	}
-
-	if raw.DeviceID != "" {
-		r.DeviceID = raw.DeviceID
-	} else if raw.DeviceIDAlt1 != "" {
-		r.DeviceID = raw.DeviceIDAlt1
-	} else if raw.DeviceIDAlt2 != "" {
-		r.DeviceID = raw.DeviceIDAlt2
-	} else if raw.DeviceIDAlt3 != "" {
-		r.DeviceID = raw.DeviceIDAlt3
-	}
-
-	if raw.DeviceType != "" {
-		r.DeviceType = raw.DeviceType
-	} else if raw.DeviceTypeAlt1 != "" {
-		r.DeviceType = raw.DeviceTypeAlt1
-	} else if raw.DeviceTypeAlt2 != "" {
-		r.DeviceType = raw.DeviceTypeAlt2
-	}
-
-	if raw.InitDescription != "" {
-		r.InitDescription = raw.InitDescription
-	} else if raw.CompleteDescription != "" {
-		r.InitDescription = raw.CompleteDescription
-	} else if raw.InitDescAlt1 != "" {
-		r.InitDescription = raw.InitDescAlt1
-	} else if raw.InitDescAlt2 != "" {
-		r.InitDescription = raw.InitDescAlt2
-	} else if raw.Description != "" {
-		r.InitDescription = raw.Description
-	}
-	r.Description = r.InitDescription
-
-	return nil
-}
-
 // WriteTagRequest represents a command to write ISO 28560-2 library metadata and optional AFI to an RFID tag.
 type WriteTagRequest struct {
 	Event     string `json:"event"`
@@ -465,7 +238,7 @@ type WriteTagRequest struct {
 	ISIL      string `json:"isil,omitempty"`
 	Country   string `json:"country,omitempty"`
 	Parts     int    `json:"parts,omitempty"`
-	PartNo    int    `json:"partno,omitempty"`
+	PartNo    int    `json:"partNo,omitempty"`
 	UsageType int    `json:"usageType,omitempty"`
 	AFI       string `json:"afi,omitempty"`
 }
@@ -501,106 +274,6 @@ func (r *WriteTagRequest) Validate() error {
 	if r.UsageType <= 0 {
 		r.UsageType = 1
 	}
-	return nil
-}
-
-// UnmarshalJSON custom unmarshaler supporting field aliases for write tag request.
-func (r *WriteTagRequest) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event       string `json:"event"`
-		ID          string `json:"id"`
-		IDAlt       string `json:"ID"`
-		RefID       string `json:"ref_id"`
-		RefIDAlt    string `json:"refId"`
-		RefIDAlt2   string `json:"RefID"`
-		UID         string `json:"uid"`
-		UIDAlt      string `json:"UID"`
-		ItemID      string `json:"itemId"`
-		ImtemID     string `json:"imtemId"`
-		PrimaryItem string `json:"primaryItemId"`
-		Barcode     string `json:"barcode"`
-		ISIL        string `json:"isil"`
-		ISILAlt     string `json:"ISIL"`
-		Country     string `json:"country"`
-		CountryAlt  string `json:"countryOfOwnerLib"`
-		Parts       int    `json:"parts"`
-		PartNo      int    `json:"partNo"`
-		PartnoAlt   int    `json:"partno"`
-		PartNumber  int    `json:"partNumber"`
-		UsageType   int    `json:"usageType"`
-		TypeOfUsage int    `json:"typeOfUsage"`
-		AFI         string `json:"afi"`
-		AFIAlt      string `json:"AFI"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	r.Event = raw.Event
-	if raw.ID != "" {
-		r.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		r.ID = raw.IDAlt
-	}
-	if raw.RefID != "" {
-		r.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		r.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		r.RefID = raw.RefIDAlt2
-	}
-
-	if raw.UID != "" {
-		r.UID = raw.UID
-	} else if raw.UIDAlt != "" {
-		r.UID = raw.UIDAlt
-	}
-
-	if raw.ItemID != "" {
-		r.ItemID = raw.ItemID
-	} else if raw.ImtemID != "" {
-		r.ItemID = raw.ImtemID
-	} else if raw.PrimaryItem != "" {
-		r.ItemID = raw.PrimaryItem
-	} else if raw.Barcode != "" {
-		r.ItemID = raw.Barcode
-	}
-
-	if raw.ISIL != "" {
-		r.ISIL = raw.ISIL
-	} else if raw.ISILAlt != "" {
-		r.ISIL = raw.ISILAlt
-	}
-
-	if raw.Country != "" {
-		r.Country = raw.Country
-	} else if raw.CountryAlt != "" {
-		r.Country = raw.CountryAlt
-	}
-
-	r.Parts = raw.Parts
-	if raw.PartNo != 0 {
-		r.PartNo = raw.PartNo
-	} else if raw.PartnoAlt != 0 {
-		r.PartNo = raw.PartnoAlt
-	} else if raw.PartNumber != 0 {
-		r.PartNo = raw.PartNumber
-	}
-
-	if raw.UsageType != 0 {
-		r.UsageType = raw.UsageType
-	} else if raw.TypeOfUsage != 0 {
-		r.UsageType = raw.TypeOfUsage
-	}
-
-	if raw.AFI != "" {
-		r.AFI = raw.AFI
-	} else if raw.AFIAlt != "" {
-		r.AFI = raw.AFIAlt
-	}
-
 	return nil
 }
 
@@ -650,120 +323,6 @@ func (r *WriteTagResponse) Summary() string {
 	return fmt.Sprintf("[WRITE TAG ERROR] UID: %s | Error: %s", r.UID, errText)
 }
 
-// UnmarshalJSON custom unmarshaler supporting field aliases for write tag response.
-func (r *WriteTagResponse) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event       string `json:"event"`
-		ID          string `json:"id"`
-		IDAlt       string `json:"ID"`
-		RefID       string `json:"ref_id"`
-		RefIDAlt    string `json:"refId"`
-		RefIDAlt2   string `json:"RefID"`
-		Session     string `json:"session"`
-		Timestamp   int64  `json:"timestamp"`
-		ClientID    string `json:"clientId"`
-		Status      string `json:"status"`
-		UID         string `json:"uid"`
-		UIDAlt      string `json:"UID"`
-		ItemID      string `json:"itemId"`
-		ImtemID     string `json:"imtemId"`
-		PrimaryItem string `json:"primaryItemId"`
-		Barcode     string `json:"barcode"`
-		ISIL        string `json:"isil"`
-		ISILAlt     string `json:"ISIL"`
-		Country     string `json:"country"`
-		CountryAlt  string `json:"countryOfOwnerLib"`
-		Parts       int    `json:"parts"`
-		PartNo      int    `json:"partNo"`
-		PartnoAlt   int    `json:"partno"`
-		PartNumber  int    `json:"partNumber"`
-		UsageType   int    `json:"usageType"`
-		TypeOfUsage int    `json:"typeOfUsage"`
-		AFI         string `json:"afi"`
-		AFIAlt      string `json:"AFI"`
-		Message     string `json:"message"`
-		Error       string `json:"error"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	r.Event = raw.Event
-	if raw.ID != "" {
-		r.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		r.ID = raw.IDAlt
-	}
-	if raw.RefID != "" {
-		r.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		r.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		r.RefID = raw.RefIDAlt2
-	}
-	r.Session = raw.Session
-	r.Timestamp = raw.Timestamp
-	r.ClientID = raw.ClientID
-	r.Status = raw.Status
-
-	if raw.UID != "" {
-		r.UID = raw.UID
-	} else if raw.UIDAlt != "" {
-		r.UID = raw.UIDAlt
-	}
-
-	if raw.ItemID != "" {
-		r.ItemID = raw.ItemID
-	} else if raw.ImtemID != "" {
-		r.ItemID = raw.ImtemID
-	} else if raw.PrimaryItem != "" {
-		r.ItemID = raw.PrimaryItem
-	} else if raw.Barcode != "" {
-		r.ItemID = raw.Barcode
-	}
-
-	if raw.ISIL != "" {
-		r.ISIL = raw.ISIL
-	} else if raw.ISILAlt != "" {
-		r.ISIL = raw.ISILAlt
-	}
-
-	if raw.Country != "" {
-		r.Country = raw.Country
-	} else if raw.CountryAlt != "" {
-		r.Country = raw.CountryAlt
-	}
-
-	r.Parts = raw.Parts
-
-	if raw.PartNo != 0 {
-		r.PartNo = raw.PartNo
-	} else if raw.PartnoAlt != 0 {
-		r.PartNo = raw.PartnoAlt
-	} else if raw.PartNumber != 0 {
-		r.PartNo = raw.PartNumber
-	}
-
-	if raw.UsageType != 0 {
-		r.UsageType = raw.UsageType
-	} else if raw.TypeOfUsage != 0 {
-		r.UsageType = raw.TypeOfUsage
-	}
-
-	if raw.AFI != "" {
-		r.AFI = raw.AFI
-	} else if raw.AFIAlt != "" {
-		r.AFI = raw.AFIAlt
-	}
-
-	r.Message = raw.Message
-	r.Error = raw.Error
-
-	return nil
-}
-
 // WriteAFIRequest represents a command to write or toggle the AFI byte (e.g. EAS security state).
 type WriteAFIRequest struct {
 	Event string `json:"event"`
@@ -792,58 +351,6 @@ func (r *WriteAFIRequest) Validate() error {
 	if strings.TrimSpace(r.AFI) == "" {
 		return errors.New("write afi request: afi byte must not be empty")
 	}
-	return nil
-}
-
-// UnmarshalJSON custom unmarshaler supporting field aliases for write afi request.
-func (r *WriteAFIRequest) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event     string `json:"event"`
-		ID        string `json:"id"`
-		IDAlt     string `json:"ID"`
-		RefID     string `json:"ref_id"`
-		RefIDAlt  string `json:"refId"`
-		RefIDAlt2 string `json:"RefID"`
-		UID       string `json:"uid"`
-		UIDAlt    string `json:"UID"`
-		AFI       string `json:"afi"`
-		AFIAlt    string `json:"AFI"`
-		AFIOpt    string `json:"afiByte"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	r.Event = raw.Event
-	if raw.ID != "" {
-		r.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		r.ID = raw.IDAlt
-	}
-	if raw.RefID != "" {
-		r.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		r.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		r.RefID = raw.RefIDAlt2
-	}
-
-	if raw.UID != "" {
-		r.UID = raw.UID
-	} else if raw.UIDAlt != "" {
-		r.UID = raw.UIDAlt
-	}
-
-	if raw.AFI != "" {
-		r.AFI = raw.AFI
-	} else if raw.AFIAlt != "" {
-		r.AFI = raw.AFIAlt
-	} else if raw.AFIOpt != "" {
-		r.AFI = raw.AFIOpt
-	}
-
 	return nil
 }
 
@@ -897,68 +404,6 @@ func (r *WriteAFIResponse) Summary() string {
 	return fmt.Sprintf("[WRITE AFI ERROR] UID: %s | Error: %s", r.UID, errText)
 }
 
-// UnmarshalJSON custom unmarshaler supporting field aliases for write AFI response.
-func (r *WriteAFIResponse) UnmarshalJSON(data []byte) error {
-	type rawAlias struct {
-		Event     string `json:"event"`
-		ID        string `json:"id"`
-		IDAlt     string `json:"ID"`
-		RefID     string `json:"ref_id"`
-		RefIDAlt  string `json:"refId"`
-		RefIDAlt2 string `json:"RefID"`
-		Session   string `json:"session"`
-		Timestamp int64  `json:"timestamp"`
-		ClientID  string `json:"clientId"`
-		Status    string `json:"status"`
-		UID       string `json:"uid"`
-		UIDAlt    string `json:"UID"`
-		AFI       string `json:"afi"`
-		AFIAlt    string `json:"AFI"`
-		Message   string `json:"message"`
-		Error     string `json:"error"`
-	}
-
-	var raw rawAlias
-	if err := json.Unmarshal(data, &raw); err != nil {
-		return err
-	}
-
-	r.Event = raw.Event
-	if raw.ID != "" {
-		r.ID = raw.ID
-	} else if raw.IDAlt != "" {
-		r.ID = raw.IDAlt
-	}
-	if raw.RefID != "" {
-		r.RefID = raw.RefID
-	} else if raw.RefIDAlt != "" {
-		r.RefID = raw.RefIDAlt
-	} else if raw.RefIDAlt2 != "" {
-		r.RefID = raw.RefIDAlt2
-	}
-	r.Session = raw.Session
-	r.Timestamp = raw.Timestamp
-	r.ClientID = raw.ClientID
-	r.Status = raw.Status
-
-	if raw.UID != "" {
-		r.UID = raw.UID
-	} else if raw.UIDAlt != "" {
-		r.UID = raw.UIDAlt
-	}
-
-	if raw.AFI != "" {
-		r.AFI = raw.AFI
-	} else if raw.AFIAlt != "" {
-		r.AFI = raw.AFIAlt
-	}
-
-	r.Message = raw.Message
-	r.Error = raw.Error
-
-	return nil
-}
-
 // ParseRFIDPayload unmarshals raw JSON bytes into the concrete typed RFID payload struct.
 func ParseRFIDPayload(data []byte) (any, error) {
 	trimmed := bytes.TrimSpace(data)
@@ -971,76 +416,54 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		var unquoted string
 		if err := json.Unmarshal(trimmed, &unquoted); err == nil && len(unquoted) > 0 {
 			data = []byte(unquoted)
-			trimmed = bytes.TrimSpace(data)
 		}
 	}
 
 	var header struct {
-		Event       string `json:"event"`
-		Type        string `json:"type"`
-		Action      string `json:"action"`
-		UID         string `json:"uid"`
-		ItemID      string `json:"itemId"`
-		ImtemID     string `json:"imtemId"`
-		PrimaryItem string `json:"primaryItemId"`
-		Barcode     string `json:"barcode"`
-		Status      string `json:"status"`
-		TotalTags   *int   `json:"totalTags"`
+		Event  string `json:"event"`
+		Status string `json:"status"`
 	}
 	if err := json.Unmarshal(data, &header); err != nil {
 		return nil, errors.Wrap(err, "failed to decode json header")
 	}
 
-	eventName := header.Event
-	if eventName == "" {
-		eventName = header.Type
-	}
-	if eventName == "" {
-		eventName = header.Action
-	}
-
-	normEvent := strings.ToLower(strings.TrimSpace(eventName))
-	switch normEvent {
-	case EventTagRead, "tag_read", "tagread", "tag-read", "rfid_tag_read", "tag":
+	switch header.Event {
+	case EventTagRead:
 		var tag TagReadEvent
 		if err := json.Unmarshal(data, &tag); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal TagReadEvent")
 		}
 		return &tag, nil
 
-	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared, EventAntennaFieldClearedAlt,
-		"tags_cleared", "tagscleared", "tags-cleared", "rfid_tags_cleared", "clear", "cleared",
-		"tags_removed", "tagsremoved", "tags-removed", "rfid_tags_removed", "removed", "empty",
-		"antenna_field_cleared", "antennafieldcleared", "antenna-field-cleared", "antenna_cleared", "field_cleared":
+	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared:
 		var cleared TagsClearedEvent
 		if err := json.Unmarshal(data, &cleared); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedEvent")
 		}
 		return &cleared, nil
 
-	case EventDeviceMetadataResponse, EventDeviceMetadata, "device_metadata_response", "device_metadata", "device-metadata", "metadata":
+	case EventDeviceMetadataResponse, EventDeviceMetadata:
 		var meta DeviceMetadataResponse
 		if err := json.Unmarshal(data, &meta); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataResponse")
 		}
 		return &meta, nil
 
-	case EventGetDeviceMetadata, "get_device_metadata", "getdevicemetadata", "get_metadata", "rfid:get_metadata":
+	case EventGetDeviceMetadata:
 		var req DeviceMetadataRequest
 		if err := json.Unmarshal(data, &req); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataRequest")
 		}
 		return &req, nil
 
-	case EventWriteTagResponse, "write_tag_response", "writetagresponse":
+	case EventWriteTagResponse:
 		var writeResp WriteTagResponse
 		if err := json.Unmarshal(data, &writeResp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
 		}
 		return &writeResp, nil
 
-	case EventWriteTag, "write_tag", "writetag", "rfid:tag_write", "tag_write", "tagwrite":
-		// If status is provided, deserialize as response; otherwise as request
+	case EventWriteTag:
 		if header.Status != "" {
 			var writeResp WriteTagResponse
 			if err := json.Unmarshal(data, &writeResp); err != nil {
@@ -1054,15 +477,14 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		}
 		return &writeReq, nil
 
-	case EventWriteAFIResponse, "write_afi_response", "writeafiresponse":
+	case EventWriteAFIResponse:
 		var afiResp WriteAFIResponse
 		if err := json.Unmarshal(data, &afiResp); err != nil {
 			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
 		}
 		return &afiResp, nil
 
-	case EventWriteAFI, EventWriteAFIAlt, "write_afi", "writeafi", "afi", "rfid:set_afi", "set_afi", "setafi":
-		// If status is provided, deserialize as response; otherwise as request
+	case EventWriteAFI:
 		if header.Status != "" {
 			var afiResp WriteAFIResponse
 			if err := json.Unmarshal(data, &afiResp); err != nil {
@@ -1077,20 +499,7 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		return &afiReq, nil
 
 	default:
-		// Fallback inspection: check if payload has UID / ItemID or Cleared indicators
-		if header.UID != "" || header.ItemID != "" || header.ImtemID != "" || header.PrimaryItem != "" || header.Barcode != "" {
-			var tag TagReadEvent
-			if err := json.Unmarshal(data, &tag); err == nil && (tag.UID != "" || tag.ItemID != "") {
-				return &tag, nil
-			}
-		}
-		if header.Status == "cleared" || header.Status == "removed" || header.Status == "empty" || (header.TotalTags != nil && *header.TotalTags == 0) {
-			var cleared TagsClearedEvent
-			if err := json.Unmarshal(data, &cleared); err == nil {
-				return &cleared, nil
-			}
-		}
-		return nil, errors.Errorf("unrecognized rfid event type: %q", eventName)
+		return nil, errors.Errorf("unrecognized rfid event type: %q", header.Event)
 	}
 }
 
@@ -1117,8 +526,11 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-		if v.ClientID == "" && evt.Source != "" {
+		if evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+		if v.Channel == "" && evt.Channel != "" {
+			v.Channel = evt.Channel
 		}
 	case *TagsClearedEvent:
 		if v.ID == "" && evt.ID != "" {
@@ -1127,8 +539,11 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-		if v.ClientID == "" && evt.Source != "" {
+		if evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+		if v.Channel == "" && evt.Channel != "" {
+			v.Channel = evt.Channel
 		}
 	case *DeviceMetadataResponse:
 		if v.ID == "" && evt.ID != "" {
@@ -1137,8 +552,11 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-		if v.ClientID == "" && evt.Source != "" {
+		if evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+		if v.Channel == "" && evt.Channel != "" {
+			v.Channel = evt.Channel
 		}
 	case *DeviceMetadataRequest:
 		if v.ID == "" && evt.ID != "" {
@@ -1154,8 +572,11 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-		if v.ClientID == "" && evt.Source != "" {
+		if evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+		if v.Channel == "" && evt.Channel != "" {
+			v.Channel = evt.Channel
 		}
 	case *WriteTagRequest:
 		if v.ID == "" && evt.ID != "" {
@@ -1171,8 +592,11 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-		if v.ClientID == "" && evt.Source != "" {
+		if evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+		if v.Channel == "" && evt.Channel != "" {
+			v.Channel = evt.Channel
 		}
 	case *WriteAFIRequest:
 		if v.ID == "" && evt.ID != "" {

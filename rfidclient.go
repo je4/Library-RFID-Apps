@@ -40,7 +40,6 @@ const (
 	EventWriteTag               = rfidclient.EventWriteTag
 	EventWriteTagResponse       = rfidclient.EventWriteTagResponse
 	EventWriteAFI               = rfidclient.EventWriteAFI
-	EventWriteAFIAlt            = rfidclient.EventWriteAFIAlt
 	EventWriteAFIResponse       = rfidclient.EventWriteAFIResponse
 
 	AFISecured   = rfidclient.AFISecured
