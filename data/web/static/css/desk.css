@@ -615,6 +615,10 @@
     background-color: var(--color-tag-uid-bg);
     border: 1px solid var(--color-tag-uid-border);
     color: var(--color-tag-uid-text);
+    display: inline-flex;
+    align-items: center;
+    flex-shrink: 0;
+    white-space: nowrap;
 }
 
 .app-tag-row:hover .app-uid-box {
@@ -623,10 +627,28 @@
 
 .app-copy-btn {
     color: var(--color-text-dim);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    line-height: 1;
+    vertical-align: middle;
 }
 
 .app-copy-btn:hover {
     color: var(--color-text-main);
+}
+
+.app-copy-btn img,
+.app-copy-btn svg {
+    width: 0.875rem !important;
+    height: 0.875rem !important;
+    min-width: 0.875rem !important;
+    min-height: 0.875rem !important;
+    max-width: 0.875rem !important;
+    max-height: 0.875rem !important;
+    flex-shrink: 0 !important;
+    display: block;
 }
 
 .app-country-badge {
@@ -1455,27 +1477,27 @@ svg.w-12 { width: 3rem; height: 3rem; max-width: 3rem; max-height: 3rem; }
     transform: scale(1.15);
 }
 
+/* Global Floating Flyout Portal (appended to document.body) */
+#app-global-isil-flyout,
 .app-isil-flyout {
-    position: absolute;
-    left: 0;
-    top: calc(100% + 6px);
-    z-index: 100;
+    position: fixed;
+    z-index: 99999;
     min-width: 320px;
-    max-width: min(440px, 92vw);
-    max-height: 85vh;
+    max-width: min(440px, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
     overflow-y: auto;
     background: var(--color-panel-bg);
     border: 1px solid var(--color-panel-border);
     border-radius: 0.875rem;
-    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.22), 0 6px 16px -2px rgba(0, 0, 0, 0.12);
+    box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.25), 0 6px 16px -2px rgba(0, 0, 0, 0.15);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     padding: 0.875rem 1rem;
     color: var(--color-text-main);
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-4px) scale(0.98);
-    transition: opacity 0.18s cubic-bezier(0.16, 1, 0.3, 1), transform 0.18s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.18s;
+    transform: translateY(4px) scale(0.98);
+    transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.15s;
     pointer-events: none;
     font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     text-align: left;
@@ -1484,37 +1506,11 @@ svg.w-12 { width: 3rem; height: 3rem; max-width: 3rem; max-height: 3rem; }
     overflow-wrap: break-word;
 }
 
-.app-isil-flyout::before {
-    content: '';
-    position: absolute;
-    top: -12px;
-    left: 0;
-    right: 0;
-    height: 12px;
-}
-
-.app-isil-info-wrapper:hover .app-isil-flyout,
-.app-isil-info-wrapper:focus-within .app-isil-flyout,
-.app-isil-flyout:hover {
+#app-global-isil-flyout.is-visible {
     opacity: 1;
     visibility: visible;
     transform: translateY(0) scale(1);
     pointer-events: auto;
-}
-
-.app-isil-flyout.flyout-top {
-    top: auto;
-    bottom: calc(100% + 6px);
-}
-
-.app-isil-flyout.flyout-top::before {
-    top: auto;
-    bottom: -12px;
-}
-
-.app-isil-flyout.flyout-right {
-    left: auto;
-    right: 0;
 }
 
 .app-flyout-header {
@@ -1540,6 +1536,7 @@ svg.w-12 { width: 3rem; height: 3rem; max-width: 3rem; max-height: 3rem; }
     color: var(--color-text-main);
 }
 
+.dark #app-global-isil-flyout,
 .dark .app-isil-flyout {
     background: rgba(15, 23, 42, 0.95);
     border-color: rgba(51, 65, 85, 0.85);

@@ -277,29 +277,176 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Intelligent repositioning of ISIL flyout on mouseover (viewport boundary detection)
-    document.addEventListener('mouseover', (e) => {
-        const wrapper = e.target.closest('.app-isil-info-wrapper, .app-isil-container');
+    // Global ISIL Flyout Portal attached to body (guarantees no table clipping or transform containment)
+    let globalIsilFlyout = document.getElementById('app-global-isil-flyout');
+    if (!globalIsilFlyout) {
+        globalIsilFlyout = document.createElement('div');
+        globalIsilFlyout.id = 'app-global-isil-flyout';
+        globalIsilFlyout.className = 'app-isil-flyout';
+        document.body.appendChild(globalIsilFlyout);
+    }
+
+    let activeFlyoutWrapper = null;
+    let flyoutHideTimer = null;
+
+    function showIsilFlyout(wrapper) {
         if (!wrapper) return;
-        const flyout = wrapper.querySelector('.app-isil-flyout');
-        if (!flyout) return;
+        const template = wrapper.querySelector('.app-isil-flyout-template, template');
+        if (!template) return;
 
-        const rect = wrapper.getBoundingClientRect();
-        const flyoutHeight = flyout.offsetHeight || 260;
-        const spaceBelow = window.innerHeight - rect.bottom;
-
-        if (spaceBelow < flyoutHeight + 20 && rect.top > flyoutHeight + 20) {
-            flyout.classList.add('flyout-top');
-        } else {
-            flyout.classList.remove('flyout-top');
+        if (flyoutHideTimer) {
+            clearTimeout(flyoutHideTimer);
+            flyoutHideTimer = null;
         }
 
-        if (rect.left + 380 > window.innerWidth) {
-            flyout.classList.add('flyout-right');
+        activeFlyoutWrapper = wrapper;
+        globalIsilFlyout.innerHTML = template.innerHTML;
+
+        const btn = wrapper.querySelector('.app-isil-info-btn') || wrapper;
+        const rect = btn.getBoundingClientRect();
+
+        // If trigger button is out of viewport, hide
+        if (rect.bottom < 0 || rect.top > window.innerHeight) {
+            hideIsilFlyout(true);
+            return;
+        }
+
+        // Measure natural dimensions in hidden state
+        globalIsilFlyout.style.display = 'block';
+        globalIsilFlyout.style.visibility = 'hidden';
+        globalIsilFlyout.style.maxHeight = 'none';
+
+        const flyoutWidth = Math.min(420, window.innerWidth - 32);
+        globalIsilFlyout.style.width = `${flyoutWidth}px`;
+
+        const naturalHeight = globalIsilFlyout.offsetHeight || 300;
+        const spaceBelow = window.innerHeight - rect.bottom - 12;
+        const spaceAbove = rect.top - 12;
+
+        let top;
+        let maxHeight;
+
+        if (spaceBelow >= Math.min(naturalHeight, 220) || spaceBelow >= spaceAbove) {
+            // Place below button
+            top = rect.bottom + 6;
+            maxHeight = Math.max(160, spaceBelow - 6);
         } else {
-            flyout.classList.remove('flyout-right');
+            // Place above button
+            maxHeight = Math.max(160, spaceAbove - 6);
+            const actualFlyoutHeight = Math.min(naturalHeight, maxHeight);
+            top = Math.max(8, rect.top - actualFlyoutHeight - 6);
+        }
+
+        // Horizontal alignment: align with button left edge, keep within screen bounds
+        let left = rect.left - 4;
+        if (left + flyoutWidth > window.innerWidth - 16) {
+            left = window.innerWidth - flyoutWidth - 16;
+        }
+        if (left < 16) {
+            left = 16;
+        }
+
+        globalIsilFlyout.style.top = `${Math.round(top)}px`;
+        globalIsilFlyout.style.left = `${Math.round(left)}px`;
+        globalIsilFlyout.style.maxHeight = `${Math.round(maxHeight)}px`;
+        globalIsilFlyout.style.visibility = 'visible';
+        globalIsilFlyout.classList.add('is-visible');
+    }
+
+    function scheduleHideIsilFlyout(delay = 180) {
+        if (flyoutHideTimer) clearTimeout(flyoutHideTimer);
+        flyoutHideTimer = setTimeout(() => {
+            hideIsilFlyout();
+        }, delay);
+    }
+
+    function hideIsilFlyout(immediate = false) {
+        if (flyoutHideTimer) {
+            clearTimeout(flyoutHideTimer);
+            flyoutHideTimer = null;
+        }
+        activeFlyoutWrapper = null;
+        if (globalIsilFlyout) {
+            globalIsilFlyout.classList.remove('is-visible');
+            if (immediate) {
+                globalIsilFlyout.style.display = 'none';
+            } else {
+                setTimeout(() => {
+                    if (!globalIsilFlyout.classList.contains('is-visible')) {
+                        globalIsilFlyout.style.display = 'none';
+                    }
+                }, 160);
+            }
+        }
+    }
+
+    // Event listeners for ISIL mouseover / focus / hover bridge
+    document.addEventListener('mouseover', (e) => {
+        const wrapper = e.target.closest('.app-isil-info-wrapper');
+        if (wrapper) {
+            showIsilFlyout(wrapper);
+            return;
+        }
+        if (e.target.closest('#app-global-isil-flyout')) {
+            if (flyoutHideTimer) {
+                clearTimeout(flyoutHideTimer);
+                flyoutHideTimer = null;
+            }
+            return;
+        }
+        if (activeFlyoutWrapper && !e.target.closest('.app-isil-info-wrapper, #app-global-isil-flyout')) {
+            scheduleHideIsilFlyout(120);
         }
     });
+
+    document.addEventListener('mouseout', (e) => {
+        const wrapper = e.target.closest('.app-isil-info-wrapper');
+        if (wrapper) {
+            scheduleHideIsilFlyout(180);
+            return;
+        }
+        if (e.target.closest('#app-global-isil-flyout')) {
+            scheduleHideIsilFlyout(180);
+        }
+    });
+
+    document.addEventListener('focusin', (e) => {
+        const wrapper = e.target.closest('.app-isil-info-wrapper');
+        if (wrapper) {
+            showIsilFlyout(wrapper);
+        }
+    });
+
+    document.addEventListener('focusout', (e) => {
+        const wrapper = e.target.closest('.app-isil-info-wrapper');
+        if (wrapper) {
+            scheduleHideIsilFlyout(150);
+        }
+    });
+
+    // Close on Escape or click outside
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') hideIsilFlyout(true);
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.app-isil-info-wrapper, #app-global-isil-flyout')) {
+            hideIsilFlyout(true);
+        }
+    });
+
+    // Reposition on scroll / window resize
+    window.addEventListener('scroll', () => {
+        if (activeFlyoutWrapper && globalIsilFlyout && globalIsilFlyout.classList.contains('is-visible')) {
+            showIsilFlyout(activeFlyoutWrapper);
+        }
+    }, { passive: true, capture: true });
+
+    window.addEventListener('resize', () => {
+        if (activeFlyoutWrapper && globalIsilFlyout && globalIsilFlyout.classList.contains('is-visible')) {
+            showIsilFlyout(activeFlyoutWrapper);
+        }
+    }, { passive: true });
 
     // Auto-refresh relative time labels every 5 seconds
     setInterval(() => {
