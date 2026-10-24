@@ -163,13 +163,26 @@ func main() {
 			secStatus = resp.AFI
 		}
 		if resp.IsSuccess() {
-			logger.Info().
+			logEvt := logger.Info().
 				Str("id", resp.ID).
 				Str("refId", resp.RefID).
-				Str("uid", resp.UID).
 				Str("afi", resp.AFI).
-				Str("securityStatus", secStatus).
-				Msg("RFID AFI security update confirmed")
+				Str("securityStatus", secStatus)
+			if len(resp.SuccessfulUIDs) > 0 {
+				logEvt = logEvt.Strs("successfulUids", resp.SuccessfulUIDs)
+			} else if resp.UID != "" {
+				logEvt = logEvt.Str("uid", resp.UID)
+			}
+			logEvt.Msg("RFID AFI security update confirmed")
+		} else if resp.IsPartial() {
+			logger.Warn().
+				Str("id", resp.ID).
+				Str("refId", resp.RefID).
+				Str("afi", resp.AFI).
+				Strs("successfulUids", resp.SuccessfulUIDs).
+				Interface("failedUids", resp.FailedUIDs).
+				Str("error", resp.GetError()).
+				Msg("RFID AFI security update partially succeeded")
 		} else {
 			logger.Warn().
 				Str("id", resp.ID).

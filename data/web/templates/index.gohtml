@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="de" translate="no">
+<head>
+    <meta charset="UTF-8">
+    <meta name="google" content="notranslate">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RFID Desk - Channel-Auswahl - {{.ClientName}}</title>
+    <!-- Automatic Dark / Light mode detection to prevent FOUC -->
+    <script>
+        (function() {
+            function syncTheme() {
+                var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                if (isDark) {
+                    document.documentElement.classList.add('dark');
+                    document.documentElement.classList.remove('light');
+                } else {
+                    document.documentElement.classList.add('light');
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+            syncTheme();
+            if (window.matchMedia) {
+                window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', syncTheme);
+            }
+        })();
+    </script>
+    <!-- Tailwind CSS & Desk Styles (Relative Paths) -->
+    <link rel="stylesheet" href="static/css/tailwind.min.css">
+    <link rel="stylesheet" href="static/css/desk.css">
+</head>
+<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8">
+
+    <!-- Header Bar -->
+    <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
+        <div class="flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                </svg>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
+                    RFID Desk
+                    <span class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Channel-Auswahl</span>
+                </h1>
+                <p class="text-xs app-meta-text font-mono flex items-center gap-2">
+                    <span>Client: <strong>{{.ClientName}}</strong></span>
+                    <span>&bull;</span>
+                    <span>Broker: <strong>{{.WSBroker}}</strong></span>
+                </p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
+        <section class="rounded-2xl app-panel border shadow-2xl overflow-hidden flex flex-col">
+            <!-- Action Toolbar Header -->
+            <div class="p-4 sm:p-5 border-b app-panel-toolbar flex flex-wrap items-center justify-between gap-3">
+                <div class="flex items-center space-x-3">
+                    <div class="flex items-center space-x-2">
+                        <h2 class="text-base font-semibold app-panel-title">Verfügbare Channels</h2>
+                        <span class="px-2 py-0.5 text-xs font-semibold rounded-full app-count-badge">{{len .Channels}}</span>
+                    </div>
+                </div>
+                <p class="text-xs app-meta-text">Wählen Sie einen Channel aus, um die Desk- und Ausleihansicht zu öffnen</p>
+            </div>
+
+            <div class="p-5 sm:p-6 lg:p-8">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5" id="channel-selection-list">
+                    {{range .Channels}}
+                    <a href="{{.}}/" class="app-channel-card group p-5 rounded-xl border flex items-center justify-between transition-all duration-300">
+                        <div class="flex items-center space-x-4">
+                            <div class="channel-card-icon w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 group-hover:scale-110">
+                                <svg class="w-5 h-5 text-indigo-400 group-hover:text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <span class="text-[11px] font-semibold uppercase tracking-wider block text-indigo-400/80 mb-0.5">Channel</span>
+                                <span class="text-base font-bold font-mono tracking-tight block app-title group-hover:text-blue-400 transition-colors">{{.}}</span>
+                            </div>
+                        </div>
+                        <span class="channel-card-arrow w-8 h-8 rounded-full flex items-center justify-center transition-all duration-300 group-hover:translate-x-1.5 shadow-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </span>
+                    </a>
+                    {{else}}
+                    <div class="col-span-full py-12 text-center text-sm app-meta-text">
+                        Keine Channels konfiguriert.
+                    </div>
+                    {{end}}
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer Bar -->
+    <footer class="w-full max-w-7xl mx-auto pt-6 mt-8 border-t app-footer flex flex-wrap justify-between items-center text-xs gap-4">
+        <div>
+            RFID Desk &copy; 2026 info-age GmbH, Basel
+        </div>
+        <div class="flex items-center space-x-4 font-mono">
+            <span>Webserver: <span class="server-addr">{{.Addr}}</span></span>
+            <span>&bull;</span>
+            <span>WSBroker: <span class="broker-addr">{{.WSBroker}}</span></span>
+        </div>
+    </footer>
+
+</body>
+</html>

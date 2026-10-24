@@ -130,7 +130,7 @@
     <td class="py-3.5 px-4 text-xs whitespace-nowrap">
         <div class="inline-flex items-center space-x-1.5">
             <button type="button"
-                    hx-post="/loan/afi/unsecure?uid={{.UID}}"
+                    hx-post="loan/afi/unsecure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="px-2 py-1 text-[11px] font-medium rounded app-row-btn-unsecure transition-colors inline-flex items-center space-x-1 cursor-pointer"
@@ -141,7 +141,7 @@
                 <span>Entsichern</span>
             </button>
             <button type="button"
-                    hx-post="/loan/afi/secure?uid={{.UID}}"
+                    hx-post="loan/afi/secure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="px-2 py-1 text-[11px] font-medium rounded app-row-btn-secure transition-colors inline-flex items-center space-x-1 cursor-pointer"

@@ -445,3 +445,112 @@ func TestHub_AFIWriteStatusLifecycle(t *testing.T) {
 		t.Fatalf("expected write status to be cleared, got %+v", tags[0])
 	}
 }
+
+func TestHub_ChannelFiltering(t *testing.T) {
+	hub := NewHub(10)
+
+	tagA := &rfidclient.TagReadEvent{
+		UID:    "UID-CH-A",
+		ItemID: "ITEM-A",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Channel:   "channel-a",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	}
+	tagB := &rfidclient.TagReadEvent{
+		UID:    "UID-CH-B",
+		ItemID: "ITEM-B",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Channel:   "channel-b",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	}
+
+	hub.AddTag(tagA)
+	hub.AddTag(tagB)
+
+	// Test GetTags with channel filtering
+	allTags := hub.GetTags()
+	if len(allTags) != 2 {
+		t.Fatalf("expected 2 total tags, got %d", len(allTags))
+	}
+
+	tagsA := hub.GetTags("channel-a")
+	if len(tagsA) != 1 || tagsA[0].UID != "UID-CH-A" {
+		t.Fatalf("expected 1 tag for channel-a (UID-CH-A), got %v", tagsA)
+	}
+
+	tagsB := hub.GetTags("channel-b")
+	if len(tagsB) != 1 || tagsB[0].UID != "UID-CH-B" {
+		t.Fatalf("expected 1 tag for channel-b (UID-CH-B), got %v", tagsB)
+	}
+
+	// Test Count with channel filtering
+	if hub.Count("channel-a") != 1 || hub.Count("channel-b") != 1 || hub.Count() != 2 {
+		t.Errorf("unexpected counts: a=%d, b=%d, all=%d", hub.Count("channel-a"), hub.Count("channel-b"), hub.Count())
+	}
+
+	// Test GetActiveTagsForChannel
+	activeA := hub.GetActiveTagsForChannel("channel-a")
+	if len(activeA) != 1 || activeA[0].UID != "UID-CH-A" {
+		t.Fatalf("expected 1 active tag for channel-a, got %v", activeA)
+	}
+
+	activeB := hub.GetActiveTagsForChannel("channel-b")
+	if len(activeB) != 1 || activeB[0].UID != "UID-CH-B" {
+		t.Fatalf("expected 1 active tag for channel-b, got %v", activeB)
+	}
+
+	// Test ClearForChannel
+	hub.ClearForChannel("channel-a")
+	if len(hub.GetTags("channel-a")) != 0 {
+		t.Errorf("expected 0 tags for channel-a after ClearForChannel")
+	}
+	if len(hub.GetTags("channel-b")) != 1 {
+		t.Errorf("expected 1 tag for channel-b to remain after ClearForChannel(channel-a)")
+	}
+}
+
+func TestHub_SSEChannelRouting(t *testing.T) {
+	hub := NewHub(10)
+
+	subA := hub.Subscribe("channel-a")
+	defer hub.Unsubscribe(subA)
+
+	subB := hub.Subscribe("channel-b")
+	defer hub.Unsubscribe(subB)
+
+	subGlobal := hub.Subscribe("")
+	defer hub.Unsubscribe(subGlobal)
+
+	// Broadcast message targeting channel-a
+	msgA := &SSEMessage{Event: "test_event", Data: "for_a"}
+	hub.Broadcast(msgA, "channel-a")
+
+	select {
+	case received := <-subA:
+		if received.Data != "for_a" {
+			t.Errorf("unexpected data on subA: %s", received.Data)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Errorf("timeout waiting for message on subA")
+	}
+
+	select {
+	case received := <-subGlobal:
+		if received.Data != "for_a" {
+			t.Errorf("unexpected data on subGlobal: %s", received.Data)
+		}
+	case <-time.After(100 * time.Millisecond):
+		t.Errorf("timeout waiting for message on subGlobal")
+	}
+
+	select {
+	case <-subB:
+		t.Errorf("subB should NOT receive message broadcast to channel-a")
+	case <-time.After(50 * time.Millisecond):
+		// Expected
+	}
+}

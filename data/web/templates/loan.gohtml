@@ -24,13 +24,13 @@
             }
         })();
     </script>
-    <!-- Tailwind CSS, HTMX 4 & SSE Extension -->
-    <link rel="stylesheet" href="/static/css/tailwind.min.css">
-    <script src="/static/js/htmx-4.0.js"></script>
-    <script src="/static/js/hx-sse.js"></script>
-    <link rel="stylesheet" href="/static/css/desk.css">
+    <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
+    <link rel="stylesheet" href="../static/css/tailwind.min.css">
+    <script src="../static/js/htmx-4.0.js"></script>
+    <script src="../static/js/hx-sse.js"></script>
+    <link rel="stylesheet" href="../static/css/desk.css">
 </head>
-<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="/events" data-sse-connect="/events" hx-ext="sse">
+<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     <!-- Header Bar with Navigation -->
     <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
@@ -46,6 +46,7 @@
                     <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
                 </h1>
                 <p class="text-xs app-meta-text font-mono flex items-center gap-2">
+                    {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
                     <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
                     <span>&bull;</span>
                     <span>Client: <strong>{{.ClientName}}</strong></span>
@@ -54,10 +55,18 @@
         </div>
 
         <div class="flex items-center space-x-3">
-            <!-- Back to Desk Button -->
-            <a href="/" id="nav-desk-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
+            <!-- Back to Channels Selection Button -->
+            <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
                 <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Channels</span>
+            </a>
+
+            <!-- Back to Desk Button (Relative to Channel) -->
+            <a href="." id="nav-desk-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                 </svg>
                 <span>RFID Desk</span>
             </a>
@@ -109,11 +118,11 @@
                 </div>
             </div>
 
-            <!-- Target Channels Card -->
+            <!-- Channel Card -->
             <div class="p-4 rounded-xl app-card flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-medium app-metric-label">Ziel-Channels</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[180px]">{{range $i, $c := .Channels}}{{if $i}}, {{end}}{{$c}}{{else}}all{{end}}</div>
+                    <div class="text-xs font-medium app-metric-label">Channel</div>
+                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[180px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -137,24 +146,24 @@
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2.5">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg app-btn-action-copy transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="btn-copy-all-itemids" type="button" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg app-btn-action-copy transition-all inline-flex items-center gap-1.5 focus:ring-2 focus:ring-indigo-500 focus:outline-none cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
                         </svg>
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="/loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg app-btn-action-unsecure transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg app-btn-action-unsecure transition-all inline-flex items-center gap-1.5 focus:ring-2 focus:ring-amber-500 focus:outline-none cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path>
                         </svg>
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="/loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-2 text-xs font-semibold rounded-lg app-btn-action-secure transition-all inline-flex items-center gap-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
-                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg app-btn-action-secure transition-all inline-flex items-center gap-1.5 focus:ring-2 focus:ring-emerald-500 focus:outline-none cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
                         </svg>
                         <span>Sichern</span>
@@ -203,7 +212,7 @@
         </div>
     </footer>
 
-    <!-- Interactive script for audio, counters, copy-all and actions -->
-    <script src="/static/js/desk.js"></script>
+    <!-- Interactive script for audio, counters, copy-all and actions (Relative Path) -->
+    <script src="../static/js/desk.js"></script>
 </body>
 </html>

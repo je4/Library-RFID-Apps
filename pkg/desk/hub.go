@@ -26,7 +26,7 @@ type Hub struct {
 	maxTags          int
 	activeWindow     time.Duration
 	configuredReader string
-	clients          map[chan *SSEMessage]struct{}
+	clients          map[chan *SSEMessage]string
 	closed           bool
 }
 
@@ -40,7 +40,7 @@ func NewHub(maxTags int) *Hub {
 		activeTags:   make(map[string]*TagItem),
 		maxTags:      maxTags,
 		activeWindow: 0,
-		clients:      make(map[chan *SSEMessage]struct{}),
+		clients:      make(map[chan *SSEMessage]string),
 	}
 }
 
@@ -96,13 +96,17 @@ func (h *Hub) Close() {
 	}
 }
 
-// Subscribe registers a new SSE listener channel.
-func (h *Hub) Subscribe() chan *SSEMessage {
+// Subscribe registers a new SSE listener channel, optionally filtered by broker channel.
+func (h *Hub) Subscribe(channel ...string) chan *SSEMessage {
 	ch := make(chan *SSEMessage, 64)
 	h.mu.Lock()
 	defer h.mu.Unlock()
+	chFilter := ""
+	if len(channel) > 0 {
+		chFilter = strings.TrimSpace(channel[0])
+	}
 	if !h.closed {
-		h.clients[ch] = struct{}{}
+		h.clients[ch] = chFilter
 	} else {
 		close(ch)
 	}
@@ -152,6 +156,11 @@ func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
 // GetActiveTags returns all media currently active on the configured reader antenna field
 // within the active time window. Outdated media are pruned.
 func (h *Hub) GetActiveTags(readerFilter ...string) []*TagItem {
+	return h.GetActiveTagsForChannel("", readerFilter...)
+}
+
+// GetActiveTagsForChannel returns active media for a specific channel and optional reader filter.
+func (h *Hub) GetActiveTagsForChannel(channel string, readerFilter ...string) []*TagItem {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -160,11 +169,15 @@ func (h *Hub) GetActiveTags(readerFilter ...string) []*TagItem {
 	if len(readerFilter) > 0 && strings.TrimSpace(readerFilter[0]) != "" {
 		targetReader = strings.TrimSpace(readerFilter[0])
 	}
+	targetChannel := strings.TrimSpace(channel)
 
 	var active []*TagItem
 	for uid, item := range h.activeTags {
 		if h.activeWindow > 0 && now.Sub(item.ReadTime) > h.activeWindow {
 			delete(h.activeTags, uid)
+			continue
+		}
+		if targetChannel != "" && !MatchChannel(item.Channel, targetChannel) {
 			continue
 		}
 		if targetReader != "" && !MatchReader(item.ClientID, targetReader) {
@@ -174,9 +187,12 @@ func (h *Hub) GetActiveTags(readerFilter ...string) []*TagItem {
 	}
 
 	// Fallback: If a specific reader filter returned 0 matches but active tags exist,
-	// return active tags from current session to prevent empty list on reader name mismatch.
+	// return active tags from current session matching the channel to prevent empty list on reader name mismatch.
 	if len(active) == 0 && len(h.activeTags) > 0 && targetReader != "" {
 		for _, item := range h.activeTags {
+			if targetChannel != "" && !MatchChannel(item.Channel, targetChannel) {
+				continue
+			}
 			if h.activeWindow == 0 || now.Sub(item.ReadTime) <= h.activeWindow {
 				active = append(active, item)
 			}
@@ -196,6 +212,11 @@ func (h *Hub) GetActiveTags(readerFilter ...string) []*TagItem {
 
 // ClearActive empties the active media currently lying on the reader.
 func (h *Hub) ClearActive(reader ...string) {
+	h.ClearActiveForChannel("", reader...)
+}
+
+// ClearActiveForChannel empties active media for a specific channel.
+func (h *Hub) ClearActiveForChannel(channel string, reader ...string) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
 
@@ -203,11 +224,23 @@ func (h *Hub) ClearActive(reader ...string) {
 	if len(reader) > 0 && strings.TrimSpace(reader[0]) != "" {
 		targetReader = strings.TrimSpace(reader[0])
 	}
+	targetChannel := strings.TrimSpace(channel)
 
-	if targetReader == "" || len(reader) == 0 || MatchReader(reader[0], targetReader) {
-		h.activeTags = make(map[string]*TagItem)
+	if targetReader == "" || len(reader) == 0 || (len(reader) > 0 && MatchReader(reader[0], targetReader)) {
+		if targetChannel == "" {
+			h.activeTags = make(map[string]*TagItem)
+		} else {
+			for uid, item := range h.activeTags {
+				if MatchChannel(item.Channel, targetChannel) {
+					delete(h.activeTags, uid)
+				}
+			}
+		}
 	} else {
 		for uid, item := range h.activeTags {
+			if targetChannel != "" && !MatchChannel(item.Channel, targetChannel) {
+				continue
+			}
 			if MatchReader(item.ClientID, targetReader) {
 				delete(h.activeTags, uid)
 			}
@@ -358,16 +391,39 @@ func (h *Hub) ClearActiveAFIWriteStatus(uids ...string) {
 	}
 }
 
-// Broadcast sends an SSE message to all connected clients.
-func (h *Hub) Broadcast(msg *SSEMessage) {
+// MatchChannel compares a tag's channel against a target channel filter.
+func MatchChannel(tagChannel, targetChannel string) bool {
+	tagChannel = strings.TrimSpace(tagChannel)
+	targetChannel = strings.TrimSpace(targetChannel)
+
+	if targetChannel == "" || targetChannel == "*" || strings.EqualFold(targetChannel, "all") || strings.EqualFold(targetChannel, "alle") {
+		return true
+	}
+	if tagChannel == "" || tagChannel == "*" || strings.EqualFold(tagChannel, "all") || strings.EqualFold(tagChannel, "alle") {
+		return true
+	}
+	return strings.EqualFold(tagChannel, targetChannel)
+}
+
+// Broadcast sends an SSE message to connected clients.
+// If channel is specified, only clients subscribed to that channel (or to all channels "") receive it.
+func (h *Hub) Broadcast(msg *SSEMessage, channel ...string) {
 	if msg == nil {
 		return
 	}
+	targetChannel := ""
+	if len(channel) > 0 {
+		targetChannel = strings.TrimSpace(channel[0])
+	}
+
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	for ch := range h.clients {
+	for clientChan, clientFilter := range h.clients {
+		if targetChannel != "" && clientFilter != "" && !MatchChannel(targetChannel, clientFilter) {
+			continue
+		}
 		select {
-		case ch <- msg:
+		case clientChan <- msg:
 		default:
 			// Non-blocking drop if channel buffer full
 		}
@@ -376,30 +432,75 @@ func (h *Hub) Broadcast(msg *SSEMessage) {
 
 // Clear empties the in-memory scan history and notifies clients.
 func (h *Hub) Clear() {
+	h.ClearForChannel("")
+}
+
+// ClearForChannel empties scan history for a specific channel and notifies clients.
+func (h *Hub) ClearForChannel(channel string) {
 	h.mu.Lock()
-	h.tags = make([]*TagItem, 0, h.maxTags)
-	h.activeTags = make(map[string]*TagItem)
+	targetChannel := strings.TrimSpace(channel)
+	if targetChannel == "" {
+		h.tags = make([]*TagItem, 0, h.maxTags)
+		h.activeTags = make(map[string]*TagItem)
+	} else {
+		newTags := make([]*TagItem, 0, cap(h.tags))
+		for _, item := range h.tags {
+			if !MatchChannel(item.Channel, targetChannel) {
+				newTags = append(newTags, item)
+			}
+		}
+		h.tags = newTags
+		for uid, item := range h.activeTags {
+			if MatchChannel(item.Channel, targetChannel) {
+				delete(h.activeTags, uid)
+			}
+		}
+	}
 	h.mu.Unlock()
 
 	h.Broadcast(&SSEMessage{
 		Event: "tags_cleared",
 		Data:  "cleared",
-	})
+	}, targetChannel)
 }
 
-// GetTags returns a copy of all retained tag scans.
-func (h *Hub) GetTags() []*TagItem {
+// GetTags returns a copy of all retained tag scans, optionally filtered by channel.
+func (h *Hub) GetTags(channel ...string) []*TagItem {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
 
-	res := make([]*TagItem, len(h.tags))
-	copy(res, h.tags)
+	var ch string
+	if len(channel) > 0 {
+		ch = strings.TrimSpace(channel[0])
+	}
+
+	res := make([]*TagItem, 0, len(h.tags))
+	for _, item := range h.tags {
+		if ch == "" || MatchChannel(item.Channel, ch) {
+			res = append(res, item)
+		}
+	}
 	return res
 }
 
-// Count returns the number of retained tags.
-func (h *Hub) Count() int {
+// Count returns the number of retained tags, optionally filtered by channel.
+func (h *Hub) Count(channel ...string) int {
 	h.mu.RLock()
 	defer h.mu.RUnlock()
-	return len(h.tags)
+
+	var ch string
+	if len(channel) > 0 {
+		ch = strings.TrimSpace(channel[0])
+	}
+	if ch == "" {
+		return len(h.tags)
+	}
+
+	cnt := 0
+	for _, item := range h.tags {
+		if MatchChannel(item.Channel, ch) {
+			cnt++
+		}
+	}
+	return cnt
 }

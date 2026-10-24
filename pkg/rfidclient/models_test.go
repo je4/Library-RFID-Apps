@@ -268,6 +268,19 @@ func TestWriteAFIRequestAndResponse(t *testing.T) {
 	if err := req.Validate(); err != nil {
 		t.Fatalf("validation failed: %v", err)
 	}
+	if req.UID != "E004015099887766" || len(req.UIDs) != 1 {
+		t.Errorf("unexpected req: %+v", req)
+	}
+
+	multiReq := NewWriteAFIRequest("07", "TAG-1", "TAG-2")
+	if len(multiReq.UIDs) != 2 || multiReq.UID != "TAG-1" {
+		t.Errorf("unexpected multiReq: %+v", multiReq)
+	}
+
+	batchReq := NewWriteAFIBatchRequest("07", []string{"TAG-A", "TAG-B"})
+	if len(batchReq.UIDs) != 2 || batchReq.UID != "TAG-A" {
+		t.Errorf("unexpected batchReq: %+v", batchReq)
+	}
 
 	invalidReq := WriteAFIRequest{}
 	if err := invalidReq.Validate(); err == nil {
@@ -286,8 +299,8 @@ func TestWriteAFIRequestAndResponse(t *testing.T) {
 		t.Fatalf("failed to unmarshal: %v", err)
 	}
 
-	if !resp.IsSuccess() {
-		t.Error("expected IsSuccess() = true")
+	if !resp.IsSuccess() || resp.IsPartial() || resp.IsError() {
+		t.Error("expected IsSuccess() = true, IsPartial() = false, IsError() = false")
 	}
 	if resp.UID != "E004015099887766" {
 		t.Errorf("UID = %q, want E004015099887766", resp.UID)
@@ -297,6 +310,68 @@ func TestWriteAFIRequestAndResponse(t *testing.T) {
 	}
 	if resp.Summary() == "" {
 		t.Error("Summary() should not be empty")
+	}
+
+	// Test Batch Multi-Tag Success Response
+	batchSuccessJSON := `{
+		"event": "rfid:write_afi_response",
+		"status": "ok",
+		"uids": ["TAG-1", "TAG-2"],
+		"successfulUids": ["TAG-1", "TAG-2"],
+		"results": [
+			{"uid": "TAG-1", "status": "ok"},
+			{"uid": "TAG-2", "status": "ok"}
+		],
+		"afi": "C2"
+	}`
+	var batchSuccessResp WriteAFIResponse
+	if err := json.Unmarshal([]byte(batchSuccessJSON), &batchSuccessResp); err != nil {
+		t.Fatalf("failed to unmarshal batch success: %v", err)
+	}
+	if !batchSuccessResp.IsSuccess() || batchSuccessResp.IsPartial() {
+		t.Error("batchSuccessResp should be success and not partial")
+	}
+	if !batchSuccessResp.IsTagSuccessful("TAG-1") || !batchSuccessResp.IsTagSuccessful("TAG-2") {
+		t.Error("TAG-1 and TAG-2 should be successful")
+	}
+	if batchSuccessResp.IsTagSuccessful("TAG-3") {
+		t.Error("TAG-3 should not be successful")
+	}
+
+	// Test Batch Partial Failure Response
+	batchPartialJSON := `{
+		"event": "rfid:write_afi_response",
+		"status": "partial",
+		"uids": ["TAG-1", "TAG-2"],
+		"successfulUids": ["TAG-1"],
+		"failedUids": {
+			"TAG-2": "AFI locked"
+		},
+		"results": [
+			{"uid": "TAG-1", "status": "ok"},
+			{"uid": "TAG-2", "status": "error", "error": "AFI locked"}
+		],
+		"afi": "07",
+		"error": "1 of 2 tags failed"
+	}`
+	var batchPartialResp WriteAFIResponse
+	if err := json.Unmarshal([]byte(batchPartialJSON), &batchPartialResp); err != nil {
+		t.Fatalf("failed to unmarshal batch partial: %v", err)
+	}
+	if batchPartialResp.IsSuccess() || !batchPartialResp.IsPartial() || batchPartialResp.IsError() {
+		t.Error("batchPartialResp should be partial (IsSuccess=false, IsPartial=true, IsError=false)")
+	}
+	if !batchPartialResp.IsTagSuccessful("TAG-1") {
+		t.Error("TAG-1 should be successful in partial response")
+	}
+	if batchPartialResp.IsTagSuccessful("TAG-2") {
+		t.Error("TAG-2 should not be successful in partial response")
+	}
+	if batchPartialResp.GetTagError("TAG-2") != "AFI locked" {
+		t.Errorf("GetTagError(TAG-2) = %q, want 'AFI locked'", batchPartialResp.GetTagError("TAG-2"))
+	}
+	if batchPartialResp.Summary() == "" {
+		t.Error("Summary() on partial response should not be empty")
 	}
 }
 

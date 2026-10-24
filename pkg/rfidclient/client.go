@@ -55,16 +55,19 @@ type Client interface {
 	// WriteTag sends a command to program ISO 28560-2 library metadata and optional AFI to a transponder.
 	WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error)
 
-	// WriteAFI sends a command to set/toggle the AFI security byte on a transponder.
+	// WriteAFI sends a command to set/toggle the AFI security byte on a transponder or batch of transponders.
 	WriteAFI(ctx context.Context, target string, req WriteAFIRequest) (*WriteAFIResponse, error)
 
 	// WriteAFIValue is a convenience wrapper for writing an AFI value to a target transponder.
 	WriteAFIValue(ctx context.Context, target string, uid string, afi string) (*WriteAFIResponse, error)
 
-	// SetAFISecured sets the AFI byte of a tag (or all tags) to AFISecured ("07").
+	// WriteAFIBatch is a convenience wrapper for batch writing AFI to multiple transponders.
+	WriteAFIBatch(ctx context.Context, target string, uids []string, afi string) (*WriteAFIResponse, error)
+
+	// SetAFISecured sets the AFI byte of a tag (or batch of tags / all tags) to AFISecured ("07").
 	SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error)
 
-	// SetAFIUnsecured sets the AFI byte of a tag (or all tags) to AFIUnsecured ("C2").
+	// SetAFIUnsecured sets the AFI byte of a tag (or batch of tags / all tags) to AFIUnsecured ("C2").
 	SetAFIUnsecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error)
 
 	// SecureTag is a convenience method that writes AFISecured ("07") to a specific tag UID.
@@ -417,13 +420,17 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 	}
 
 	if c.logger != nil {
-		c.logger.Info().
+		logEvt := c.logger.Info().
 			Str("id", req.ID).
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
-			Str("target", targetAddr).
-			Str("uid", req.UID).
-			Msg("writing RFID AFI security byte")
+			Str("target", targetAddr)
+		if len(req.UIDs) > 0 {
+			logEvt = logEvt.Strs("uids", req.UIDs)
+		} else if req.UID != "" {
+			logEvt = logEvt.Str("uid", req.UID)
+		}
+		logEvt.Msg("writing RFID AFI security byte")
 	}
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
@@ -455,14 +462,28 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 
 	if c.logger != nil {
 		if afiResp.IsSuccess() {
-			c.logger.Info().
+			logEvt := c.logger.Info().
 				Str("id", afiResp.ID).
 				Str("refId", afiResp.RefID).
 				Str("afi", afiResp.AFI).
 				Str("status", AFISecurityStatus(afiResp.AFI)).
+				Str("target", targetAddr)
+			if len(afiResp.SuccessfulUIDs) > 0 {
+				logEvt = logEvt.Strs("successfulUids", afiResp.SuccessfulUIDs)
+			} else if afiResp.UID != "" {
+				logEvt = logEvt.Str("uid", afiResp.UID)
+			}
+			logEvt.Msg("RFID AFI security byte updated successfully")
+		} else if afiResp.IsPartial() {
+			c.logger.Warn().
+				Str("id", afiResp.ID).
+				Str("refId", afiResp.RefID).
+				Str("afi", afiResp.AFI).
 				Str("target", targetAddr).
-				Str("uid", afiResp.UID).
-				Msg("RFID AFI security byte updated successfully")
+				Strs("successfulUids", afiResp.SuccessfulUIDs).
+				Interface("failedUids", afiResp.FailedUIDs).
+				Str("error", afiResp.GetError()).
+				Msg("RFID AFI security byte partially updated")
 		} else {
 			c.logger.Warn().
 				Str("id", afiResp.ID).
@@ -483,22 +504,19 @@ func (c *RFIDClient) WriteAFIValue(ctx context.Context, target string, uid strin
 	return c.WriteAFI(ctx, target, NewWriteAFIRequest(afi, uid))
 }
 
-// SetAFISecured sets the AFI byte of a tag (or all tags) to AFISecured ("07").
-func (c *RFIDClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
-	var targetUID string
-	if len(uid) > 0 {
-		targetUID = uid[0]
-	}
-	return c.WriteAFIValue(ctx, target, targetUID, AFISecured)
+// WriteAFIBatch is a convenience wrapper for batch writing AFI to multiple transponders.
+func (c *RFIDClient) WriteAFIBatch(ctx context.Context, target string, uids []string, afi string) (*WriteAFIResponse, error) {
+	return c.WriteAFI(ctx, target, NewWriteAFIBatchRequest(afi, uids))
 }
 
-// SetAFIUnsecured sets the AFI byte of a tag (or all tags) to AFIUnsecured ("C2").
+// SetAFISecured sets the AFI byte of a tag (or batch of tags / all tags) to AFISecured ("07").
+func (c *RFIDClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
+	return c.WriteAFI(ctx, target, NewWriteAFIRequest(AFISecured, uid...))
+}
+
+// SetAFIUnsecured sets the AFI byte of a tag (or batch of tags / all tags) to AFIUnsecured ("C2").
 func (c *RFIDClient) SetAFIUnsecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
-	var targetUID string
-	if len(uid) > 0 {
-		targetUID = uid[0]
-	}
-	return c.WriteAFIValue(ctx, target, targetUID, AFIUnsecured)
+	return c.WriteAFI(ctx, target, NewWriteAFIRequest(AFIUnsecured, uid...))
 }
 
 // SecureTag writes AFISecured ("07") to the specified transponder UID.
@@ -527,13 +545,19 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 	}
 	req.Event = EventWriteAFI
 
-	c.logger.Info().
-		Str("id", req.ID).
-		Str("afi", req.AFI).
-		Str("status", AFISecurityStatus(req.AFI)).
-		Str("target", targetAddr).
-		Str("uid", req.UID).
-		Msg("sending RFID AFI write command")
+	if c.logger != nil {
+		logEvt := c.logger.Info().
+			Str("id", req.ID).
+			Str("afi", req.AFI).
+			Str("status", AFISecurityStatus(req.AFI)).
+			Str("target", targetAddr)
+		if len(req.UIDs) > 0 {
+			logEvt = logEvt.Strs("uids", req.UIDs)
+		} else if req.UID != "" {
+			logEvt = logEvt.Str("uid", req.UID)
+		}
+		logEvt.Msg("sending RFID AFI write command")
+	}
 
 	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
 	if err != nil {

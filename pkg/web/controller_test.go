@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"slices"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -56,22 +58,43 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for hx-sse.js, got %d", recSSEJS.Code)
 	}
 
-	// 2. Test Dashboard UI Rendering
-	reqUI := httptest.NewRequest(http.MethodGet, "/", nil)
+	// 2. Test Channel Selection Index Page
+	reqIndex := httptest.NewRequest(http.MethodGet, "/", nil)
+	recIndex := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recIndex, reqIndex)
+	if recIndex.Code != http.StatusOK {
+		t.Fatalf("expected 200 for index page, got %d", recIndex.Code)
+	}
+	bodyIndex := recIndex.Body.String()
+	if !strings.Contains(bodyIndex, "RFID Desk") || !strings.Contains(bodyIndex, "test-rfid-desk") {
+		t.Errorf("expected index page to contain app name and client ID, got %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, "Channel-Auswahl") {
+		t.Errorf("expected index page to contain 'Channel-Auswahl', got %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, "all") || !strings.Contains(bodyIndex, "intern") || !strings.Contains(bodyIndex, "rfid") {
+		t.Errorf("expected index page to list channels, got %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, "info-age GmbH, Basel") {
+		t.Errorf("expected index page to contain copyright 'info-age GmbH, Basel', got %s", bodyIndex)
+	}
+
+	// 2b. Test Channel Dashboard UI Rendering (/rfid/)
+	reqUI := httptest.NewRequest(http.MethodGet, "/rfid/", nil)
 	recUI := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recUI, reqUI)
 	if recUI.Code != http.StatusOK {
-		t.Fatalf("expected 200 for dashboard UI, got %d", recUI.Code)
+		t.Fatalf("expected 200 for channel dashboard UI, got %d", recUI.Code)
 	}
 	bodyUI := recUI.Body.String()
 	if !strings.Contains(bodyUI, "RFID Desk") || !strings.Contains(bodyUI, "test-rfid-desk") {
 		t.Errorf("expected dashboard UI to contain app name and client ID, got %s", bodyUI)
 	}
-	if !strings.Contains(bodyUI, "info-age GmbH, Basel") {
-		t.Errorf("expected dashboard UI to contain copyright 'info-age GmbH, Basel', got %s", bodyUI)
-	}
 	if !strings.Contains(bodyUI, "Reader (Sender)") {
 		t.Errorf("expected dashboard UI table header to contain 'Reader (Sender)', got %s", bodyUI)
+	}
+	if !strings.Contains(bodyUI, "Channel: <strong>rfid</strong>") && !strings.Contains(bodyUI, "rfid") {
+		t.Errorf("expected dashboard UI to contain current channel 'rfid', got %s", bodyUI)
 	}
 
 	// 3. Test API Status
@@ -126,7 +149,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	}
 
 	// 5. Test Clear Tags (HTMX endpoint)
-	reqClear := httptest.NewRequest(http.MethodPost, "/tags/clear", nil)
+	reqClear := httptest.NewRequest(http.MethodPost, "/rfid/tags/clear", nil)
 	recClear := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recClear, reqClear)
 	if recClear.Code != http.StatusOK {
@@ -136,36 +159,36 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected empty table placeholder after clear, got %s", recClear.Body.String())
 	}
 
-	// 6. Test Index Top Button Bar (Loan button as first button)
-	recIndex := httptest.NewRecorder()
-	ctrl.router.ServeHTTP(recIndex, reqUI)
-	bodyIndex := recIndex.Body.String()
-	if !strings.Contains(bodyIndex, `id="nav-loan-btn"`) || !strings.Contains(bodyIndex, `href="/loan"`) {
-		t.Errorf("expected index page to contain loan button in top button bar, got %s", bodyIndex)
+	// 6. Test Dashboard Top Button Bar (Loan button as first button)
+	recDashboard := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDashboard, reqUI)
+	bodyDashboard := recDashboard.Body.String()
+	if !strings.Contains(bodyDashboard, `id="nav-loan-btn"`) || !strings.Contains(bodyDashboard, `href="loan"`) {
+		t.Errorf("expected channel dashboard page to contain loan button with relative link, got %s", bodyDashboard)
 	}
 
-	// 7. Test Loan View (/loan)
-	reqLoan := httptest.NewRequest(http.MethodGet, "/loan", nil)
+	// 7. Test Loan View (/rfid/loan)
+	reqLoan := httptest.NewRequest(http.MethodGet, "/rfid/loan", nil)
 	recLoan := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recLoan, reqLoan)
 	if recLoan.Code != http.StatusOK {
-		t.Fatalf("expected 200 for /loan, got %d", recLoan.Code)
+		t.Fatalf("expected 200 for /rfid/loan, got %d", recLoan.Code)
 	}
 	bodyLoan := recLoan.Body.String()
 	if !strings.Contains(bodyLoan, "Ausleihe &amp; Rückgabe") && !strings.Contains(bodyLoan, "Ausleihe & Rückgabe") {
-		t.Errorf("expected /loan to contain title 'Ausleihe & Rückgabe', got %s", bodyLoan)
+		t.Errorf("expected /rfid/loan to contain title 'Ausleihe & Rückgabe', got %s", bodyLoan)
 	}
 	if !strings.Contains(bodyLoan, "btn-copy-all-itemids") {
-		t.Errorf("expected /loan to contain copy all item IDs button, got %s", bodyLoan)
+		t.Errorf("expected /rfid/loan to contain copy all item IDs button, got %s", bodyLoan)
 	}
 	if !strings.Contains(bodyLoan, "btn-unsecure") || !strings.Contains(bodyLoan, "btn-secure") {
-		t.Errorf("expected /loan to contain Entsichern and Sichern buttons, got %s", bodyLoan)
+		t.Errorf("expected /rfid/loan to contain Entsichern and Sichern buttons, got %s", bodyLoan)
 	}
-	if !strings.Contains(bodyLoan, `nav-desk-btn`) || !strings.Contains(bodyLoan, `href="/"`) {
-		t.Errorf("expected /loan to contain link back to RFID Desk, got %s", bodyLoan)
+	if !strings.Contains(bodyLoan, `nav-desk-btn`) || !strings.Contains(bodyLoan, `href="."`) {
+		t.Errorf("expected /rfid/loan to contain relative link back to RFID Desk, got %s", bodyLoan)
 	}
 
-	// 8. Test Reader Qualification for Active Media on /loan
+	// 8. Test Reader Qualification for Active Media on /rfid/loan
 	// Tag 1: from configured reader "reader-01" -> should qualify
 	tagQualified := &rfidclient.TagReadEvent{
 		UID:    "E004015011112222",
@@ -202,21 +225,21 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	}
 
 	// 9. Test AFI Manipulation (Entsichern & Sichern)
-	reqUnsecure := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	reqUnsecure := httptest.NewRequest(http.MethodPost, "/rfid/loan/afi/unsecure", nil)
 	recUnsecure := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recUnsecure, reqUnsecure)
 	if recUnsecure.Code != http.StatusOK {
-		t.Errorf("expected 200 for /loan/afi/unsecure, got %d", recUnsecure.Code)
+		t.Errorf("expected 200 for /rfid/loan/afi/unsecure, got %d", recUnsecure.Code)
 	}
 	if !strings.Contains(recUnsecure.Body.String(), "Entsichert (C2)") {
 		t.Errorf("expected loan table to show 'Entsichert (C2)' after unsecure, got %s", recUnsecure.Body.String())
 	}
 
-	reqSecure := httptest.NewRequest(http.MethodPost, "/loan/afi/secure", nil)
+	reqSecure := httptest.NewRequest(http.MethodPost, "/rfid/loan/afi/secure", nil)
 	recSecure := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recSecure, reqSecure)
 	if recSecure.Code != http.StatusOK {
-		t.Errorf("expected 200 for /loan/afi/secure, got %d", recSecure.Code)
+		t.Errorf("expected 200 for /rfid/loan/afi/secure, got %d", recSecure.Code)
 	}
 	if !strings.Contains(recSecure.Body.String(), "Gesichert (07)") {
 		t.Errorf("expected loan table to show 'Gesichert (07)' after secure, got %s", recSecure.Body.String())
@@ -228,6 +251,14 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	ctrl.router.ServeHTTP(recLoanCleared, reqLoan)
 	if !strings.Contains(recLoanCleared.Body.String(), "Keine aktiven Medien auf dem Lesefeld") {
 		t.Errorf("expected placeholder 'Keine aktiven Medien auf dem Lesefeld' after antenna field cleared, got %s", recLoanCleared.Body.String())
+	}
+
+	// 11. Test Invalid Channel returns 404
+	reqInvalid := httptest.NewRequest(http.MethodGet, "/invalid-channel/", nil)
+	recInvalid := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recInvalid, reqInvalid)
+	if recInvalid.Code != http.StatusNotFound {
+		t.Errorf("expected 404 for invalid channel, got %d", recInvalid.Code)
 	}
 }
 
@@ -265,13 +296,21 @@ func (m *mockRFIDClient) WriteAFI(ctx context.Context, target string, req rfidcl
 	if m.writeAFIResp != nil {
 		return m.writeAFIResp, nil
 	}
+	var succ []string
+	if len(req.UIDs) > 0 {
+		succ = req.UIDs
+	} else if req.UID != "" {
+		succ = []string{req.UID}
+	}
 	return &rfidclient.WriteAFIResponse{
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
 			Event: rfidclient.EventWriteAFIResponse,
 		},
-		Status: "ok",
-		UID:    req.UID,
-		AFI:    req.AFI,
+		Status:         "ok",
+		UID:            req.UID,
+		UIDs:           req.UIDs,
+		SuccessfulUIDs: succ,
+		AFI:            req.AFI,
 	}, nil
 }
 
@@ -309,7 +348,7 @@ func TestController_AFIViaRFIDClient_Success(t *testing.T) {
 	})
 
 	// 1. Post unsecure
-	reqUnsecure := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	reqUnsecure := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
 	recUnsecure := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recUnsecure, reqUnsecure)
 	if recUnsecure.Code != http.StatusOK {
@@ -327,7 +366,7 @@ func TestController_AFIViaRFIDClient_Success(t *testing.T) {
 	}
 
 	// 2. Post secure
-	reqSecure := httptest.NewRequest(http.MethodPost, "/loan/afi/secure", nil)
+	reqSecure := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/secure", nil)
 	recSecure := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recSecure, reqSecure)
 	if recSecure.Code != http.StatusOK {
@@ -387,7 +426,7 @@ func TestController_AFIViaRFIDClient_Error(t *testing.T) {
 	})
 
 	// Post unsecure when write fails
-	reqUnsecure := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	reqUnsecure := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
 	recUnsecure := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recUnsecure, reqUnsecure)
 	if recUnsecure.Code != http.StatusOK {
@@ -568,6 +607,7 @@ func TestController_SetAFI_SynchronousFailure(t *testing.T) {
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
 		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
 		RFIDClient:    mockCli,
@@ -586,7 +626,7 @@ func TestController_SetAFI_SynchronousFailure(t *testing.T) {
 		},
 	})
 
-	req := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	req := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
 	rec := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(rec, req)
 
@@ -623,6 +663,7 @@ func TestController_SetAFI_TargetedReader(t *testing.T) {
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
 		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
 		DefaultReader: "",
 		Hub:           hub,
 		RFIDClient:    mockCli,
@@ -642,7 +683,7 @@ func TestController_SetAFI_TargetedReader(t *testing.T) {
 		},
 	})
 
-	req := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	req := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
 	rec := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(rec, req)
 
@@ -668,6 +709,7 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
 		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
 		RFIDClient:    mockCli,
@@ -697,7 +739,7 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 	})
 
 	// 1. Target single tag TAG-01 with unsecure
-	req := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure?uid=TAG-01", nil)
+	req := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure?uid=TAG-01", nil)
 	rec := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(rec, req)
 
@@ -728,7 +770,7 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 	}
 
 	// 2. Target TAG-01 with single endpoint to secure it back
-	reqSingle := httptest.NewRequest(http.MethodPost, "/loan/afi/single?uid=TAG-01&action=secure", nil)
+	reqSingle := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/single?uid=TAG-01&action=secure", nil)
 	recSingle := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recSingle, reqSingle)
 
@@ -755,7 +797,21 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 	// Mock client where TAG-01 succeeds and TAG-02 fails
 	mockCli := &mockRFIDClient{
 		writeAFIHandler: func(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
-			if req.UID == "TAG-02" {
+			if slices.Contains(req.UIDs, "TAG-02") || req.UID == "TAG-02" {
+				if len(req.UIDs) > 1 {
+					return &rfidclient.WriteAFIResponse{
+						BaseRFIDPayload: rfidclient.BaseRFIDPayload{Event: rfidclient.EventWriteAFIResponse},
+						Status:          "partial",
+						UIDs:            req.UIDs,
+						SuccessfulUIDs:  []string{"TAG-01"},
+						FailedUIDs:      map[string]string{"TAG-02": "Antenna communication timeout"},
+						Results: []rfidclient.TagAFIResult{
+							{UID: "TAG-01", Status: "ok"},
+							{UID: "TAG-02", Status: "error", Error: "Antenna communication timeout"},
+						},
+						AFI: req.AFI,
+					}, nil
+				}
 				return &rfidclient.WriteAFIResponse{
 					BaseRFIDPayload: rfidclient.BaseRFIDPayload{Event: rfidclient.EventWriteAFIResponse},
 					Status:          "error",
@@ -768,6 +824,8 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 				BaseRFIDPayload: rfidclient.BaseRFIDPayload{Event: rfidclient.EventWriteAFIResponse},
 				Status:          "ok",
 				UID:             req.UID,
+				UIDs:            req.UIDs,
+				SuccessfulUIDs:  req.UIDs,
 				AFI:             req.AFI,
 			}, nil
 		},
@@ -776,6 +834,7 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
 		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
 		RFIDClient:    mockCli,
@@ -798,7 +857,7 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 	})
 
 	// Execute batch unsecure
-	req := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure", nil)
+	req := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
 	rec := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(rec, req)
 
@@ -836,7 +895,7 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 
 	// Retry TAG-02 individually with success
 	mockCli.writeAFIHandler = nil // will return default success
-	reqRetry := httptest.NewRequest(http.MethodPost, "/loan/afi/unsecure?uid=TAG-02", nil)
+	reqRetry := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure?uid=TAG-02", nil)
 	recRetry := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recRetry, reqRetry)
 
@@ -864,7 +923,20 @@ func TestController_APILoanAFI_MixedBatch(t *testing.T) {
 
 	mockCli := &mockRFIDClient{
 		writeAFIHandler: func(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
-			if req.UID == "TAG-ERR" {
+			if slices.Contains(req.UIDs, "TAG-ERR") || req.UID == "TAG-ERR" {
+				if len(req.UIDs) > 1 {
+					return &rfidclient.WriteAFIResponse{
+						Status:         "partial",
+						UIDs:           req.UIDs,
+						SuccessfulUIDs: []string{"TAG-OK"},
+						FailedUIDs:     map[string]string{"TAG-ERR": "Write lock active"},
+						Results: []rfidclient.TagAFIResult{
+							{UID: "TAG-OK", Status: "ok"},
+							{UID: "TAG-ERR", Status: "error", Error: "Write lock active"},
+						},
+						AFI: req.AFI,
+					}, nil
+				}
 				return &rfidclient.WriteAFIResponse{
 					Status: "error",
 					Error:  "Write lock active",
@@ -873,9 +945,11 @@ func TestController_APILoanAFI_MixedBatch(t *testing.T) {
 				}, nil
 			}
 			return &rfidclient.WriteAFIResponse{
-				Status: "ok",
-				UID:    req.UID,
-				AFI:    req.AFI,
+				Status:         "ok",
+				UID:            req.UID,
+				UIDs:           req.UIDs,
+				SuccessfulUIDs: req.UIDs,
+				AFI:            req.AFI,
 			}, nil
 		},
 	}
@@ -925,4 +999,277 @@ func TestController_APILoanAFI_MixedBatch(t *testing.T) {
 	if resp.Status != "partial" || resp.SuccessCount != 1 || resp.ErrorCount != 1 {
 		t.Errorf("unexpected API response: %+v", resp)
 	}
+}
+
+func TestController_ChannelIsolationAndCardDisplay(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"desk-a", "desk-b"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	tagA := &rfidclient.TagReadEvent{
+		UID:    "UID-AAA-111",
+		ItemID: "BOOK-AAA",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Channel:   "desk-a",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	}
+	tagB := &rfidclient.TagReadEvent{
+		UID:    "UID-BBB-222",
+		ItemID: "BOOK-BBB",
+		AFI:    "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID:  "reader-01",
+			Channel:   "desk-b",
+			Timestamp: time.Now().UnixMilli(),
+		},
+	}
+
+	ctrl.HandleTagRead(tagA)
+	ctrl.HandleTagRead(tagB)
+
+	// 1. Verify /desk-a/ displays only tagA and shows "desk-a" as Channel card
+	recA := httptest.NewRecorder()
+	reqA := httptest.NewRequest(http.MethodGet, "/desk-a/", nil)
+	ctrl.router.ServeHTTP(recA, reqA)
+	if recA.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /desk-a/, got %d", recA.Code)
+	}
+	bodyA := recA.Body.String()
+	if !strings.Contains(bodyA, "BOOK-AAA") || !strings.Contains(bodyA, "UID-AAA-111") {
+		t.Errorf("expected /desk-a/ to contain BOOK-AAA / UID-AAA-111, got: %s", bodyA)
+	}
+	if strings.Contains(bodyA, "BOOK-BBB") || strings.Contains(bodyA, "UID-BBB-222") {
+		t.Errorf("/desk-a/ should NOT contain tags from desk-b (BOOK-BBB), got: %s", bodyA)
+	}
+	if strings.Contains(bodyA, "Abonnierte Channels") {
+		t.Errorf("/desk-a/ should not contain 'Abonnierte Channels'")
+	}
+	if !strings.Contains(bodyA, "desk-a") {
+		t.Errorf("/desk-a/ should contain 'desk-a' in Channel card")
+	}
+
+	// 2. Verify /desk-b/ displays only tagB and shows "desk-b" as Channel card
+	recB := httptest.NewRecorder()
+	reqB := httptest.NewRequest(http.MethodGet, "/desk-b/", nil)
+	ctrl.router.ServeHTTP(recB, reqB)
+	if recB.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /desk-b/, got %d", recB.Code)
+	}
+	bodyB := recB.Body.String()
+	if !strings.Contains(bodyB, "BOOK-BBB") || !strings.Contains(bodyB, "UID-BBB-222") {
+		t.Errorf("expected /desk-b/ to contain BOOK-BBB / UID-BBB-222, got: %s", bodyB)
+	}
+	if strings.Contains(bodyB, "BOOK-AAA") || strings.Contains(bodyB, "UID-AAA-111") {
+		t.Errorf("/desk-b/ should NOT contain tags from desk-a (BOOK-AAA), got: %s", bodyB)
+	}
+
+	// 3. Verify /desk-a/loan displays only tagA
+	recLoanA := httptest.NewRecorder()
+	reqLoanA := httptest.NewRequest(http.MethodGet, "/desk-a/loan", nil)
+	ctrl.router.ServeHTTP(recLoanA, reqLoanA)
+	if recLoanA.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /desk-a/loan, got %d", recLoanA.Code)
+	}
+	bodyLoanA := recLoanA.Body.String()
+	if !strings.Contains(bodyLoanA, "BOOK-AAA") {
+		t.Errorf("expected /desk-a/loan to contain BOOK-AAA, got: %s", bodyLoanA)
+	}
+	if strings.Contains(bodyLoanA, "BOOK-BBB") {
+		t.Errorf("/desk-a/loan should NOT contain BOOK-BBB, got: %s", bodyLoanA)
+	}
+
+	// 4. Verify /desk-b/loan displays only tagB
+	recLoanB := httptest.NewRecorder()
+	reqLoanB := httptest.NewRequest(http.MethodGet, "/desk-b/loan", nil)
+	ctrl.router.ServeHTTP(recLoanB, reqLoanB)
+	if recLoanB.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /desk-b/loan, got %d", recLoanB.Code)
+	}
+	bodyLoanB := recLoanB.Body.String()
+	if !strings.Contains(bodyLoanB, "BOOK-BBB") {
+		t.Errorf("expected /desk-b/loan to contain BOOK-BBB, got: %s", bodyLoanB)
+	}
+	if strings.Contains(bodyLoanB, "BOOK-AAA") {
+		t.Errorf("/desk-b/loan should NOT contain BOOK-AAA, got: %s", bodyLoanB)
+	}
+
+	// 5. Clear tags on /desk-a/tags/clear
+	recClearA := httptest.NewRecorder()
+	reqClearA := httptest.NewRequest(http.MethodPost, "/desk-a/tags/clear", nil)
+	ctrl.router.ServeHTTP(recClearA, reqClearA)
+	if recClearA.Code != http.StatusOK {
+		t.Fatalf("expected 200 for /desk-a/tags/clear, got %d", recClearA.Code)
+	}
+
+	// Verify desk-a is empty, desk-b still has tagB
+	recAAfter := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAAfter, reqA)
+	if strings.Contains(recAAfter.Body.String(), "BOOK-AAA") {
+		t.Errorf("expected BOOK-AAA to be cleared from /desk-a/, got: %s", recAAfter.Body.String())
+	}
+
+	recBAfter := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recBAfter, reqB)
+	if !strings.Contains(recBAfter.Body.String(), "BOOK-BBB") {
+		t.Errorf("expected BOOK-BBB to remain on /desk-b/ after clearing desk-a, got: %s", recBAfter.Body.String())
+	}
+}
+
+func TestController_LoanAFI_ClusteredByReader(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	var writeCallsMu sync.Mutex
+	type writeCallRecord struct {
+		Target string
+		UIDs   []string
+		AFI    string
+	}
+	var recordedCalls []writeCallRecord
+
+	mockCli := &mockRFIDClient{
+		writeAFIHandler: func(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
+			writeCallsMu.Lock()
+			recordedCalls = append(recordedCalls, writeCallRecord{
+				Target: target,
+				UIDs:   req.UIDs,
+				AFI:    req.AFI,
+			})
+			writeCallsMu.Unlock()
+
+			return &rfidclient.WriteAFIResponse{
+				BaseRFIDPayload: rfidclient.BaseRFIDPayload{Event: rfidclient.EventWriteAFIResponse},
+				Status:          "ok",
+				UIDs:            req.UIDs,
+				SuccessfulUIDs:  req.UIDs,
+				AFI:             req.AFI,
+			}, nil
+		},
+	}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
+		DefaultReader: "reader-default",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Scan 2 tags on reader-01 and 2 tags on reader-02
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-R1-A",
+		ItemID:          "BOOK-R1-A",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-R1-B",
+		ItemID:          "BOOK-R1-B",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-R2-A",
+		ItemID:          "BOOK-R2-A",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-R2-B",
+		ItemID:          "BOOK-R2-B",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+
+	// 1. Web desk unsecure operation
+	reqUI := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
+	recUI := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recUI, reqUI)
+
+	if recUI.Code != http.StatusOK {
+		t.Fatalf("expected 200 from /loan/afi/unsecure, got %d", recUI.Code)
+	}
+
+	writeCallsMu.Lock()
+	if len(recordedCalls) != 2 {
+		t.Fatalf("expected 2 clustered WriteAFI calls (one per reader), got %d", len(recordedCalls))
+	}
+	for _, call := range recordedCalls {
+		if call.Target == "reader-01" {
+			if len(call.UIDs) != 2 || !slices.Contains(call.UIDs, "TAG-R1-A") || !slices.Contains(call.UIDs, "TAG-R1-B") {
+				t.Errorf("reader-01 received unexpected UIDs: %v", call.UIDs)
+			}
+			if slices.Contains(call.UIDs, "TAG-R2-A") || slices.Contains(call.UIDs, "TAG-R2-B") {
+				t.Errorf("reader-01 received tags from reader-02: %v", call.UIDs)
+			}
+		} else if call.Target == "reader-02" {
+			if len(call.UIDs) != 2 || !slices.Contains(call.UIDs, "TAG-R2-A") || !slices.Contains(call.UIDs, "TAG-R2-B") {
+				t.Errorf("reader-02 received unexpected UIDs: %v", call.UIDs)
+			}
+			if slices.Contains(call.UIDs, "TAG-R1-A") || slices.Contains(call.UIDs, "TAG-R1-B") {
+				t.Errorf("reader-02 received tags from reader-01: %v", call.UIDs)
+			}
+		} else {
+			t.Errorf("unexpected target reader in write call: %s", call.Target)
+		}
+	}
+	writeCallsMu.Unlock()
+
+	// 2. REST API secure operation with specified UIDs across multiple readers
+	writeCallsMu.Lock()
+	recordedCalls = nil
+	writeCallsMu.Unlock()
+
+	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/loan/afi", strings.NewReader(`{"action":"secure","uids":["TAG-R1-A","TAG-R2-B"]}`))
+	reqAPI.Header.Set("Content-Type", "application/json")
+	recAPI := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAPI, reqAPI)
+
+	if recAPI.Code != http.StatusOK {
+		t.Fatalf("expected 200 from /api/v1/loan/afi, got %d", recAPI.Code)
+	}
+
+	writeCallsMu.Lock()
+	if len(recordedCalls) != 2 {
+		t.Fatalf("expected 2 clustered API WriteAFI calls, got %d", len(recordedCalls))
+	}
+	for _, call := range recordedCalls {
+		if call.Target == "reader-01" {
+			if len(call.UIDs) != 1 || call.UIDs[0] != "TAG-R1-A" {
+				t.Errorf("reader-01 API call received unexpected UIDs: %v", call.UIDs)
+			}
+		} else if call.Target == "reader-02" {
+			if len(call.UIDs) != 1 || call.UIDs[0] != "TAG-R2-B" {
+				t.Errorf("reader-02 API call received unexpected UIDs: %v", call.UIDs)
+			}
+		} else {
+			t.Errorf("unexpected target reader in API write call: %s", call.Target)
+		}
+	}
+	writeCallsMu.Unlock()
 }

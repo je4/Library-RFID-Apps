@@ -24,13 +24,13 @@
             }
         })();
     </script>
-    <!-- Tailwind CSS, HTMX 4 & SSE Extension -->
-    <link rel="stylesheet" href="/static/css/tailwind.min.css">
-    <script src="/static/js/htmx-4.0.js"></script>
-    <script src="/static/js/hx-sse.js"></script>
-    <link rel="stylesheet" href="/static/css/desk.css">
+    <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
+    <link rel="stylesheet" href="../static/css/tailwind.min.css">
+    <script src="../static/js/htmx-4.0.js"></script>
+    <script src="../static/js/hx-sse.js"></script>
+    <link rel="stylesheet" href="../static/css/desk.css">
 </head>
-<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="/events" data-sse-connect="/events" hx-ext="sse">
+<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     <!-- Header Bar -->
     <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
@@ -46,6 +46,7 @@
                     <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
                 </h1>
                 <p class="text-xs app-meta-text font-mono flex items-center gap-2">
+                    {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
                     <span>Client: <strong>{{.ClientName}}</strong></span>
                     <span>&bull;</span>
                     <span>Broker: <strong>{{.WSBroker}}</strong></span>
@@ -55,6 +56,14 @@
 
         <!-- Top Right Actions & SSE Status Badge -->
         <div class="flex items-center space-x-3">
+            <!-- Back to Channels Index Button -->
+            <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
+                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+                </svg>
+                <span>Channels</span>
+            </a>
+
             <!-- Audio Feedback Toggle Button -->
             <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-btn transition-colors inline-flex items-center gap-1.5 cursor-pointer" title="Signalton bei Scan umschalten">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -77,7 +86,7 @@
         <!-- Top Navigation / Action Bar (Single Elegant Loan Action Button) -->
         <nav class="flex items-center" aria-label="Aktionsleiste">
             <!-- Ausleihe & Rückgabe (Loan) Action Card -->
-            <a href="/loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg" title="Zur Ausleihe und Rückgabe wechseln">
+            <a href="loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg" title="Zur Ausleihe und Rückgabe wechseln">
                 <div class="flex items-center justify-between w-full mb-3">
                     <div class="w-12 h-12 rounded-xl flex items-center justify-center card-icon-box shadow-md transition-transform duration-300 group-hover:scale-110">
                         <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -119,8 +128,8 @@
             <!-- Target Reader / Channel Card -->
             <div class="p-4 rounded-xl app-card flex items-center justify-between">
                 <div>
-                    <div class="text-xs font-medium app-metric-label">Abonnierte Channels</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[160px]">{{range $i, $c := .Channels}}{{if $i}}, {{end}}{{$c}}{{else}}all{{end}}</div>
+                    <div class="text-xs font-medium app-metric-label">Channel</div>
+                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[160px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -177,7 +186,7 @@
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
-                    <button hx-post="/tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-clear-btn transition-colors inline-flex items-center gap-1.5" title="Transponder-Liste leeren">
+                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-xs font-medium rounded-lg app-clear-btn transition-colors inline-flex items-center gap-1.5" title="Transponder-Liste leeren">
                         <svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
                         </svg>
@@ -222,7 +231,7 @@
         </div>
     </footer>
 
-    <!-- Interactive script for audio, counters and filtering -->
-    <script src="/static/js/desk.js"></script>
+    <!-- Interactive script for audio, counters and filtering (Relative Path) -->
+    <script src="../static/js/desk.js"></script>
 </body>
 </html>

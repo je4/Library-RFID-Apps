@@ -151,6 +151,7 @@ type DeskData struct {
 	ClientName    string
 	WSBroker      string
 	Channels      []string
+	Channel       string
 	DefaultReader string
 	Addr          string
 	ExtAddr       string
@@ -163,6 +164,7 @@ type LoanData struct {
 	ClientName        string
 	WSBroker          string
 	Channels          []string
+	Channel           string
 	DefaultReader     string
 	Addr              string
 	ExtAddr           string

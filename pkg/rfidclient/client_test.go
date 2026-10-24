@@ -1009,3 +1009,71 @@ func TestRFIDClient_SendAFI_And_BroadcastAFI_IDPropagation(t *testing.T) {
 		t.Errorf("bcastEvt.ID = %q, want reqBcastID %q", bcastEvt.ID, reqBcastID)
 	}
 }
+
+func TestRFIDClient_WriteAFIBatch(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	fake.requestFunc = func(ctx context.Context, reqEvt *event.Event) (*event.Event, error) {
+		var req WriteAFIRequest
+		if err := json.Unmarshal(reqEvt.Data, &req); err != nil {
+			t.Fatalf("failed to unmarshal request: %v", err)
+		}
+		if len(req.UIDs) != 2 || req.UIDs[0] != "TAG-1" || req.UIDs[1] != "TAG-2" {
+			t.Errorf("unexpected request UIDs: %v", req.UIDs)
+		}
+
+		respData := WriteAFIResponse{
+			BaseRFIDPayload: BaseRFIDPayload{
+				Event: EventWriteAFIResponse,
+				RefID: reqEvt.ID,
+			},
+			Status:         "ok",
+			UIDs:           req.UIDs,
+			SuccessfulUIDs: req.UIDs,
+			Results: []TagAFIResult{
+				{UID: "TAG-1", Status: "ok"},
+				{UID: "TAG-2", Status: "ok"},
+			},
+			AFI: req.AFI,
+		}
+		dataBytes, _ := json.Marshal(respData)
+		respEvt := &event.Event{
+			ID:     "resp-batch-001",
+			RefID:  reqEvt.ID,
+			Source: "reader-01",
+			Target: "controller-app",
+			Token:  reqEvt.Token,
+			Type:   event.TypeMessage,
+			Data:   dataBytes,
+		}
+		return respEvt, nil
+	}
+
+	uids := []string{"TAG-1", "TAG-2"}
+	resp, err := rfid.WriteAFIBatch(context.Background(), "reader-01", uids, "C2")
+	if err != nil {
+		t.Fatalf("WriteAFIBatch failed: %v", err)
+	}
+	if !resp.IsSuccess() {
+		t.Errorf("expected success response, got %s", resp.Status)
+	}
+	if len(resp.SuccessfulUIDs) != 2 {
+		t.Errorf("expected 2 successful UIDs, got %d", len(resp.SuccessfulUIDs))
+	}
+	if !resp.IsTagSuccessful("TAG-1") || !resp.IsTagSuccessful("TAG-2") {
+		t.Errorf("expected TAG-1 and TAG-2 to be successful")
+	}
+
+	// Test SetAFISecured with multiple UIDs (batch)
+	respSecured, err := rfid.SetAFISecured(context.Background(), "reader-01", "TAG-1", "TAG-2")
+	if err != nil {
+		t.Fatalf("SetAFISecured batch failed: %v", err)
+	}
+	if !respSecured.IsSuccess() {
+		t.Errorf("expected success response from SetAFISecured batch, got %s", respSecured.Status)
+	}
+}

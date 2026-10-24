@@ -21,6 +21,7 @@ type (
 	WriteTagResponse       = rfidclient.WriteTagResponse
 	WriteAFIRequest        = rfidclient.WriteAFIRequest
 	WriteAFIResponse       = rfidclient.WriteAFIResponse
+	TagAFIResult           = rfidclient.TagAFIResult
 
 	TagReadHandler          = rfidclient.TagReadHandler
 	TagsClearedHandler      = rfidclient.TagsClearedHandler
@@ -59,6 +60,7 @@ var (
 	NewDeviceMetadataRequest = rfidclient.NewDeviceMetadataRequest
 	NewWriteTagRequest       = rfidclient.NewWriteTagRequest
 	NewWriteAFIRequest       = rfidclient.NewWriteAFIRequest
+	NewWriteAFIBatchRequest  = rfidclient.NewWriteAFIBatchRequest
 	ParseRFIDPayload         = rfidclient.ParseRFIDPayload
 	ParseEvent               = rfidclient.ParseEvent
 	NormalizeAFI             = rfidclient.NormalizeAFI

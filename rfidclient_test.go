@@ -21,6 +21,11 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("expected EventWriteAFI, got %s", afiReq.Event)
 	}
 
+	batchAfiReq := rfidapps.NewWriteAFIBatchRequest("C2", []string{"E00401", "E00402"})
+	if batchAfiReq.Event != rfidapps.EventWriteAFI || len(batchAfiReq.UIDs) != 2 || batchAfiReq.UID != "E00401" {
+		t.Errorf("unexpected batch AFI request: %+v", batchAfiReq)
+	}
+
 	// Verify AFI security constants and helper functions
 	if rfidapps.AFISecured != "07" {
 		t.Errorf("expected AFISecured = '07', got %s", rfidapps.AFISecured)
