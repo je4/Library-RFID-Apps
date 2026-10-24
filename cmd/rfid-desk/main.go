@@ -109,6 +109,8 @@ func main() {
 		}
 
 		logger.Info().
+			Str("id", tag.ID).
+			Str("refId", tag.RefID).
 			Str("uid", tag.UID).
 			Str("itemId", tag.ItemID).
 			Str("isil", tag.ISIL).
@@ -121,13 +123,18 @@ func main() {
 	})
 
 	rfidCli.OnTagsCleared(func(cleared *rfidclient.TagsClearedEvent, rawEvt *wsbrokerclient.Event) {
-		logger.Info().Msg("RFID antenna field cleared (tags removed)")
+		logger.Info().
+			Str("id", cleared.ID).
+			Str("refId", cleared.RefID).
+			Msg("RFID antenna field cleared (tags removed)")
 		webCtrl.HandleTagsCleared()
 	})
 
 	rfidCli.OnWriteTagResponse(func(resp *rfidclient.WriteTagResponse, rawEvt *wsbrokerclient.Event) {
 		if resp.IsSuccess() {
 			logger.Info().
+				Str("id", resp.ID).
+				Str("refId", resp.RefID).
 				Str("uid", resp.UID).
 				Str("itemId", resp.ItemID).
 				Str("isil", resp.ISIL).
@@ -135,6 +142,8 @@ func main() {
 				Msg("RFID tag write response received: success")
 		} else {
 			logger.Warn().
+				Str("id", resp.ID).
+				Str("refId", resp.RefID).
 				Str("uid", resp.UID).
 				Str("itemId", resp.ItemID).
 				Str("error", resp.GetError()).
@@ -149,12 +158,16 @@ func main() {
 		}
 		if resp.IsSuccess() {
 			logger.Info().
+				Str("id", resp.ID).
+				Str("refId", resp.RefID).
 				Str("uid", resp.UID).
 				Str("afi", resp.AFI).
 				Str("securityStatus", secStatus).
 				Msg("RFID AFI security update confirmed")
 		} else {
 			logger.Warn().
+				Str("id", resp.ID).
+				Str("refId", resp.RefID).
 				Str("uid", resp.UID).
 				Str("afi", resp.AFI).
 				Str("error", resp.GetError()).

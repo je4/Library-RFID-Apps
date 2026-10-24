@@ -245,6 +245,7 @@ func (c *RFIDClient) GetDeviceMetadata(ctx context.Context, target ...string) (*
 		return nil, errors.Wrap(err, "failed to create device metadata request event")
 	}
 	reqEvt.Token = token
+	reqEvt.ID = reqPayload.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -253,7 +254,7 @@ func (c *RFIDClient) GetDeviceMetadata(ctx context.Context, target ...string) (*
 		defer cancel()
 	}
 
-	c.logger.Debug().Msgf("sending device metadata request to %s (token: %s)", targetAddr, token)
+	c.logger.Debug().Msgf("sending device metadata request to %s (id: %s, token: %s)", targetAddr, reqPayload.ID, token)
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "device metadata request failed for target %s", targetAddr)
@@ -266,6 +267,20 @@ func (c *RFIDClient) GetDeviceMetadata(ctx context.Context, target ...string) (*
 	var metaResp DeviceMetadataResponse
 	if err := json.Unmarshal(respEvt.Data, &metaResp); err != nil {
 		return nil, errors.Wrap(err, "failed to decode device metadata response")
+	}
+
+	if metaResp.ID == "" && respEvt.ID != "" {
+		metaResp.ID = respEvt.ID
+	}
+	if metaResp.RefID == "" {
+		if respEvt.RefID != "" {
+			metaResp.RefID = respEvt.RefID
+		} else {
+			metaResp.RefID = reqPayload.ID
+		}
+	}
+	if metaResp.ClientID == "" && respEvt.Source != "" {
+		metaResp.ClientID = respEvt.Source
 	}
 
 	return &metaResp, nil
@@ -282,6 +297,9 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		return nil, err
 	}
 
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
 	req.Event = EventWriteTag
 	token, err := wsbrokerclient.GenerateToken()
 	if err != nil {
@@ -293,6 +311,7 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		return nil, errors.Wrap(err, "failed to create write tag request event")
 	}
 	reqEvt.Token = token
+	reqEvt.ID = req.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -303,6 +322,7 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 
 	if c.logger != nil {
 		c.logger.Info().
+			Str("id", req.ID).
 			Str("itemId", req.ItemID).
 			Str("target", targetAddr).
 			Str("uid", req.UID).
@@ -323,9 +343,25 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		return nil, errors.Wrap(err, "failed to decode write tag response")
 	}
 
+	if writeResp.ID == "" && respEvt.ID != "" {
+		writeResp.ID = respEvt.ID
+	}
+	if writeResp.RefID == "" {
+		if respEvt.RefID != "" {
+			writeResp.RefID = respEvt.RefID
+		} else {
+			writeResp.RefID = req.ID
+		}
+	}
+	if writeResp.ClientID == "" && respEvt.Source != "" {
+		writeResp.ClientID = respEvt.Source
+	}
+
 	if c.logger != nil {
 		if writeResp.IsSuccess() {
 			c.logger.Info().
+				Str("id", writeResp.ID).
+				Str("refId", writeResp.RefID).
 				Str("itemId", writeResp.ItemID).
 				Str("uid", writeResp.UID).
 				Str("target", targetAddr).
@@ -333,6 +369,8 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 				Msg("RFID tag written successfully")
 		} else {
 			c.logger.Warn().
+				Str("id", writeResp.ID).
+				Str("refId", writeResp.RefID).
 				Str("itemId", writeResp.ItemID).
 				Str("uid", writeResp.UID).
 				Str("target", targetAddr).
@@ -355,6 +393,9 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		return nil, err
 	}
 
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
 	req.Event = EventWriteAFI
 	token, err := wsbrokerclient.GenerateToken()
 	if err != nil {
@@ -366,6 +407,7 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		return nil, errors.Wrap(err, "failed to create write afi request event")
 	}
 	reqEvt.Token = token
+	reqEvt.ID = req.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -376,6 +418,7 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 
 	if c.logger != nil {
 		c.logger.Info().
+			Str("id", req.ID).
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
 			Str("target", targetAddr).
@@ -396,9 +439,25 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		return nil, errors.Wrap(err, "failed to decode write afi response")
 	}
 
+	if afiResp.ID == "" && respEvt.ID != "" {
+		afiResp.ID = respEvt.ID
+	}
+	if afiResp.RefID == "" {
+		if respEvt.RefID != "" {
+			afiResp.RefID = respEvt.RefID
+		} else {
+			afiResp.RefID = req.ID
+		}
+	}
+	if afiResp.ClientID == "" && respEvt.Source != "" {
+		afiResp.ClientID = respEvt.Source
+	}
+
 	if c.logger != nil {
 		if afiResp.IsSuccess() {
 			c.logger.Info().
+				Str("id", afiResp.ID).
+				Str("refId", afiResp.RefID).
 				Str("afi", afiResp.AFI).
 				Str("status", AFISecurityStatus(afiResp.AFI)).
 				Str("target", targetAddr).
@@ -406,6 +465,8 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 				Msg("RFID AFI security byte updated successfully")
 		} else {
 			c.logger.Warn().
+				Str("id", afiResp.ID).
+				Str("refId", afiResp.RefID).
 				Str("afi", afiResp.AFI).
 				Str("target", targetAddr).
 				Str("uid", afiResp.UID).
@@ -461,18 +522,29 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 		return err
 	}
 
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
 	req.Event = EventWriteAFI
 
 	c.logger.Info().
+		Str("id", req.ID).
 		Str("afi", req.AFI).
 		Str("status", AFISecurityStatus(req.AFI)).
 		Str("target", targetAddr).
 		Str("uid", req.UID).
 		Msg("sending RFID AFI write command")
 
-	if err := c.broker.SendMessage(ctx, targetAddr, req); err != nil {
+	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	if err != nil {
+		return errors.Wrap(err, "failed to create AFI write request event")
+	}
+	reqEvt.ID = req.ID
+
+	if err := c.broker.Send(ctx, reqEvt); err != nil {
 		c.logger.Warn().
 			Err(err).
+			Str("id", req.ID).
 			Str("afi", req.AFI).
 			Str("target", targetAddr).
 			Str("uid", req.UID).
@@ -481,6 +553,7 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 	}
 
 	c.logger.Info().
+		Str("id", req.ID).
 		Str("afi", req.AFI).
 		Str("status", AFISecurityStatus(req.AFI)).
 		Str("target", targetAddr).
@@ -496,6 +569,9 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 		return err
 	}
 
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
 	req.Event = EventWriteAFI
 
 	channels := make([]string, 0)
@@ -514,15 +590,27 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 	var firstErr error
 	for _, ch := range channels {
 		c.logger.Info().
+			Str("id", req.ID).
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
 			Str("channel", ch).
 			Str("uid", req.UID).
 			Msg("broadcasting RFID AFI write command")
 
-		if err := c.broker.SendMessage(ctx, ch, req); err != nil {
+		reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), ch, req)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = errors.Wrap(err, "failed to create AFI broadcast event")
+			}
+			continue
+		}
+		reqEvt.Channel = ch
+		reqEvt.ID = req.ID
+
+		if err := c.broker.Send(ctx, reqEvt); err != nil {
 			c.logger.Warn().
 				Err(err).
+				Str("id", req.ID).
 				Str("afi", req.AFI).
 				Str("channel", ch).
 				Str("uid", req.UID).
@@ -532,6 +620,7 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 			}
 		} else {
 			c.logger.Info().
+				Str("id", req.ID).
 				Str("afi", req.AFI).
 				Str("status", AFISecurityStatus(req.AFI)).
 				Str("channel", ch).

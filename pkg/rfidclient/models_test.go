@@ -2,6 +2,7 @@ package rfidclient
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 	"time"
 
@@ -650,5 +651,174 @@ func TestParseRFIDPayload_WriteAFIAndWriteTagVariants(t *testing.T) {
 		if _, ok := p.(*DeviceMetadataRequest); !ok {
 			t.Fatalf("expected *DeviceMetadataRequest for %s, got %T", raw, p)
 		}
+	}
+}
+
+func TestIDAndRefID_Constructors(t *testing.T) {
+	metaReq := NewDeviceMetadataRequest()
+	if metaReq.ID == "" || len(metaReq.ID) != 32 {
+		t.Errorf("NewDeviceMetadataRequest() ID = %q, expected 32-char hex string", metaReq.ID)
+	}
+
+	tagReq := NewWriteTagRequest("ITEM-001", "E004010000001234")
+	if tagReq.ID == "" || len(tagReq.ID) != 32 {
+		t.Errorf("NewWriteTagRequest() ID = %q, expected 32-char hex string", tagReq.ID)
+	}
+
+	afiReq := NewWriteAFIRequest("07", "E004010000001234")
+	if afiReq.ID == "" || len(afiReq.ID) != 32 {
+		t.Errorf("NewWriteAFIRequest() ID = %q, expected 32-char hex string", afiReq.ID)
+	}
+
+	// Ensure uniqueness
+	if metaReq.ID == tagReq.ID || tagReq.ID == afiReq.ID {
+		t.Errorf("expected distinct generated IDs across requests")
+	}
+}
+
+func TestIDAndRefID_JSONSerialization(t *testing.T) {
+	// 1. With ID and RefID populated
+	payload := BaseRFIDPayload{
+		Event: EventTagRead,
+		ID:    "evt-12345",
+		RefID: "req-67890",
+	}
+	data, err := json.Marshal(payload)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+	jsonStr := string(data)
+	if !strings.Contains(jsonStr, `"id":"evt-12345"`) {
+		t.Errorf("expected serialized JSON to contain id field: %s", jsonStr)
+	}
+	if !strings.Contains(jsonStr, `"ref_id":"req-67890"`) {
+		t.Errorf("expected serialized JSON to contain ref_id field: %s", jsonStr)
+	}
+
+	// 2. Empty ID and RefID should be omitted
+	emptyPayload := BaseRFIDPayload{
+		Event: EventTagRead,
+	}
+	dataEmpty, err := json.Marshal(emptyPayload)
+	if err != nil {
+		t.Fatalf("Marshal failed: %v", err)
+	}
+	jsonEmptyStr := string(dataEmpty)
+	if strings.Contains(jsonEmptyStr, `"id"`) || strings.Contains(jsonEmptyStr, `"ref_id"`) {
+		t.Errorf("expected empty id/ref_id to be omitted: %s", jsonEmptyStr)
+	}
+}
+
+func TestIDAndRefID_UnmarshalJSON_Aliases(t *testing.T) {
+	// 1. TagReadEvent with refId alias
+	tagJSON := `{"event":"rfid:tag_read","id":"t-1","refId":"r-1","uid":"E004","itemId":"ITEM-1"}`
+	var tag TagReadEvent
+	if err := json.Unmarshal([]byte(tagJSON), &tag); err != nil {
+		t.Fatalf("failed to unmarshal TagReadEvent: %v", err)
+	}
+	if tag.ID != "t-1" || tag.RefID != "r-1" {
+		t.Errorf("TagReadEvent ID/RefID = (%q, %q), want (t-1, r-1)", tag.ID, tag.RefID)
+	}
+
+	// 2. DeviceMetadataResponse with ref_id
+	metaRespJSON := `{"event":"rfid:device_metadata_response","id":"m-1","ref_id":"r-meta","status":"ok","deviceId":"DEV-1"}`
+	var metaResp DeviceMetadataResponse
+	if err := json.Unmarshal([]byte(metaRespJSON), &metaResp); err != nil {
+		t.Fatalf("failed to unmarshal DeviceMetadataResponse: %v", err)
+	}
+	if metaResp.ID != "m-1" || metaResp.RefID != "r-meta" {
+		t.Errorf("DeviceMetadataResponse ID/RefID = (%q, %q), want (m-1, r-meta)", metaResp.ID, metaResp.RefID)
+	}
+
+	// 3. WriteTagRequest with ID and RefID
+	writeTagReqJSON := `{"event":"rfid:write_tag","ID":"wt-req-1","RefID":"ref-call-1","itemId":"ITEM-X"}`
+	var writeTagReq WriteTagRequest
+	if err := json.Unmarshal([]byte(writeTagReqJSON), &writeTagReq); err != nil {
+		t.Fatalf("failed to unmarshal WriteTagRequest: %v", err)
+	}
+	if writeTagReq.ID != "wt-req-1" || writeTagReq.RefID != "ref-call-1" {
+		t.Errorf("WriteTagRequest ID/RefID = (%q, %q), want (wt-req-1, ref-call-1)", writeTagReq.ID, writeTagReq.RefID)
+	}
+
+	// 4. WriteTagResponse with refId
+	writeTagRespJSON := `{"event":"rfid:write_tag_response","id":"wt-resp-1","refId":"wt-req-1","status":"ok","itemId":"ITEM-X"}`
+	var writeTagResp WriteTagResponse
+	if err := json.Unmarshal([]byte(writeTagRespJSON), &writeTagResp); err != nil {
+		t.Fatalf("failed to unmarshal WriteTagResponse: %v", err)
+	}
+	if writeTagResp.ID != "wt-resp-1" || writeTagResp.RefID != "wt-req-1" {
+		t.Errorf("WriteTagResponse ID/RefID = (%q, %q), want (wt-resp-1, wt-req-1)", writeTagResp.ID, writeTagResp.RefID)
+	}
+
+	// 5. WriteAFIRequest with ref_id
+	writeAFIReqJSON := `{"event":"rfid:write_afi","id":"wa-req-1","ref_id":"wa-ref-0","uid":"E004","afi":"07"}`
+	var writeAFIReq WriteAFIRequest
+	if err := json.Unmarshal([]byte(writeAFIReqJSON), &writeAFIReq); err != nil {
+		t.Fatalf("failed to unmarshal WriteAFIRequest: %v", err)
+	}
+	if writeAFIReq.ID != "wa-req-1" || writeAFIReq.RefID != "wa-ref-0" {
+		t.Errorf("WriteAFIRequest ID/RefID = (%q, %q), want (wa-req-1, wa-ref-0)", writeAFIReq.ID, writeAFIReq.RefID)
+	}
+
+	// 6. WriteAFIResponse with refId
+	writeAFIRespJSON := `{"event":"rfid:write_afi_response","id":"wa-resp-1","refId":"wa-req-1","status":"ok","afi":"07"}`
+	var writeAFIResp WriteAFIResponse
+	if err := json.Unmarshal([]byte(writeAFIRespJSON), &writeAFIResp); err != nil {
+		t.Fatalf("failed to unmarshal WriteAFIResponse: %v", err)
+	}
+	if writeAFIResp.ID != "wa-resp-1" || writeAFIResp.RefID != "wa-req-1" {
+		t.Errorf("WriteAFIResponse ID/RefID = (%q, %q), want (wa-resp-1, wa-req-1)", writeAFIResp.ID, writeAFIResp.RefID)
+	}
+}
+
+func TestParseEvent_IDAndRefID_Propagation(t *testing.T) {
+	// 1. Envelope has ID & RefID, payload has empty ID & RefID -> propagated
+	evt := &wsbrokerclient.Event{
+		ID:     "env-id-999",
+		RefID:  "env-ref-888",
+		Source: "rfid-reader-01",
+		Target: "rfid-desk",
+		Type:   wsbrokerclient.TypeMessage,
+		Data:   []byte(`{"event":"rfid:tag_read","uid":"E0040100","itemId":"ITEM-99"}`),
+	}
+	parsed, err := ParseEvent(evt)
+	if err != nil {
+		t.Fatalf("ParseEvent failed: %v", err)
+	}
+	tag, ok := parsed.(*TagReadEvent)
+	if !ok {
+		t.Fatalf("expected *TagReadEvent, got %T", parsed)
+	}
+	if tag.ID != "env-id-999" {
+		t.Errorf("tag.ID = %q, want env-id-999", tag.ID)
+	}
+	if tag.RefID != "env-ref-888" {
+		t.Errorf("tag.RefID = %q, want env-ref-888", tag.RefID)
+	}
+	if tag.ClientID != "rfid-reader-01" {
+		t.Errorf("tag.ClientID = %q, want rfid-reader-01", tag.ClientID)
+	}
+
+	// 2. Payload already has its own ID & RefID -> preserved
+	evtPreserve := &wsbrokerclient.Event{
+		ID:     "env-id-ignore",
+		RefID:  "env-ref-ignore",
+		Source: "rfid-reader-01",
+		Type:   wsbrokerclient.TypeMessage,
+		Data:   []byte(`{"event":"rfid:write_tag_response","id":"payload-id-123","ref_id":"payload-ref-456","status":"ok","itemId":"ITEM-99"}`),
+	}
+	parsedResp, err := ParseEvent(evtPreserve)
+	if err != nil {
+		t.Fatalf("ParseEvent failed: %v", err)
+	}
+	writeResp, ok := parsedResp.(*WriteTagResponse)
+	if !ok {
+		t.Fatalf("expected *WriteTagResponse, got %T", parsedResp)
+	}
+	if writeResp.ID != "payload-id-123" {
+		t.Errorf("writeResp.ID = %q, want payload-id-123", writeResp.ID)
+	}
+	if writeResp.RefID != "payload-ref-456" {
+		t.Errorf("writeResp.RefID = %q, want payload-ref-456", writeResp.RefID)
 	}
 }

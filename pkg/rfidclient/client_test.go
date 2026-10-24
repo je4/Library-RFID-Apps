@@ -78,6 +78,22 @@ func (f *fakeBrokerClient) Broadcast(ctx context.Context, channel string, data a
 func (f *fakeBrokerClient) SendDirect(ctx context.Context, targetClient string, data any) error {
 	return f.SendMessage(ctx, targetClient, data)
 }
+func (f *fakeBrokerClient) Reply(ctx context.Context, originalEvt *event.Event, data any) error {
+	replyEvt, err := event.NewReplyEvent(originalEvt, event.TypeMessage, data)
+	if err != nil {
+		return err
+	}
+	replyEvt.Source = f.clientName
+	return f.Send(ctx, replyEvt)
+}
+func (f *fakeBrokerClient) ReplyType(ctx context.Context, originalEvt *event.Event, replyType event.EventType, data any) error {
+	replyEvt, err := event.NewReplyEvent(originalEvt, replyType, data)
+	if err != nil {
+		return err
+	}
+	replyEvt.Source = f.clientName
+	return f.Send(ctx, replyEvt)
+}
 func (f *fakeBrokerClient) Request(ctx context.Context, evt *event.Event) (*event.Event, error) {
 	f.mu.Lock()
 	f.lastSent = evt
@@ -819,4 +835,177 @@ func TestRFIDClient_NilSafety(t *testing.T) {
 	// Calling methods shouldn't panic
 	_ = cli.BroadcastAFI(context.Background(), "all", NewWriteAFIRequest("07", "E00401"))
 	_ = cli.SendAFI(context.Background(), "reader-01", NewWriteAFIRequest("07", "E00401"))
+}
+
+func TestRFIDClient_WriteTag_IDAndRefID_Correlation(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	fake.requestFunc = func(ctx context.Context, reqEvt *event.Event) (*event.Event, error) {
+		if reqEvt.ID == "" {
+			t.Errorf("expected reqEvt.ID to be non-empty")
+		}
+		// Create correlated response with RefID = reqEvt.ID
+		respData := WriteTagResponse{
+			BaseRFIDPayload: BaseRFIDPayload{
+				Event: EventWriteTagResponse,
+				RefID: reqEvt.ID,
+			},
+			Status: "ok",
+			UID:    "E004010000001234",
+			ItemID: "ITEM-WRITE-TEST",
+		}
+		dataBytes, _ := json.Marshal(respData)
+		respEvt := &event.Event{
+			ID:     "resp-evt-id-999",
+			RefID:  reqEvt.ID,
+			Source: "reader-01",
+			Target: "controller-app",
+			Token:  reqEvt.Token,
+			Type:   event.TypeMessage,
+			Data:   dataBytes,
+		}
+		return respEvt, nil
+	}
+
+	req := NewWriteTagRequest("ITEM-WRITE-TEST", "E004010000001234")
+	origReqID := req.ID
+	resp, err := rfid.WriteTag(context.Background(), "reader-01", req)
+	if err != nil {
+		t.Fatalf("WriteTag failed: %v", err)
+	}
+	if resp.RefID != origReqID {
+		t.Errorf("resp.RefID = %q, want request ID %q", resp.RefID, origReqID)
+	}
+	if resp.ID != "resp-evt-id-999" {
+		t.Errorf("resp.ID = %q, want resp-evt-id-999", resp.ID)
+	}
+}
+
+func TestRFIDClient_WriteAFI_IDAndRefID_Correlation(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	fake.requestFunc = func(ctx context.Context, reqEvt *event.Event) (*event.Event, error) {
+		if reqEvt.ID == "" {
+			t.Errorf("expected reqEvt.ID to be non-empty")
+		}
+		respData := WriteAFIResponse{
+			BaseRFIDPayload: BaseRFIDPayload{
+				Event: EventWriteAFIResponse,
+				RefID: reqEvt.ID,
+			},
+			Status: "ok",
+			UID:    "E004010000001234",
+			AFI:    "07",
+		}
+		dataBytes, _ := json.Marshal(respData)
+		respEvt := &event.Event{
+			ID:     "resp-afi-id-888",
+			RefID:  reqEvt.ID,
+			Source: "reader-01",
+			Target: "controller-app",
+			Token:  reqEvt.Token,
+			Type:   event.TypeMessage,
+			Data:   dataBytes,
+		}
+		return respEvt, nil
+	}
+
+	req := NewWriteAFIRequest("07", "E004010000001234")
+	origReqID := req.ID
+	resp, err := rfid.WriteAFI(context.Background(), "reader-01", req)
+	if err != nil {
+		t.Fatalf("WriteAFI failed: %v", err)
+	}
+	if resp.RefID != origReqID {
+		t.Errorf("resp.RefID = %q, want request ID %q", resp.RefID, origReqID)
+	}
+	if resp.ID != "resp-afi-id-888" {
+		t.Errorf("resp.ID = %q, want resp-afi-id-888", resp.ID)
+	}
+}
+
+func TestRFIDClient_GetDeviceMetadata_IDAndRefID_Correlation(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	fake.requestFunc = func(ctx context.Context, reqEvt *event.Event) (*event.Event, error) {
+		if reqEvt.ID == "" {
+			t.Errorf("expected reqEvt.ID to be non-empty")
+		}
+		respData := DeviceMetadataResponse{
+			BaseRFIDPayload: BaseRFIDPayload{
+				Event: EventDeviceMetadataResponse,
+				RefID: reqEvt.ID,
+			},
+			Status:   "ok",
+			DeviceID: "DEV-FEIG-01",
+		}
+		dataBytes, _ := json.Marshal(respData)
+		respEvt := &event.Event{
+			ID:     "meta-resp-id-777",
+			RefID:  reqEvt.ID,
+			Source: "reader-01",
+			Target: "controller-app",
+			Token:  reqEvt.Token,
+			Type:   event.TypeMessage,
+			Data:   dataBytes,
+		}
+		return respEvt, nil
+	}
+
+	resp, err := rfid.GetDeviceMetadata(context.Background(), "reader-01")
+	if err != nil {
+		t.Fatalf("GetDeviceMetadata failed: %v", err)
+	}
+	if resp.RefID == "" {
+		t.Error("expected non-empty resp.RefID")
+	}
+	if resp.ID != "meta-resp-id-777" {
+		t.Errorf("resp.ID = %q, want meta-resp-id-777", resp.ID)
+	}
+}
+
+func TestRFIDClient_SendAFI_And_BroadcastAFI_IDPropagation(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"), WithChannels("chan1"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	// 1. SendAFI
+	reqSend := NewWriteAFIRequest("07", "E00401")
+	reqSendID := reqSend.ID
+	if err := rfid.SendAFI(context.Background(), "reader-01", reqSend); err != nil {
+		t.Fatalf("SendAFI failed: %v", err)
+	}
+	fake.mu.Lock()
+	sentEvt := fake.lastSent
+	fake.mu.Unlock()
+	if sentEvt.ID != reqSendID {
+		t.Errorf("sentEvt.ID = %q, want reqSendID %q", sentEvt.ID, reqSendID)
+	}
+
+	// 2. BroadcastAFI
+	reqBcast := NewWriteAFIRequest("C2", "E00402")
+	reqBcastID := reqBcast.ID
+	if err := rfid.BroadcastAFI(context.Background(), "chan1", reqBcast); err != nil {
+		t.Fatalf("BroadcastAFI failed: %v", err)
+	}
+	fake.mu.Lock()
+	bcastEvt := fake.lastSent
+	fake.mu.Unlock()
+	if bcastEvt.ID != reqBcastID {
+		t.Errorf("bcastEvt.ID = %q, want reqBcastID %q", bcastEvt.ID, reqBcastID)
+	}
 }

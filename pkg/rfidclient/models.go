@@ -38,6 +38,8 @@ const (
 // BaseRFIDPayload represents common fields included in RFID event payloads.
 type BaseRFIDPayload struct {
 	Event     string `json:"event"`
+	ID        string `json:"id,omitempty"`
+	RefID     string `json:"ref_id,omitempty"`
 	Session   string `json:"session,omitempty"`
 	Timestamp int64  `json:"timestamp,omitempty"`
 	ClientID  string `json:"clientId,omitempty"`
@@ -171,6 +173,11 @@ func (e *TagReadEvent) Summary() string {
 func (e *TagReadEvent) UnmarshalJSON(data []byte) error {
 	type rawAlias struct {
 		Event       string `json:"event"`
+		ID          string `json:"id"`
+		IDAlt       string `json:"ID"`
+		RefID       string `json:"ref_id"`
+		RefIDAlt    string `json:"refId"`
+		RefIDAlt2   string `json:"RefID"`
 		Session     string `json:"session"`
 		Timestamp   int64  `json:"timestamp"`
 		ClientID    string `json:"clientId"`
@@ -204,6 +211,18 @@ func (e *TagReadEvent) UnmarshalJSON(data []byte) error {
 	}
 
 	e.Event = raw.Event
+	if raw.ID != "" {
+		e.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		e.ID = raw.IDAlt
+	}
+	if raw.RefID != "" {
+		e.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		e.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		e.RefID = raw.RefIDAlt2
+	}
 	e.Session = raw.Session
 	e.Timestamp = raw.Timestamp
 	e.ClientID = raw.ClientID
@@ -270,13 +289,50 @@ func (e *TagsClearedEvent) Summary() string {
 // DeviceMetadataRequest represents a query for reader hardware status and metadata.
 type DeviceMetadataRequest struct {
 	Event string `json:"event"`
+	ID    string `json:"id,omitempty"`
+	RefID string `json:"ref_id,omitempty"`
 }
 
 // NewDeviceMetadataRequest creates a new query request for reader hardware metadata.
 func NewDeviceMetadataRequest() DeviceMetadataRequest {
 	return DeviceMetadataRequest{
 		Event: EventGetDeviceMetadata,
+		ID:    wsbrokerclient.GenerateEventID(),
 	}
+}
+
+// UnmarshalJSON custom unmarshaler supporting field aliases for device metadata request.
+func (r *DeviceMetadataRequest) UnmarshalJSON(data []byte) error {
+	type rawAlias struct {
+		Event     string `json:"event"`
+		ID        string `json:"id"`
+		IDAlt     string `json:"ID"`
+		RefID     string `json:"ref_id"`
+		RefIDAlt  string `json:"refId"`
+		RefIDAlt2 string `json:"RefID"`
+	}
+
+	var raw rawAlias
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+
+	r.Event = raw.Event
+	if raw.ID != "" {
+		r.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		r.ID = raw.IDAlt
+	}
+
+	if raw.RefID != "" {
+		r.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		r.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		r.RefID = raw.RefIDAlt2
+	}
+
+	return nil
 }
 
 // DeviceMetadataResponse represents reader hardware metadata and initialization diagnostics.
@@ -316,6 +372,11 @@ func (r *DeviceMetadataResponse) Summary() string {
 func (r *DeviceMetadataResponse) UnmarshalJSON(data []byte) error {
 	type rawAlias struct {
 		Event               string `json:"event"`
+		ID                  string `json:"id"`
+		IDAlt               string `json:"ID"`
+		RefID               string `json:"ref_id"`
+		RefIDAlt            string `json:"refId"`
+		RefIDAlt2           string `json:"RefID"`
 		Session             string `json:"session"`
 		Timestamp           int64  `json:"timestamp"`
 		ClientID            string `json:"clientId"`
@@ -340,6 +401,18 @@ func (r *DeviceMetadataResponse) UnmarshalJSON(data []byte) error {
 	}
 
 	r.Event = raw.Event
+	if raw.ID != "" {
+		r.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		r.ID = raw.IDAlt
+	}
+	if raw.RefID != "" {
+		r.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		r.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		r.RefID = raw.RefIDAlt2
+	}
 	r.Session = raw.Session
 	r.Timestamp = raw.Timestamp
 	r.ClientID = raw.ClientID
@@ -385,6 +458,8 @@ func (r *DeviceMetadataResponse) UnmarshalJSON(data []byte) error {
 // WriteTagRequest represents a command to write ISO 28560-2 library metadata and optional AFI to an RFID tag.
 type WriteTagRequest struct {
 	Event     string `json:"event"`
+	ID        string `json:"id,omitempty"`
+	RefID     string `json:"ref_id,omitempty"`
 	UID       string `json:"uid,omitempty"`
 	ItemID    string `json:"itemId"`
 	ISIL      string `json:"isil,omitempty"`
@@ -403,6 +478,7 @@ func NewWriteTagRequest(itemID string, uid ...string) WriteTagRequest {
 	}
 	return WriteTagRequest{
 		Event:     EventWriteTag,
+		ID:        wsbrokerclient.GenerateEventID(),
 		UID:       targetUID,
 		ItemID:    itemID,
 		Parts:     1,
@@ -432,6 +508,11 @@ func (r *WriteTagRequest) Validate() error {
 func (r *WriteTagRequest) UnmarshalJSON(data []byte) error {
 	type rawAlias struct {
 		Event       string `json:"event"`
+		ID          string `json:"id"`
+		IDAlt       string `json:"ID"`
+		RefID       string `json:"ref_id"`
+		RefIDAlt    string `json:"refId"`
+		RefIDAlt2   string `json:"RefID"`
 		UID         string `json:"uid"`
 		UIDAlt      string `json:"UID"`
 		ItemID      string `json:"itemId"`
@@ -458,6 +539,19 @@ func (r *WriteTagRequest) UnmarshalJSON(data []byte) error {
 	}
 
 	r.Event = raw.Event
+	if raw.ID != "" {
+		r.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		r.ID = raw.IDAlt
+	}
+	if raw.RefID != "" {
+		r.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		r.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		r.RefID = raw.RefIDAlt2
+	}
+
 	if raw.UID != "" {
 		r.UID = raw.UID
 	} else if raw.UIDAlt != "" {
@@ -560,6 +654,11 @@ func (r *WriteTagResponse) Summary() string {
 func (r *WriteTagResponse) UnmarshalJSON(data []byte) error {
 	type rawAlias struct {
 		Event       string `json:"event"`
+		ID          string `json:"id"`
+		IDAlt       string `json:"ID"`
+		RefID       string `json:"ref_id"`
+		RefIDAlt    string `json:"refId"`
+		RefIDAlt2   string `json:"RefID"`
 		Session     string `json:"session"`
 		Timestamp   int64  `json:"timestamp"`
 		ClientID    string `json:"clientId"`
@@ -592,6 +691,18 @@ func (r *WriteTagResponse) UnmarshalJSON(data []byte) error {
 	}
 
 	r.Event = raw.Event
+	if raw.ID != "" {
+		r.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		r.ID = raw.IDAlt
+	}
+	if raw.RefID != "" {
+		r.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		r.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		r.RefID = raw.RefIDAlt2
+	}
 	r.Session = raw.Session
 	r.Timestamp = raw.Timestamp
 	r.ClientID = raw.ClientID
@@ -656,6 +767,8 @@ func (r *WriteTagResponse) UnmarshalJSON(data []byte) error {
 // WriteAFIRequest represents a command to write or toggle the AFI byte (e.g. EAS security state).
 type WriteAFIRequest struct {
 	Event string `json:"event"`
+	ID    string `json:"id,omitempty"`
+	RefID string `json:"ref_id,omitempty"`
 	UID   string `json:"uid,omitempty"`
 	AFI   string `json:"afi"`
 }
@@ -668,6 +781,7 @@ func NewWriteAFIRequest(afi string, uid ...string) WriteAFIRequest {
 	}
 	return WriteAFIRequest{
 		Event: EventWriteAFI,
+		ID:    wsbrokerclient.GenerateEventID(),
 		UID:   targetUID,
 		AFI:   afi,
 	}
@@ -684,12 +798,17 @@ func (r *WriteAFIRequest) Validate() error {
 // UnmarshalJSON custom unmarshaler supporting field aliases for write afi request.
 func (r *WriteAFIRequest) UnmarshalJSON(data []byte) error {
 	type rawAlias struct {
-		Event  string `json:"event"`
-		UID    string `json:"uid"`
-		UIDAlt string `json:"UID"`
-		AFI    string `json:"afi"`
-		AFIAlt string `json:"AFI"`
-		AFIOpt string `json:"afiByte"`
+		Event     string `json:"event"`
+		ID        string `json:"id"`
+		IDAlt     string `json:"ID"`
+		RefID     string `json:"ref_id"`
+		RefIDAlt  string `json:"refId"`
+		RefIDAlt2 string `json:"RefID"`
+		UID       string `json:"uid"`
+		UIDAlt    string `json:"UID"`
+		AFI       string `json:"afi"`
+		AFIAlt    string `json:"AFI"`
+		AFIOpt    string `json:"afiByte"`
 	}
 
 	var raw rawAlias
@@ -698,6 +817,19 @@ func (r *WriteAFIRequest) UnmarshalJSON(data []byte) error {
 	}
 
 	r.Event = raw.Event
+	if raw.ID != "" {
+		r.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		r.ID = raw.IDAlt
+	}
+	if raw.RefID != "" {
+		r.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		r.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		r.RefID = raw.RefIDAlt2
+	}
+
 	if raw.UID != "" {
 		r.UID = raw.UID
 	} else if raw.UIDAlt != "" {
@@ -769,6 +901,11 @@ func (r *WriteAFIResponse) Summary() string {
 func (r *WriteAFIResponse) UnmarshalJSON(data []byte) error {
 	type rawAlias struct {
 		Event     string `json:"event"`
+		ID        string `json:"id"`
+		IDAlt     string `json:"ID"`
+		RefID     string `json:"ref_id"`
+		RefIDAlt  string `json:"refId"`
+		RefIDAlt2 string `json:"RefID"`
 		Session   string `json:"session"`
 		Timestamp int64  `json:"timestamp"`
 		ClientID  string `json:"clientId"`
@@ -787,6 +924,18 @@ func (r *WriteAFIResponse) UnmarshalJSON(data []byte) error {
 	}
 
 	r.Event = raw.Event
+	if raw.ID != "" {
+		r.ID = raw.ID
+	} else if raw.IDAlt != "" {
+		r.ID = raw.IDAlt
+	}
+	if raw.RefID != "" {
+		r.RefID = raw.RefID
+	} else if raw.RefIDAlt != "" {
+		r.RefID = raw.RefIDAlt
+	} else if raw.RefIDAlt2 != "" {
+		r.RefID = raw.RefIDAlt2
+	}
 	r.Session = raw.Session
 	r.Timestamp = raw.Timestamp
 	r.ClientID = raw.ClientID
@@ -962,24 +1111,75 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 	}
 	switch v := payload.(type) {
 	case *TagReadEvent:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
+		}
 		if v.ClientID == "" && evt.Source != "" {
 			v.ClientID = evt.Source
 		}
 	case *TagsClearedEvent:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
+		}
 		if v.ClientID == "" && evt.Source != "" {
 			v.ClientID = evt.Source
 		}
 	case *DeviceMetadataResponse:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
+		}
 		if v.ClientID == "" && evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+	case *DeviceMetadataRequest:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
 		}
 	case *WriteTagResponse:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
+		}
 		if v.ClientID == "" && evt.Source != "" {
 			v.ClientID = evt.Source
 		}
+	case *WriteTagRequest:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
+		}
 	case *WriteAFIResponse:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
+		}
 		if v.ClientID == "" && evt.Source != "" {
 			v.ClientID = evt.Source
+		}
+	case *WriteAFIRequest:
+		if v.ID == "" && evt.ID != "" {
+			v.ID = evt.ID
+		}
+		if v.RefID == "" && evt.RefID != "" {
+			v.RefID = evt.RefID
 		}
 	}
 	return payload, nil
