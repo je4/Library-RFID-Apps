@@ -1,13 +1,25 @@
 <!DOCTYPE html>
-<html lang="de" translate="no">
+<html lang="de" translate="no" {{if and .Skin (ne .Skin "default")}}data-skin="{{.Skin}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFID Desk - Channel-Auswahl - {{.ClientName}}</title>
-    <!-- Automatic Dark / Light mode detection to prevent FOUC -->
+    <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script>
         (function() {
+            function getSavedSkin() {
+                var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
+                if (match) return decodeURIComponent(match[1]);
+                try { return localStorage.getItem('rfid_skin'); } catch(e) { return null; }
+            }
+            var skin = getSavedSkin() || 'default';
+            if (skin && skin !== 'default') {
+                document.documentElement.setAttribute('data-skin', skin);
+            } else {
+                document.documentElement.removeAttribute('data-skin');
+            }
+
             function syncTheme() {
                 var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if (isDark) {
@@ -75,5 +87,7 @@
 
     {{template "footer.gohtml" .}}
 
+    <!-- Interactive script for skin selector and UI (Relative Path) -->
+    <script type="module" src="{{.StaticPath}}/js/desk.js"></script>
 </body>
 </html>

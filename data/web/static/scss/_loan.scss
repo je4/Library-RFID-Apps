@@ -2,31 +2,27 @@
 // Loan Action Card & Channel Selection Grid
 // ==========================================================================
 
-// Stylish Loan Action Card (Dashboard Banner)
-.app-loan-action-card {
-    width: 220px;
+// Stylish Loan & Encode Action Cards (Dashboard Banner)
+.app-loan-action-card,
+.app-encode-action-card {
+    min-width: 220px;
     height: 120px;
     text-decoration: none;
     cursor: pointer;
     user-select: none;
     position: relative;
     overflow: hidden;
-    background: linear-gradient(135deg, rgba(29, 78, 216, 0.92) 0%, rgba(37, 99, 235, 0.92) 50%, rgba(59, 130, 246, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: var(--color-action-card-bg, linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 55%, rgba(71, 85, 105, 0.95) 100%));
+    border: 1px solid var(--color-action-card-border, rgba(255, 255, 255, 0.25));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    color: #ffffff !important;
-    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4), 0 8px 10px -6px rgba(37, 99, 235, 0.2);
+    color: var(--color-action-card-title, #ffffff) !important;
+    box-shadow: var(--color-action-card-shadow, (0 10px 25px -5px rgba(30, 41, 59, 0.35), 0 8px 10px -6px rgba(30, 41, 59, 0.2)));
     transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 
     &:hover {
         transform: translateY(-3px);
-        box-shadow: 0 18px 32px -6px rgba(37, 99, 235, 0.55), 0 8px 12px -4px rgba(37, 99, 235, 0.3);
-
-        .card-arrow-badge {
-            color: #ffffff;
-            transform: translateX(4px);
-        }
+        box-shadow: var(--color-action-card-hover-shadow, (0 18px 32px -6px rgba(30, 41, 59, 0.45), 0 8px 12px -4px rgba(30, 41, 59, 0.25)));
     }
 
     &:active {
@@ -34,37 +30,19 @@
     }
 
     .card-icon-box {
-        background: rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
-        color: #ffffff;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .card-arrow-badge {
-        color: rgba(255, 255, 255, 0.9);
-        transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s ease;
+        color: var(--color-action-card-title, #ffffff);
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .card-subtitle {
-        color: rgba(219, 234, 254, 0.85);
+        color: var(--color-action-card-subtitle, rgba(226, 232, 240, 0.85));
     }
 
     .card-title {
-        color: #ffffff;
+        color: var(--color-action-card-title, #ffffff);
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-    }
-}
-
-.dark .app-loan-action-card {
-    background: linear-gradient(135deg, rgba(30, 58, 138, 0.90) 0%, rgba(30, 64, 175, 0.90) 55%, rgba(37, 99, 235, 0.92) 100%);
-    border: 1px solid rgba(147, 197, 253, 0.25);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    box-shadow: 0 10px 28px -5px rgba(29, 78, 216, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
-
-    &:hover {
-        box-shadow: 0 18px 36px -6px rgba(29, 78, 216, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25);
     }
 }
 
@@ -230,5 +208,91 @@
 
     .channel-card-arrow {
         color: #64748b;
+    }
+}
+
+// ==========================================================================
+// AFI Segmented Control & Multi-Part Controls for Encoding
+// ==========================================================================
+
+.app-afi-segmented-control {
+    background: var(--color-card-bg, rgba(255, 255, 255, 0.85));
+    border: 1px solid var(--color-card-border, rgba(226, 232, 240, 0.85));
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.04);
+    gap: 0.375rem;
+    box-sizing: border-box;
+
+    .dark & {
+        background: rgba(15, 23, 42, 0.75);
+        border: 1px solid rgba(51, 65, 85, 0.85);
+        box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.25);
+    }
+}
+
+.app-afi-segment {
+    position: relative;
+    user-select: none;
+    border: 1px solid transparent;
+    color: var(--color-text-dim, #64748b);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover:not(.app-afi-active-unsecure):not(.app-afi-active-secure) {
+        color: var(--color-text-main, #0f172a);
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    .dark &:hover:not(.app-afi-active-unsecure):not(.app-afi-active-secure) {
+        color: #f8fafc;
+        background: rgba(255, 255, 255, 0.08);
+    }
+
+    // Active State: Unsecured (C2 - Emerald Green)
+    &.app-afi-active-unsecure {
+        background: #ecfdf5 !important;
+        border-color: #a7f3d0 !important;
+        color: #047857 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px -2px rgba(16, 185, 129, 0.25), 0 2px 4px -1px rgba(16, 185, 129, 0.15) !important;
+
+        .dark & {
+            background: rgba(6, 78, 59, 0.85) !important;
+            border-color: rgba(52, 211, 153, 0.6) !important;
+            color: #6ee7b7 !important;
+            box-shadow: 0 4px 14px -2px rgba(16, 185, 129, 0.4) !important;
+        }
+    }
+
+    // Active State: Secured (07 - Royal Blue / Indigo)
+    &.app-afi-active-secure {
+        background: #eff6ff !important;
+        border-color: #bfdbfe !important;
+        color: #1d4ed8 !important;
+        font-weight: 700 !important;
+        box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.25), 0 2px 4px -1px rgba(37, 99, 235, 0.15) !important;
+
+        .dark & {
+            background: rgba(30, 58, 138, 0.85) !important;
+            border-color: rgba(96, 165, 250, 0.6) !important;
+            color: #93c5fd !important;
+            box-shadow: 0 4px 14px -2px rgba(37, 99, 235, 0.4) !important;
+        }
+    }
+}
+
+.encode-part-btn {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+    &:hover:not(.app-part-active) {
+        transform: translateY(-1px);
+    }
+
+    &.app-part-active {
+        background: var(--color-action-card-bg, linear-gradient(135deg, #2563eb 0%, #4f46e5 100%)) !important;
+        color: #ffffff !important;
+        border-color: transparent !important;
+        box-shadow: 0 4px 12px -1px rgba(37, 99, 235, 0.35), 0 2px 4px -1px rgba(37, 99, 235, 0.2) !important;
+        transform: translateY(-1px);
     }
 }

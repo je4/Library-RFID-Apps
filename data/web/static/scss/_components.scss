@@ -77,6 +77,17 @@
     }
 }
 
+// Skin Selector Dropdown
+#skin-select {
+    color: var(--color-btn-text);
+    background-color: transparent;
+
+    option {
+        background-color: var(--color-bg-body);
+        color: var(--color-text-main);
+    }
+}
+
 // SSE Connection Status Badge
 .app-sse-badge {
     background-color: var(--color-sse-connecting-bg);

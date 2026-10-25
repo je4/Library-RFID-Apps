@@ -26,6 +26,27 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("unexpected batch AFI request: %+v", batchAfiReq)
 	}
 
+	// Verify batch tag write constructors and types
+	tagItems := []rfidapps.TagWriteItem{
+		{UID: "TAG-1", ItemID: "ITEM-1", Parts: 2, PartNo: 1, AFI: "07"},
+		{UID: "TAG-2", ItemID: "ITEM-2", Parts: 2, PartNo: 2, AFI: "C2"},
+	}
+	batchTagReq := rfidapps.NewWriteTagBatchRequest(tagItems)
+	if batchTagReq.Event != rfidapps.EventWriteTag || len(batchTagReq.Tags) != 2 || batchTagReq.UID != "TAG-1" {
+		t.Errorf("unexpected batch tag write request: %+v", batchTagReq)
+	}
+
+	mapTagReq := rfidapps.NewWriteTagBatchRequestFromMap(map[string]string{
+		"TAG-1": "ITEM-1",
+		"TAG-2": "ITEM-2",
+	})
+	if mapTagReq.Event != rfidapps.EventWriteTag || len(mapTagReq.Tags) != 2 {
+		t.Errorf("unexpected map tag write request: %+v", mapTagReq)
+	}
+
+	var _ rfidapps.TagWriteResult
+	var _ rfidapps.TagWriteItem
+
 	// Verify AFI security constants and helper functions
 	if rfidapps.AFISecured != "07" {
 		t.Errorf("expected AFISecured = '07', got %s", rfidapps.AFISecured)

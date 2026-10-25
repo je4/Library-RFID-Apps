@@ -183,11 +183,17 @@ type DeskData struct {
 	ExtAddr       string
 	Uptime        string
 	Tags          []*TagItem
+	Skin          string
 	StaticPath    string
 }
 
 // IsLoan returns true if this data model represents the loan & return view.
 func (d DeskData) IsLoan() bool {
+	return false
+}
+
+// IsEncode returns true if this data model represents the encode view.
+func (d DeskData) IsEncode() bool {
 	return false
 }
 
@@ -207,10 +213,47 @@ type LoanData struct {
 	WriteSuccessCount int
 	WriteErrorCount   int
 	FailedItems       []string
+	Skin              string
 	StaticPath        string
 }
 
 // IsLoan returns true if this data model represents the loan & return view.
 func (d LoanData) IsLoan() bool {
+	return true
+}
+
+// IsEncode returns true if this data model represents the encode view.
+func (d LoanData) IsEncode() bool {
+	return false
+}
+
+// EncodeData encapsulates the view model passed to encode web templates.
+type EncodeData struct {
+	ClientName     string
+	WSBroker       string
+	Channels       []string
+	Channel        string
+	DefaultReader  string
+	Addr           string
+	ExtAddr        string
+	Uptime         string
+	Tags           []*TagItem
+	ErrorMessage   string
+	SuccessMessage string
+	FailedItems    []string
+	DefaultISIL    string
+	DefaultAFI     string
+	DefaultParts   int
+	Skin           string
+	StaticPath     string
+}
+
+// IsLoan returns true if this data model represents the loan & return view.
+func (d EncodeData) IsLoan() bool {
+	return false
+}
+
+// IsEncode returns true if this data model represents the encode view.
+func (d EncodeData) IsEncode() bool {
 	return true
 }

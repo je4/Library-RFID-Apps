@@ -1,0 +1,162 @@
+// ==========================================================================
+// Emerald Theme: Fresh Emerald & Teal
+// Modern, vibrant green theme for RFID Desk UI
+// ==========================================================================
+
+$skin-emerald-light: (
+    // Surfaces & Backgrounds
+    "bg-body": #f0fdf4,
+    "bg-image": url('../img/background.jpg'),
+    "bg-overlay": linear-gradient(135deg, rgba(240, 253, 244, 0.60) 0%, rgba(220, 252, 231, 0.80) 100%),
+    "text-main": #064e3b,
+    "text-muted": #047857,
+    "text-dim": #059669,
+    "border-subtle": #d1fae5,
+    "border-main": #a7f3d0,
+
+    // Cards & Containers
+    "card-bg": rgba(255, 255, 255, 0.88),
+    "card-border": rgba(167, 243, 208, 0.85),
+    "card-shadow": (0 8px 24px -4px rgba(6, 78, 59, 0.08), 0 2px 6px -1px rgba(6, 78, 59, 0.04)),
+
+    // Panel
+    "panel-bg": rgba(255, 255, 255, 0.92),
+    "panel-border": rgba(167, 243, 208, 0.85),
+    "panel-toolbar-bg": rgba(240, 253, 244, 0.85),
+    "panel-toolbar-border": rgba(167, 243, 208, 0.85),
+
+    // Table & Scroll
+    "table-header-bg": rgba(240, 253, 244, 0.92),
+    "table-header-text": #065f46,
+    "table-header-border": #d1fae5,
+    "table-row-border": #e6fcf5,
+    "table-row-hover": rgba(220, 252, 231, 0.70),
+    "table-empty-text": #047857,
+
+    // Controls & Inputs
+    "input-bg": rgba(255, 255, 255, 0.90),
+    "input-border": #a7f3d0,
+    "input-text": #064e3b,
+    "input-placeholder": #6ee7b7,
+    "btn-bg": rgba(255, 255, 255, 0.90),
+    "btn-border": #a7f3d0,
+    "btn-text": #065f46,
+    "btn-hover-bg": rgba(209, 250, 229, 0.95),
+    "btn-hover-text": #064e3b,
+
+    // Status & Metric Card Variants
+    "metric-total-bg": rgba(236, 253, 245, 0.90),
+    "metric-total-border": #a7f3d0,
+    "metric-total-text": #047857,
+    "metric-channel-bg": rgba(204, 251, 241, 0.85),
+    "metric-channel-border": #99f6e4,
+    "metric-channel-text": #0f766e,
+    "metric-reader-bg": rgba(207, 250, 254, 0.85),
+    "metric-reader-border": #a5f3fc,
+    "metric-reader-text": #0e7490,
+    "metric-uptime-bg": rgba(236, 253, 245, 0.90),
+    "metric-uptime-border": #a7f3d0,
+    "metric-uptime-text": #059669,
+
+    // Header Badges & Pill Tags
+    "badge-status-bg": #ecfdf5,
+    "badge-status-border": #a7f3d0,
+    "badge-status-text": #047857,
+    "badge-count-bg": #ecfdf5,
+    "badge-count-border": #a7f3d0,
+    "badge-count-text": #047857,
+
+    // Flash Scan
+    "scan-flash-bg": rgba(16, 185, 129, 0.18),
+    "scan-flash-shadow": rgba(16, 185, 129, 0.3),
+
+    // Action Card / Functional Button
+    "action-card-bg": linear-gradient(135deg, #065f46 0%, #047857 55%, #059669 100%),
+    "action-card-border": rgba(167, 243, 208, 0.40),
+    "action-card-shadow": (0 10px 25px -5px rgba(6, 95, 70, 0.35), 0 8px 10px -6px rgba(6, 95, 70, 0.2)),
+    "action-card-hover-shadow": (0 18px 32px -6px rgba(6, 95, 70, 0.45), 0 8px 12px -4px rgba(6, 95, 70, 0.25)),
+    "action-card-icon-bg": rgba(255, 255, 255, 0.18),
+    "action-card-icon-border": rgba(255, 255, 255, 0.28),
+    "action-card-subtitle": rgba(209, 250, 229, 0.90),
+    "action-card-title": #ffffff
+);
+
+$skin-emerald-dark: (
+    // Surfaces & Backgrounds
+    "bg-body": #022c22,
+    "bg-image": url('../img/background.jpg'),
+    "bg-overlay": linear-gradient(135deg, rgba(2, 44, 34, 0.60) 0%, rgba(6, 78, 59, 0.80) 100%),
+    "text-main": #ecfdf5,
+    "text-muted": #a7f3d0,
+    "text-dim": #34d399,
+    "border-subtle": rgba(6, 95, 70, 0.8),
+    "border-main": rgba(16, 185, 129, 0.6),
+
+    // Cards & Containers
+    "card-bg": rgba(6, 78, 59, 0.75),
+    "card-border": rgba(16, 185, 129, 0.6),
+    "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.4)),
+
+    // Panel
+    "panel-bg": linear-gradient(to bottom, rgba(6, 78, 59, 0.85), rgba(2, 44, 34, 0.92)),
+    "panel-border": rgba(16, 185, 129, 0.6),
+    "panel-toolbar-bg": rgba(6, 78, 59, 0.50),
+    "panel-toolbar-border": rgba(16, 185, 129, 0.6),
+
+    // Table & Scroll
+    "table-header-bg": rgba(2, 44, 34, 0.92),
+    "table-header-text": #a7f3d0,
+    "table-header-border": rgba(16, 185, 129, 0.4),
+    "table-row-border": rgba(6, 95, 70, 0.5),
+    "table-row-hover": rgba(6, 78, 59, 0.5),
+    "table-empty-text": #a7f3d0,
+
+    // Controls & Inputs
+    "input-bg": rgba(2, 44, 34, 0.75),
+    "input-border": rgba(16, 185, 129, 0.6),
+    "input-text": #ffffff,
+    "input-placeholder": #34d399,
+    "btn-bg": rgba(6, 78, 59, 0.80),
+    "btn-border": rgba(16, 185, 129, 0.6),
+    "btn-text": #d1fae5,
+    "btn-hover-bg": rgba(4, 120, 87, 0.90),
+    "btn-hover-text": #ffffff,
+
+    // Status & Metric Card Variants
+    "metric-total-bg": rgba(6, 78, 59, 0.75),
+    "metric-total-border": rgba(16, 185, 129, 0.6),
+    "metric-total-text": #6ee7b7,
+    "metric-channel-bg": rgba(19, 78, 74, 0.75),
+    "metric-channel-border": rgba(20, 184, 166, 0.6),
+    "metric-channel-text": #5eead4,
+    "metric-reader-bg": rgba(22, 78, 99, 0.75),
+    "metric-reader-border": rgba(6, 182, 212, 0.6),
+    "metric-reader-text": #67e8f9,
+    "metric-uptime-bg": rgba(6, 78, 59, 0.75),
+    "metric-uptime-border": rgba(16, 185, 129, 0.6),
+    "metric-uptime-text": #34d399,
+
+    // Header Badges & Pill Tags
+    "badge-status-bg": #064e3b,
+    "badge-status-border": #059669,
+    "badge-status-text": #a7f3d0,
+    "badge-count-bg": rgba(6, 78, 59, 0.8),
+    "badge-count-border": rgba(16, 185, 129, 0.8),
+    "badge-count-text": #a7f3d0,
+
+    // Flash Scan
+    "scan-flash-bg": rgba(52, 211, 153, 0.35),
+    "scan-flash-shadow": rgba(52, 211, 153, 0.5),
+
+    // Action Card / Functional Button
+    "action-card-bg": linear-gradient(135deg, #022c22 0%, #064e3b 55%, #065f46 100%),
+    "action-card-border": rgba(52, 211, 153, 0.30),
+    "action-card-shadow": (0 10px 28px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(52, 211, 153, 0.15)),
+    "action-card-hover-shadow": (0 18px 36px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px 0 rgba(52, 211, 153, 0.25)),
+    "action-card-icon-bg": rgba(255, 255, 255, 0.12),
+    "action-card-icon-border": rgba(255, 255, 255, 0.22),
+    "action-card-subtitle": rgba(167, 243, 208, 0.85),
+    "action-card-title": #ecfdf5
+);
+
+@include apply-skin("emerald", $skin-emerald-light, $skin-emerald-dark);

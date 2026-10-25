@@ -1,0 +1,265 @@
+// ==========================================================================
+// Default Theme: Slate
+// Standard theme for RFID Desk UI
+// ==========================================================================
+
+$skin-default-light: (
+    // Surfaces & Backgrounds
+    "bg-body": #f8fafc,
+    "bg-image": url('../img/background.jpg'),
+    "bg-overlay": linear-gradient(135deg, rgba(248, 250, 252, 0.6) 0%, rgba(241, 245, 249, 0.8) 100%),
+    "text-main": #0f172a,
+    "text-muted": #64748b,
+    "text-dim": #94a3b8,
+    "border-subtle": #e2e8f0,
+    "border-main": #cbd5e1,
+
+    // Cards & Containers
+    "card-bg": rgba(255, 255, 255, 0.85),
+    "card-border": rgba(226, 232, 240, 0.85),
+    "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04)),
+
+    // Panel
+    "panel-bg": rgba(255, 255, 255, 0.88),
+    "panel-border": rgba(226, 232, 240, 0.85),
+    "panel-toolbar-bg": rgba(248, 250, 252, 0.80),
+    "panel-toolbar-border": rgba(226, 232, 240, 0.85),
+
+    // Table & Scroll
+    "table-header-bg": rgba(248, 250, 252, 0.90),
+    "table-header-text": #475569,
+    "table-header-border": #e2e8f0,
+    "table-row-border": #f1f5f9,
+    "table-row-hover": rgba(241, 245, 249, 0.85),
+    "table-empty-text": #64748b,
+
+    // Controls & Inputs
+    "input-bg": rgba(255, 255, 255, 0.85),
+    "input-border": #cbd5e1,
+    "input-text": #0f172a,
+    "input-placeholder": #94a3b8,
+    "btn-bg": rgba(255, 255, 255, 0.85),
+    "btn-border": #cbd5e1,
+    "btn-text": #334155,
+    "btn-hover-bg": rgba(241, 245, 249, 0.95),
+    "btn-hover-text": #0f172a,
+
+    // Status & Metric Card Variants
+    "metric-total-bg": rgba(239, 246, 255, 0.85),
+    "metric-total-border": #bfdbfe,
+    "metric-total-text": #2563eb,
+    "metric-channel-bg": rgba(238, 242, 255, 0.85),
+    "metric-channel-border": #c7d2fe,
+    "metric-channel-text": #4f46e5,
+    "metric-reader-bg": rgba(236, 254, 255, 0.85),
+    "metric-reader-border": #a5f3fc,
+    "metric-reader-text": #0891b2,
+    "metric-uptime-bg": rgba(236, 253, 245, 0.85),
+    "metric-uptime-border": #a7f3d0,
+    "metric-uptime-text": #059669,
+
+    // Header Badges & Pill Tags
+    "badge-status-bg": #eff6ff,
+    "badge-status-border": #bfdbfe,
+    "badge-status-text": #1d4ed8,
+    "badge-count-bg": #eff6ff,
+    "badge-count-border": #bfdbfe,
+    "badge-count-text": #1d4ed8,
+
+    // Tags & Indicators
+    "tag-uid-bg": #f1f5f9,
+    "tag-uid-border": #cbd5e1,
+    "tag-uid-text": #1e293b,
+    "tag-uid-hover-border": #94a3b8,
+    "tag-reader-bg": #ecfeff,
+    "tag-reader-border": #a5f3fc,
+    "tag-reader-text": #0891b2,
+    "tag-item-id": inherit,
+    "tag-country-bg": #e2e8f0,
+    "tag-country-text": #334155,
+    "tag-isil-text": #334155,
+    "tag-single-bg": #f1f5f9,
+    "tag-single-border": #cbd5e1,
+    "tag-single-text": #475569,
+    "tag-multipart-bg": #fffbeb,
+    "tag-multipart-border": #fde68a,
+    "tag-multipart-text": #b45309,
+    "tag-crc-ok-bg": #ecfdf5,
+    "tag-crc-ok-border": #a7f3d0,
+    "tag-crc-ok-text": #047857,
+    "tag-crc-err-bg": #fff1f2,
+    "tag-crc-err-border": #fecdd3,
+    "tag-crc-err-text": #be123c,
+    "tag-afi-bg": #eef2ff,
+    "tag-afi-border": #c7d2fe,
+    "tag-afi-text": #4338ca,
+    "tag-afi-secured-bg": #ecfdf5,
+    "tag-afi-secured-border": #a7f3d0,
+    "tag-afi-secured-text": #047857,
+    "tag-afi-unsecured-bg": #fffbeb,
+    "tag-afi-unsecured-border": #fde68a,
+    "tag-afi-unsecured-text": #b45309,
+
+    // SSE Connection Status
+    "sse-connected-bg": #ecfdf5,
+    "sse-connected-border": #a7f3d0,
+    "sse-connected-text": #047857,
+    "sse-connected-dot": #10b981,
+    "sse-connecting-bg": #fffbeb,
+    "sse-connecting-border": #fde68a,
+    "sse-connecting-text": #b45309,
+    "sse-connecting-dot": #f59e0b,
+
+    // Scrollbar
+    "scrollbar-track": rgba(241, 245, 249, 0.8),
+    "scrollbar-thumb": rgba(203, 213, 225, 0.9),
+    "scrollbar-thumb-hover": rgba(148, 163, 184, 0.9),
+
+    // Flash Scan
+    "scan-flash-bg": rgba(59, 130, 246, 0.15),
+    "scan-flash-shadow": rgba(59, 130, 246, 0.25),
+
+    // Action Card / Functional Button
+    "action-card-bg": linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%),
+    "action-card-border": rgba(255, 255, 255, 0.25),
+    "action-card-shadow": (0 10px 25px -5px rgba(30, 41, 59, 0.35), 0 8px 10px -6px rgba(30, 41, 59, 0.2)),
+    "action-card-hover-shadow": (0 18px 32px -6px rgba(30, 41, 59, 0.45), 0 8px 12px -4px rgba(30, 41, 59, 0.25)),
+    "action-card-icon-bg": rgba(255, 255, 255, 0.15),
+    "action-card-icon-border": rgba(255, 255, 255, 0.25),
+    "action-card-subtitle": rgba(226, 232, 240, 0.85),
+    "action-card-title": #ffffff
+);
+
+$skin-default-dark: (
+    // Surfaces & Backgrounds
+    "bg-body": #020617,
+    "bg-image": url('../img/background.jpg'),
+    "bg-overlay": linear-gradient(135deg, rgba(2, 6, 23, 0.6) 0%, rgb(3 7 18 / 0.8) 100%),
+    "text-main": #f8fafc,
+    "text-muted": #94a3b8,
+    "text-dim": #64748b,
+    "border-subtle": rgba(30, 41, 59, 0.8),
+    "border-main": rgba(51, 65, 85, 0.8),
+
+    // Cards & Containers
+    "card-bg": rgba(15, 23, 42, 0.78),
+    "card-border": rgba(30, 41, 59, 0.8),
+    "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.35)),
+
+    // Panel
+    "panel-bg": linear-gradient(to bottom, rgba(17, 24, 39, 0.82), rgba(3, 7, 18, 0.88)),
+    "panel-border": rgba(31, 41, 55, 0.85),
+    "panel-toolbar-bg": rgba(17, 24, 39, 0.50),
+    "panel-toolbar-border": rgba(31, 41, 55, 0.8),
+
+    // Table & Scroll
+    "table-header-bg": rgba(3, 7, 18, 0.90),
+    "table-header-text": #94a3b8,
+    "table-header-border": #1f2937,
+    "table-row-border": rgba(31, 41, 55, 0.6),
+    "table-row-hover": rgba(15, 23, 42, 0.6),
+    "table-empty-text": #94a3b8,
+
+    // Controls & Inputs
+    "input-bg": rgba(3, 7, 18, 0.75),
+    "input-border": rgba(55, 65, 81, 0.8),
+    "input-text": #ffffff,
+    "input-placeholder": #6b7280,
+    "btn-bg": rgba(17, 24, 39, 0.80),
+    "btn-border": #374151,
+    "btn-text": #d1d5db,
+    "btn-hover-bg": rgba(31, 41, 55, 0.90),
+    "btn-hover-text": #ffffff,
+
+    // Status & Metric Card Variants
+    "metric-total-bg": rgba(23, 37, 84, 0.75),
+    "metric-total-border": rgba(30, 58, 138, 0.6),
+    "metric-total-text": #60a5fa,
+    "metric-channel-bg": rgba(30, 27, 75, 0.75),
+    "metric-channel-border": rgba(49, 46, 129, 0.6),
+    "metric-channel-text": #a5b4fc,
+    "metric-reader-bg": rgba(8, 51, 68, 0.75),
+    "metric-reader-border": rgba(21, 94, 117, 0.6),
+    "metric-reader-text": #67e8f9,
+    "metric-uptime-bg": rgba(2, 44, 34, 0.75),
+    "metric-uptime-border": rgba(4, 120, 87, 0.6),
+    "metric-uptime-text": #34d399,
+
+    // Header Badges & Pill Tags
+    "badge-status-bg": #172554,
+    "badge-status-border": #1e40af,
+    "badge-status-text": #93c5fd,
+    "badge-count-bg": rgba(30, 58, 138, 0.8),
+    "badge-count-border": rgba(29, 78, 216, 0.8),
+    "badge-count-text": #93c5fd,
+
+    // Tags & Indicators
+    "tag-uid-bg": rgba(17, 24, 39, 0.8),
+    "tag-uid-border": #1f2937,
+    "tag-uid-text": #d1d5db,
+    "tag-uid-hover-border": #374151,
+    "tag-reader-bg": rgba(8, 51, 68, 0.8),
+    "tag-reader-border": rgba(21, 94, 117, 0.6),
+    "tag-reader-text": #67e8f9,
+    "tag-item-id": inherit,
+    "tag-country-bg": #1f2937,
+    "tag-country-text": #d1d5db,
+    "tag-isil-text": #d1d5db,
+    "tag-single-bg": rgba(31, 41, 55, 0.8),
+    "tag-single-border": rgba(55, 65, 81, 0.6),
+    "tag-single-text": #9ca3af,
+    "tag-multipart-bg": rgba(69, 26, 3, 0.8),
+    "tag-multipart-border": rgba(146, 64, 14, 0.7),
+    "tag-multipart-text": #fcd34d,
+    "tag-crc-ok-bg": rgba(2, 44, 34, 0.7),
+    "tag-crc-ok-border": rgba(6, 95, 70, 0.7),
+    "tag-crc-ok-text": #6ee7b7,
+    "tag-crc-err-bg": rgba(76, 5, 25, 0.7),
+    "tag-crc-err-border": rgba(159, 18, 57, 0.7),
+    "tag-crc-err-text": #fda4af,
+    "tag-afi-bg": rgba(30, 27, 75, 0.8),
+    "tag-afi-border": rgba(49, 46, 129, 0.6),
+    "tag-afi-text": #a5b4fc,
+    "tag-afi-secured-bg": rgba(2, 44, 34, 0.7),
+    "tag-afi-secured-border": rgba(6, 95, 70, 0.7),
+    "tag-afi-secured-text": #6ee7b7,
+    "tag-afi-unsecured-bg": rgba(69, 26, 3, 0.7),
+    "tag-afi-unsecured-border": rgba(146, 64, 14, 0.7),
+    "tag-afi-unsecured-text": #fcd34d,
+
+    // SSE Connection Status
+    "sse-connected-bg": rgba(2, 44, 34, 0.6),
+    "sse-connected-border": rgba(6, 95, 70, 0.8),
+    "sse-connected-text": #34d399,
+    "sse-connected-dot": #34d399,
+    "sse-connecting-bg": rgba(69, 26, 3, 0.6),
+    "sse-connecting-border": rgba(146, 64, 14, 0.8),
+    "sse-connecting-text": #fbbf24,
+    "sse-connecting-dot": #fbbf24,
+
+    // Scrollbar
+    "scrollbar-track": rgba(15, 23, 42, 0.6),
+    "scrollbar-thumb": rgba(51, 65, 85, 0.8),
+    "scrollbar-thumb-hover": rgba(100, 116, 139, 0.9),
+
+    // Flash Scan
+    "scan-flash-bg": rgba(59, 130, 246, 0.35),
+    "scan-flash-shadow": rgba(59, 130, 246, 0.5),
+
+    // Action Card / Functional Button
+    "action-card-bg": linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #334155 100%),
+    "action-card-border": rgba(148, 163, 184, 0.25),
+    "action-card-shadow": (0 10px 28px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)),
+    "action-card-hover-shadow": (0 18px 36px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)),
+    "action-card-icon-bg": rgba(255, 255, 255, 0.10),
+    "action-card-icon-border": rgba(255, 255, 255, 0.20),
+    "action-card-subtitle": rgba(203, 213, 225, 0.85),
+    "action-card-title": #f8fafc
+);
+
+// Register default skin as fallback for all custom themes
+$skin-fallback-light: $skin-default-light;
+$skin-fallback-dark: $skin-default-dark;
+
+// Apply default theme
+@include apply-skin("default", $skin-default-light, $skin-default-dark, true);

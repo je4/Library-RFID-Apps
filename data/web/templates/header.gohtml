@@ -2,14 +2,14 @@
 <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{if .IsLoan}}from-emerald-600 via-teal-600 to-cyan-500 shadow-emerald-500/20{{else}}from-blue-600 via-indigo-600 to-cyan-500 shadow-blue-500/20{{end}} flex items-center justify-center shadow-lg">
-            <img src="{{.StaticPath}}/img/{{if .IsLoan}}book-open-white.svg{{else}}bolt-white.svg{{end}}" class="w-6 h-6" alt="{{if .IsLoan}}Ausleihe{{else}}RFID Desk{{end}}" />
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{if .IsLoan}}from-emerald-600 via-teal-600 to-cyan-500 shadow-emerald-500/20{{else if .IsEncode}}from-indigo-600 via-purple-600 to-pink-500 shadow-purple-500/20{{else}}from-blue-600 via-indigo-600 to-cyan-500 shadow-blue-500/20{{end}} flex items-center justify-center shadow-lg">
+            <img src="{{.StaticPath}}/img/{{if .IsLoan}}book-open-white.svg{{else if .IsEncode}}tag.svg{{else}}bolt-white.svg{{end}}" class="w-6 h-6" alt="{{if .IsLoan}}Ausleihe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}" />
         </div>
 
         <div>
             <!-- Titel & Status Badge -->
             <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
-                {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else}}RFID Desk{{end}}
+                {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}
                 {{if .Channel}}
                 <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
                 {{else}}
@@ -20,7 +20,7 @@
             <!-- Metadaten-Zeile -->
             <p class="text-xs app-meta-text font-mono flex items-center gap-2">
                 {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
-                {{if .IsLoan}}
+                {{if or .IsLoan .IsEncode}}
                 <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
                 {{else}}
                 <span>Broker: <strong>{{.WSBroker}}</strong></span>
@@ -31,16 +31,32 @@
         </div>
     </div>
 
-    {{if .Channel}}
-    <!-- Top Right Actions & SSE Status Badge -->
+    <!-- Top Right Actions & Theme Selector -->
     <div class="flex items-center space-x-3">
+        <!-- Skin / Theme Selector Dropdown -->
+        <div class="relative inline-flex items-center">
+            <!-- label for="skin-select" class="sr-only">Farbschema auswählen</label -->
+            <div class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5">
+                <svg class="w-4 h-4 shrink-0 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
+                </svg>
+                <select id="skin-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Farbschema auswählen">
+                    <option value="default" {{if or (not .Skin) (eq .Skin "default")}}selected{{end}}>Slate (Standard)</option>
+                    <option value="emerald" {{if eq .Skin "emerald"}}selected{{end}}>Emerald</option>
+                    <option value="nord" {{if eq .Skin "nord"}}selected{{end}}>Nord</option>
+                    <option value="bubblegum" {{if eq .Skin "bubblegum"}}selected{{end}}>Bubblegum</option>
+                </select>
+            </div>
+        </div>
+
+        {{if .Channel}}
         <!-- Back to Channels Selection Button -->
         <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
             <img src="{{.StaticPath}}/img/arrow-left.svg" class="w-4 h-4" alt="Channels" />
             <span>Channels</span>
         </a>
 
-        {{if .IsLoan}}
+        {{if or .IsLoan .IsEncode}}
         <!-- Back to Desk Button (Relative to Channel) -->
         <a href="." id="nav-desk-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
             <img src="{{.StaticPath}}/img/home.svg" class="w-4 h-4" alt="Desk" />
@@ -61,6 +77,6 @@
             <span id="sse-status-dot" class="w-2 h-2 rounded-full"></span>
             <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
         </div>
+        {{end}}
     </div>
-    {{end}}
 </header>

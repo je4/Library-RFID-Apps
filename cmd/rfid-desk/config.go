@@ -16,6 +16,8 @@ import (
 //   - WSBroker: Target broker WebSocket endpoint URL (e.g. "https://localhost:8765").
 //   - Channels: List of WSBroker channels to subscribe on connect (e.g. ["all", "intern", "rfid"]).
 //   - DefaultReader: Target reader identifier for RPC commands (e.g. "rfid-reader-station-01").
+//   - DefaultISIL: Default ISIL identifier formatted as <Country>-<ISIL> (e.g. "CH-000001").
+//   - DefaultAFI: Default AFI hex byte (e.g. "07" for secured, "C2" for unsecured).
 //   - MaxTags: Maximum number of scanned tags to retain in memory (default: 100).
 //   - ReadLimit: Maximum WebSocket message read limit in bytes (optional).
 //   - ClientTLS: mTLS configuration via certloader (MiniVault, File, Env, Dev, or ACME).
@@ -27,6 +29,8 @@ type DeskAppConfig struct {
 	WSBroker      string        `toml:"wsbroker"`
 	Channels      []string      `toml:"channels"`
 	DefaultReader string        `toml:"default_reader"`
+	DefaultISIL   string        `toml:"default_isil"`
+	DefaultAFI    string        `toml:"default_afi"`
 	MaxTags       int           `toml:"max_tags"`
 	ReadLimit     int64         `toml:"read_limit"`
 	ClientTLS     loader.Config `toml:"clienttls"`

@@ -218,3 +218,15 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 		"tags":         data.Tags,
 	})
 }
+
+func (ctrl *Controller) handleAPIEncodeWrite(c *gin.Context) {
+	channel := c.Query("channel")
+	var payload WriteTagPayload
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": "Ungültiges JSON-Payload: " + err.Error()})
+		return
+	}
+
+	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
+	c.JSON(statusCode, res)
+}

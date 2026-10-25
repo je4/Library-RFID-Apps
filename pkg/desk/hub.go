@@ -342,6 +342,53 @@ func (h *Hub) UpdateActiveAFI(afi string, uids ...string) {
 	}
 }
 
+// UpdateTagMetadata updates encoded metadata fields on active and historical tag records.
+func (h *Hub) UpdateTagMetadata(uid, itemID, isil, country string, parts, partNo int, afi string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	trimmedUID := strings.TrimSpace(uid)
+	if trimmedUID == "" {
+		return
+	}
+
+	applyMetadata := func(item *TagItem) {
+		if itemID != "" {
+			item.ItemID = itemID
+		}
+		if isil != "" {
+			item.ISIL = isil
+		}
+		if country != "" {
+			item.Country = country
+		}
+		if parts > 0 {
+			item.Parts = parts
+		}
+		if partNo > 0 {
+			item.PartNo = partNo
+		}
+		if item.Parts > 1 {
+			item.IsMultiPart = true
+		} else if item.Parts == 1 {
+			item.IsMultiPart = false
+		}
+		if afi != "" {
+			item.SetAFI(afi)
+		}
+		item.EnrichISIL(h.isilList)
+	}
+
+	if item, ok := h.activeTags[trimmedUID]; ok {
+		applyMetadata(item)
+	}
+	for _, item := range h.tags {
+		if strings.EqualFold(item.UID, trimmedUID) {
+			applyMetadata(item)
+		}
+	}
+}
+
 // SetTagAFIResult records individual success or failure for a given tag UID.
 func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr string) {
 	h.mu.Lock()

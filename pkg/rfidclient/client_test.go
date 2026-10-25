@@ -1077,3 +1077,120 @@ func TestRFIDClient_WriteAFIBatch(t *testing.T) {
 		t.Errorf("expected success response from SetAFISecured batch, got %s", respSecured.Status)
 	}
 }
+
+func TestRFIDClient_WriteTagBatch_And_WriteTags(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	fake.requestFunc = func(ctx context.Context, reqEvt *event.Event) (*event.Event, error) {
+		var req WriteTagRequest
+		if err := json.Unmarshal(reqEvt.Data, &req); err != nil {
+			t.Fatalf("failed to unmarshal write tag batch request: %v", err)
+		}
+		if len(req.Tags) != 2 {
+			t.Errorf("expected 2 tags in request, got %d", len(req.Tags))
+		}
+
+		respData := WriteTagResponse{
+			BaseRFIDPayload: BaseRFIDPayload{
+				Event: EventWriteTagResponse,
+				RefID: reqEvt.ID,
+			},
+			Status:         "ok",
+			SuccessfulUIDs: []string{"TAG-1", "TAG-2"},
+			Results: []TagWriteResult{
+				{UID: "TAG-1", ItemID: "ITEM-1", Status: "ok"},
+				{UID: "TAG-2", ItemID: "ITEM-2", Status: "ok"},
+			},
+			Message: "2 tags written successfully",
+		}
+		dataBytes, _ := json.Marshal(respData)
+		respEvt := &event.Event{
+			ID:     "resp-tag-batch-001",
+			RefID:  reqEvt.ID,
+			Source: "reader-01",
+			Target: "controller-app",
+			Token:  reqEvt.Token,
+			Type:   event.TypeMessage,
+			Data:   dataBytes,
+		}
+		return respEvt, nil
+	}
+
+	items := []TagWriteItem{
+		{UID: "TAG-1", ItemID: "ITEM-1", Parts: 2, PartNo: 1, AFI: "07"},
+		{UID: "TAG-2", ItemID: "ITEM-2", Parts: 2, PartNo: 2, AFI: "07"},
+	}
+
+	// 1. WriteTagBatch
+	resp, err := rfid.WriteTagBatch(context.Background(), "reader-01", items)
+	if err != nil {
+		t.Fatalf("WriteTagBatch failed: %v", err)
+	}
+	if !resp.IsSuccess() {
+		t.Errorf("expected WriteTagBatch success, got %s", resp.Status)
+	}
+	if !resp.IsTagSuccessful("TAG-1") || !resp.IsTagSuccessful("TAG-2") {
+		t.Errorf("expected TAG-1 and TAG-2 to be successful")
+	}
+
+	// 2. WriteTags (variadic)
+	respVariadic, err := rfid.WriteTags(context.Background(), "reader-01", items[0], items[1])
+	if err != nil {
+		t.Fatalf("WriteTags failed: %v", err)
+	}
+	if !respVariadic.IsSuccess() {
+		t.Errorf("expected WriteTags success, got %s", respVariadic.Status)
+	}
+
+	// 3. Empty batch error validation
+	if _, err := rfid.WriteTagBatch(context.Background(), "reader-01", nil); err == nil {
+		t.Error("expected error for empty tags list in WriteTagBatch")
+	}
+}
+
+func TestRFIDClient_SendWriteTagBatch_And_BroadcastWriteTagBatch(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake, WithDefaultTarget("reader-01"), WithChannels("chan1"))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	items := []TagWriteItem{
+		{UID: "TAG-A", ItemID: "ITEM-A"},
+		{UID: "TAG-B", ItemID: "ITEM-B"},
+	}
+
+	// 1. SendWriteTagBatch
+	if err := rfid.SendWriteTagBatch(context.Background(), "reader-01", items); err != nil {
+		t.Fatalf("SendWriteTagBatch failed: %v", err)
+	}
+	fake.mu.Lock()
+	sentEvt := fake.lastSent
+	fake.mu.Unlock()
+	if sentEvt == nil || sentEvt.Target != "reader-01" {
+		t.Errorf("expected sent event to target 'reader-01', got: %+v", sentEvt)
+	}
+
+	// 2. BroadcastWriteTagBatch
+	if err := rfid.BroadcastWriteTagBatch(context.Background(), "chan1", items); err != nil {
+		t.Fatalf("BroadcastWriteTagBatch failed: %v", err)
+	}
+	fake.mu.Lock()
+	bcastEvt := fake.lastSent
+	fake.mu.Unlock()
+	if bcastEvt == nil || bcastEvt.Channel != "chan1" {
+		t.Errorf("expected broadcast event to channel 'chan1', got: %+v", bcastEvt)
+	}
+
+	// 3. Empty batch error validation
+	if err := rfid.SendWriteTagBatch(context.Background(), "reader-01", nil); err == nil {
+		t.Error("expected error for empty SendWriteTagBatch")
+	}
+	if err := rfid.BroadcastWriteTagBatch(context.Background(), "chan1", nil); err == nil {
+		t.Error("expected error for empty BroadcastWriteTagBatch")
+	}
+}

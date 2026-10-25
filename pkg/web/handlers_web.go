@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -10,7 +11,19 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/wsbrokerclient"
 )
+
+func getSkinFromCookie(c *gin.Context) string {
+	if c == nil {
+		return "default"
+	}
+	skin, err := c.Cookie("rfid_skin")
+	if err != nil || skin == "" {
+		return "default"
+	}
+	return skin
+}
 
 func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
@@ -38,6 +51,7 @@ func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 		ExtAddr:       ctrl.cfg.ExtAddr,
 		Uptime:        uptime,
 		Tags:          tags,
+		Skin:          "default",
 		StaticPath:    staticPath,
 	}
 }
@@ -87,24 +101,28 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		WriteSuccessCount: successCount,
 		WriteErrorCount:   errorCount,
 		FailedItems:       failedItems,
+		Skin:              "default",
 		StaticPath:        "../static",
 	}
 }
 
 func (ctrl *Controller) handleIndex(c *gin.Context) {
 	data := ctrl.getDeskData()
+	data.Skin = getSkinFromCookie(c)
 	c.HTML(http.StatusOK, "index.gohtml", data)
 }
 
 func (ctrl *Controller) handleChannelIndex(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getDeskData(channel)
+	data.Skin = getSkinFromCookie(c)
 	c.HTML(http.StatusOK, "desk.gohtml", data)
 }
 
 func (ctrl *Controller) handleLoan(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getLoanData(channel)
+	data.Skin = getSkinFromCookie(c)
 	c.HTML(http.StatusOK, "loan.gohtml", data)
 }
 
@@ -117,6 +135,243 @@ func (ctrl *Controller) handleLoanTagsFragment(c *gin.Context) {
 		return
 	}
 	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+}
+
+func (ctrl *Controller) getEncodeData(channel ...string) desk.EncodeData {
+	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
+	ch := ""
+	if len(channel) > 0 {
+		ch = channel[0]
+	}
+	var tags []*desk.TagItem
+	if ch != "" {
+		tags = ctrl.hub.GetActiveTagsForChannel(ch, ctrl.cfg.DefaultReader)
+	} else {
+		tags = ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+	}
+
+	defaultParts := len(tags)
+	if defaultParts == 0 {
+		defaultParts = 1
+	}
+
+	defaultISIL := ctrl.cfg.DefaultISIL
+	if defaultISIL == "" {
+		defaultISIL = "CH-000001"
+	}
+
+	defaultAFI := ctrl.cfg.DefaultAFI
+	if defaultAFI == "" {
+		defaultAFI = rfidclient.AFISecured
+	} else {
+		defaultAFI = rfidclient.NormalizeAFI(defaultAFI)
+	}
+
+	return desk.EncodeData{
+		ClientName:    ctrl.cfg.ClientName,
+		WSBroker:      ctrl.cfg.WSBroker,
+		Channels:      ctrl.cfg.Channels,
+		Channel:       ch,
+		DefaultReader: ctrl.cfg.DefaultReader,
+		Addr:          ctrl.cfg.Addr,
+		ExtAddr:       ctrl.cfg.ExtAddr,
+		Uptime:        uptime,
+		Tags:          tags,
+		DefaultISIL:   defaultISIL,
+		DefaultAFI:    defaultAFI,
+		DefaultParts:  defaultParts,
+		Skin:          "default",
+		StaticPath:    "../static",
+	}
+}
+
+func (ctrl *Controller) handleEncode(c *gin.Context) {
+	channel := c.Param("channel")
+	data := ctrl.getEncodeData(channel)
+	data.Skin = getSkinFromCookie(c)
+	c.HTML(http.StatusOK, "encode.gohtml", data)
+}
+
+func (ctrl *Controller) handleEncodeTagsFragment(c *gin.Context) {
+	channel := c.Param("channel")
+	data := ctrl.getEncodeData(channel)
+	var buf bytes.Buffer
+	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+		c.String(http.StatusInternalServerError, "error rendering template")
+		return
+	}
+	c.Data(http.StatusOK, "text/html; charset=utf-8", buf.Bytes())
+}
+
+// WriteTagPayload defines the JSON/form payload for writing metadata to an RFID tag.
+type WriteTagPayload struct {
+	UID       string `json:"uid" form:"uid"`
+	ItemID    string `json:"itemId" form:"itemId"`
+	ISIL      string `json:"isil" form:"isil"`
+	Country   string `json:"country" form:"country"`
+	Parts     int    `json:"parts" form:"parts"`
+	PartNo    int    `json:"partNo" form:"partNo"`
+	UsageType int    `json:"usageType" form:"usageType"`
+	AFI       string `json:"afi" form:"afi"`
+}
+
+func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, payload WriteTagPayload) (gin.H, int) {
+	itemID := strings.TrimSpace(payload.ItemID)
+	if itemID == "" {
+		return gin.H{"status": "error", "error": "Barcode / ItemID darf nicht leer sein"}, http.StatusBadRequest
+	}
+
+	uid := strings.TrimSpace(payload.UID)
+	country := strings.TrimSpace(payload.Country)
+	isil := strings.TrimSpace(payload.ISIL)
+
+	if country == "" && isil != "" {
+		c, i := desk.ParseISIL(isil)
+		if c != "" {
+			country = c
+			isil = i
+		}
+	}
+	if country == "" {
+		country = "CH"
+	}
+
+	parts := payload.Parts
+	if parts <= 0 {
+		parts = 1
+	}
+	partNo := payload.PartNo
+	if partNo <= 0 {
+		partNo = 1
+	}
+	if partNo > parts {
+		partNo = parts
+	}
+
+	usageType := payload.UsageType
+	if usageType <= 0 {
+		usageType = 1
+	}
+
+	afi := strings.TrimSpace(payload.AFI)
+	if afi == "" {
+		afi = ctrl.cfg.DefaultAFI
+	}
+	if afi == "" {
+		afi = rfidclient.AFISecured
+	}
+	if strings.EqualFold(afi, "gesichert") || strings.EqualFold(afi, "secure") {
+		afi = rfidclient.AFISecured
+	} else if strings.EqualFold(afi, "ungesichert") || strings.EqualFold(afi, "unsecure") {
+		afi = rfidclient.AFIUnsecured
+	} else {
+		afi = rfidclient.NormalizeAFI(afi)
+	}
+
+	// Determine target reader
+	targetReader := ctrl.cfg.DefaultReader
+	if uid != "" {
+		activeTags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+		for _, t := range activeTags {
+			if strings.EqualFold(t.UID, uid) && t.ClientID != "" {
+				targetReader = t.ClientID
+				break
+			}
+		}
+	}
+
+	req := rfidclient.WriteTagRequest{
+		Event:     rfidclient.EventWriteTag,
+		ID:        wsbrokerclient.GenerateEventID(),
+		UID:       uid,
+		ItemID:    itemID,
+		ISIL:      isil,
+		Country:   country,
+		Parts:     parts,
+		PartNo:    partNo,
+		UsageType: usageType,
+		AFI:       afi,
+	}
+
+	if ctrl.logger != nil {
+		ctrl.logger.Info().
+			Str("uid", uid).
+			Str("itemId", itemID).
+			Str("isil", isil).
+			Str("country", country).
+			Int("partNo", partNo).
+			Int("parts", parts).
+			Str("afi", afi).
+			Str("targetReader", targetReader).
+			Msg("executing WriteTag request")
+	}
+
+	if ctrl.rfidClient != nil {
+		resp, err := ctrl.rfidClient.WriteTag(ctx, targetReader, req)
+		if err != nil {
+			if ctrl.logger != nil {
+				ctrl.logger.Warn().Err(err).Str("uid", uid).Msg("WriteTag failed with error")
+			}
+			return gin.H{
+				"status": "error",
+				"error":  fmt.Sprintf("Fehler beim Schreiben des Transponders %s: %v", uid, err),
+				"uid":    uid,
+			}, http.StatusInternalServerError
+		}
+		if resp != nil && !resp.IsSuccess() {
+			errMsg := resp.GetError()
+			if errMsg == "" {
+				errMsg = "Schreibfehler auf Transponder"
+			}
+			if ctrl.logger != nil {
+				ctrl.logger.Warn().Str("uid", uid).Str("error", errMsg).Msg("WriteTag returned failure")
+			}
+			return gin.H{
+				"status": "error",
+				"error":  errMsg,
+				"uid":    uid,
+			}, http.StatusBadRequest
+		}
+	}
+
+	// Update in-memory hub
+	ctrl.hub.UpdateTagMetadata(uid, itemID, isil, country, parts, partNo, afi)
+
+	// Broadcast updated loan table
+	ctrl.broadcastLoanTable(channel)
+
+	return gin.H{
+		"status":    "success",
+		"message":   fmt.Sprintf("Transponder %s erfolgreich beschrieben (Teil %d von %d).", uid, partNo, parts),
+		"uid":       uid,
+		"itemId":    itemID,
+		"isil":      isil,
+		"country":   country,
+		"parts":     parts,
+		"partNo":    partNo,
+		"usageType": usageType,
+		"afi":       afi,
+	}, http.StatusOK
+}
+
+func (ctrl *Controller) handleEncodeWrite(c *gin.Context) {
+	channel := c.Param("channel")
+	var payload WriteTagPayload
+
+	if c.ContentType() == "application/json" || strings.Contains(c.GetHeader("Content-Type"), "application/json") {
+		if err := c.ShouldBindJSON(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": "Ungültiges JSON-Payload: " + err.Error()})
+			return
+		}
+	} else {
+		if err := c.ShouldBind(&payload); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": "Ungültige Formulardaten: " + err.Error()})
+			return
+		}
+	}
+
+	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
+	c.JSON(statusCode, res)
 }
 
 func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {

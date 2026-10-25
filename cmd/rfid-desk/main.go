@@ -70,6 +70,8 @@ func main() {
 		WSBroker:      conf.WSBroker,
 		Channels:      conf.Channels,
 		DefaultReader: conf.DefaultReader,
+		DefaultISIL:   conf.DefaultISIL,
+		DefaultAFI:    conf.DefaultAFI,
 		Hub:           hub,
 		ISILList:      isilList,
 		Logger:        logger,

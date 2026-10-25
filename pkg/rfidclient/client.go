@@ -55,6 +55,18 @@ type Client interface {
 	// WriteTag sends a command to program ISO 28560-2 library metadata and optional AFI to a transponder.
 	WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error)
 
+	// WriteTagBatch sends a command to program a batch of RFID tags with individual metadata and optional AFI.
+	WriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) (*WriteTagResponse, error)
+
+	// WriteTags is a variadic convenience method for batch programming multiple RFID tags.
+	WriteTags(ctx context.Context, target string, tags ...TagWriteItem) (*WriteTagResponse, error)
+
+	// SendWriteTagBatch sends an asynchronous batch write tag command to a specific reader target.
+	SendWriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) error
+
+	// BroadcastWriteTagBatch broadcasts a batch write tag command to a specific broker channel or configured channels.
+	BroadcastWriteTagBatch(ctx context.Context, channel string, tags []TagWriteItem) error
+
 	// WriteAFI sends a command to set/toggle the AFI security byte on a transponder or batch of transponders.
 	WriteAFI(ctx context.Context, target string, req WriteAFIRequest) (*WriteAFIResponse, error)
 
@@ -324,13 +336,20 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 	}
 
 	if c.logger != nil {
-		c.logger.Info().
+		logEvt := c.logger.Info().
 			Str("id", req.ID).
-			Str("itemId", req.ItemID).
-			Str("target", targetAddr).
-			Str("uid", req.UID).
-			Str("afi", req.AFI).
-			Msg("writing RFID tag")
+			Str("target", targetAddr)
+		if len(req.Tags) > 0 {
+			logEvt = logEvt.Int("tagsCount", len(req.Tags))
+		} else if len(req.Items) > 0 {
+			logEvt = logEvt.Int("itemsCount", len(req.Items))
+		} else {
+			logEvt = logEvt.
+				Str("itemId", req.ItemID).
+				Str("uid", req.UID).
+				Str("afi", req.AFI)
+		}
+		logEvt.Msg("writing RFID tag")
 	}
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
@@ -362,14 +381,27 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 
 	if c.logger != nil {
 		if writeResp.IsSuccess() {
-			c.logger.Info().
+			logEvt := c.logger.Info().
 				Str("id", writeResp.ID).
 				Str("refId", writeResp.RefID).
-				Str("itemId", writeResp.ItemID).
-				Str("uid", writeResp.UID).
+				Str("target", targetAddr)
+			if len(writeResp.SuccessfulUIDs) > 0 {
+				logEvt = logEvt.Strs("successfulUids", writeResp.SuccessfulUIDs)
+			} else if writeResp.UID != "" {
+				logEvt = logEvt.Str("uid", writeResp.UID).
+					Str("itemId", writeResp.ItemID).
+					Str("afi", writeResp.AFI)
+			}
+			logEvt.Msg("RFID tag written successfully")
+		} else if writeResp.IsPartial() {
+			c.logger.Warn().
+				Str("id", writeResp.ID).
+				Str("refId", writeResp.RefID).
 				Str("target", targetAddr).
-				Str("afi", writeResp.AFI).
-				Msg("RFID tag written successfully")
+				Strs("successfulUids", writeResp.SuccessfulUIDs).
+				Interface("failedUids", writeResp.FailedUIDs).
+				Str("error", writeResp.GetError()).
+				Msg("RFID tags partially written")
 		} else {
 			c.logger.Warn().
 				Str("id", writeResp.ID).
@@ -383,6 +415,145 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 	}
 
 	return &writeResp, nil
+}
+
+// WriteTagBatch sends a command to program a batch of RFID tags with individual metadata and optional AFI.
+func (c *RFIDClient) WriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) (*WriteTagResponse, error) {
+	if len(tags) == 0 {
+		return nil, errors.New("write tag batch: tags list must not be empty")
+	}
+	return c.WriteTag(ctx, target, NewWriteTagBatchRequest(tags))
+}
+
+// WriteTags is a variadic convenience method for batch programming multiple RFID tags.
+func (c *RFIDClient) WriteTags(ctx context.Context, target string, tags ...TagWriteItem) (*WriteTagResponse, error) {
+	return c.WriteTagBatch(ctx, target, tags)
+}
+
+// SendWriteTagBatch sends an asynchronous batch write tag command to a specific reader target.
+func (c *RFIDClient) SendWriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) error {
+	if len(tags) == 0 {
+		return errors.New("send write tag batch: tags list must not be empty")
+	}
+	req := NewWriteTagBatchRequest(tags)
+	if err := req.Validate(); err != nil {
+		return err
+	}
+	targetAddr, err := c.resolveTarget(target)
+	if err != nil {
+		return err
+	}
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
+	req.Event = EventWriteTag
+
+	if c.logger != nil {
+		c.logger.Info().
+			Str("id", req.ID).
+			Int("count", len(tags)).
+			Str("target", targetAddr).
+			Msg("sending batch RFID write tag command")
+	}
+
+	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	if err != nil {
+		return errors.Wrap(err, "failed to create batch write tag request event")
+	}
+	reqEvt.ID = req.ID
+
+	if err := c.broker.Send(ctx, reqEvt); err != nil {
+		if c.logger != nil {
+			c.logger.Warn().
+				Err(err).
+				Str("id", req.ID).
+				Str("target", targetAddr).
+				Int("count", len(tags)).
+				Msg("failed to send batch RFID write tag command")
+		}
+		return errors.Wrapf(err, "failed to send batch write tag command to target %s", targetAddr)
+	}
+
+	if c.logger != nil {
+		c.logger.Info().
+			Str("id", req.ID).
+			Str("target", targetAddr).
+			Int("count", len(tags)).
+			Msg("batch RFID write tag command sent successfully")
+	}
+
+	return nil
+}
+
+// BroadcastWriteTagBatch broadcasts a batch write tag command to a specific broker channel or configured channels.
+func (c *RFIDClient) BroadcastWriteTagBatch(ctx context.Context, channel string, tags []TagWriteItem) error {
+	if len(tags) == 0 {
+		return errors.New("broadcast write tag batch: tags list must not be empty")
+	}
+	req := NewWriteTagBatchRequest(tags)
+	if err := req.Validate(); err != nil {
+		return err
+	}
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
+	req.Event = EventWriteTag
+
+	channels := make([]string, 0)
+	if strings.TrimSpace(channel) != "" {
+		channels = append(channels, strings.TrimSpace(channel))
+	} else if len(c.config.channels) > 0 {
+		for _, ch := range c.config.channels {
+			if strings.TrimSpace(ch) != "" {
+				channels = append(channels, strings.TrimSpace(ch))
+			}
+		}
+	} else {
+		channels = append(channels, "all")
+	}
+
+	var firstErr error
+	for _, ch := range channels {
+		if c.logger != nil {
+			c.logger.Info().
+				Str("id", req.ID).
+				Int("count", len(tags)).
+				Str("channel", ch).
+				Msg("broadcasting batch RFID write tag command")
+		}
+
+		reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), ch, req)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = errors.Wrap(err, "failed to create batch write tag broadcast event")
+			}
+			continue
+		}
+		reqEvt.Channel = ch
+		reqEvt.ID = req.ID
+
+		if err := c.broker.Send(ctx, reqEvt); err != nil {
+			if c.logger != nil {
+				c.logger.Warn().
+					Err(err).
+					Str("id", req.ID).
+					Str("channel", ch).
+					Int("count", len(tags)).
+					Msg("failed to broadcast batch RFID write tag command")
+			}
+			if firstErr == nil {
+				firstErr = errors.Wrapf(err, "failed to broadcast batch write tag command to channel %s", ch)
+			}
+		} else if c.logger != nil {
+			c.logger.Info().
+				Str("id", req.ID).
+				Str("channel", ch).
+				Int("count", len(tags)).
+				Msg("batch RFID write tag command broadcast successfully")
+		}
+	}
+
+	return firstErr
 }
 
 // WriteAFI sends a command to set/toggle the AFI security byte on a transponder.

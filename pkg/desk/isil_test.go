@@ -74,3 +74,24 @@ func TestFindISILEntry_And_TagItemEnrich(t *testing.T) {
 	assert.Equal(t, "Aargauer Kantonsbibliothek", item.ISILName)
 	assert.NotNil(t, item.ISILEntry)
 }
+
+func TestParseISIL(t *testing.T) {
+	tests := []struct {
+		input       string
+		wantCountry string
+		wantISIL    string
+	}{
+		{"CH-000001", "CH", "000001"},
+		{"ch-000050-x", "CH", "000050-x"},
+		{"DE-12345", "DE", "12345"},
+		{"000001", "", "000001"},
+		{"", "", ""},
+		{"  CH-000001  ", "CH", "000001"},
+	}
+
+	for _, tt := range tests {
+		c, isil := ParseISIL(tt.input)
+		assert.Equal(t, tt.wantCountry, c, "input: %s", tt.input)
+		assert.Equal(t, tt.wantISIL, isil, "input: %s", tt.input)
+	}
+}

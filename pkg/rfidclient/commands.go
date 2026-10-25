@@ -55,12 +55,9 @@ func AFISecurityStatus(afi string) string {
 	}
 }
 
-// WriteTagRequest represents a command to write ISO 28560-2 library metadata and optional AFI to an RFID tag.
-type WriteTagRequest struct {
-	Event     string `json:"event"`
-	ID        string `json:"id,omitempty"`
-	RefID     string `json:"ref_id,omitempty"`
-	UID       string `json:"uid,omitempty"`
+// TagWriteItem represents an individual tag's write parameters in a batch write request.
+type TagWriteItem struct {
+	UID       string `json:"uid"`
 	ItemID    string `json:"itemId"`
 	ISIL      string `json:"isil,omitempty"`
 	Country   string `json:"country,omitempty"`
@@ -70,7 +67,43 @@ type WriteTagRequest struct {
 	AFI       string `json:"afi,omitempty"`
 }
 
-// NewWriteTagRequest creates a new WriteTagRequest with sensible defaults.
+// TagWriteResult represents the outcome for an individual transponder in a batch tag write operation.
+type TagWriteResult struct {
+	UID     string `json:"uid"`
+	ItemID  string `json:"itemId,omitempty"`
+	PartNo  int    `json:"partNo,omitempty"`
+	AFI     string `json:"afi,omitempty"`
+	Status  string `json:"status"` // "ok" | "error"
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
+}
+
+// IsSuccess returns true if this specific tag write succeeded.
+func (r *TagWriteResult) IsSuccess() bool {
+	return strings.EqualFold(r.Status, "ok")
+}
+
+// WriteTagRequest represents a command to write ISO 28560-2 library metadata and optional AFI to an RFID tag (single or batch).
+type WriteTagRequest struct {
+	Event     string         `json:"event"`
+	ID        string         `json:"id,omitempty"`
+	RefID     string         `json:"ref_id,omitempty"`
+	UID       string         `json:"uid,omitempty"`
+	ItemID    string         `json:"itemId,omitempty"`
+	ISIL      string         `json:"isil,omitempty"`
+	Country   string         `json:"country,omitempty"`
+	Parts     int            `json:"parts,omitempty"`
+	PartNo    int            `json:"partNo,omitempty"`
+	UsageType int            `json:"usageType,omitempty"`
+	AFI       string         `json:"afi,omitempty"`
+	Tags      []TagWriteItem `json:"tags,omitempty"`
+	Items     []TagWriteItem `json:"items,omitempty"`
+	UIDs      []string       `json:"uids,omitempty"`
+	ItemIDs   []string       `json:"itemIds,omitempty"`
+	AFIs      []string       `json:"afis,omitempty"`
+}
+
+// NewWriteTagRequest creates a new WriteTagRequest with sensible defaults for a single tag.
 func NewWriteTagRequest(itemID string, uid ...string) WriteTagRequest {
 	var targetUID string
 	if len(uid) > 0 {
@@ -87,8 +120,72 @@ func NewWriteTagRequest(itemID string, uid ...string) WriteTagRequest {
 	}
 }
 
+// NewWriteTagBatchRequest creates a new batch WriteTagRequest from a slice of TagWriteItem.
+func NewWriteTagBatchRequest(tags []TagWriteItem) WriteTagRequest {
+	var primaryUID string
+	if len(tags) > 0 {
+		primaryUID = tags[0].UID
+	}
+	normalized := make([]TagWriteItem, len(tags))
+	copy(normalized, tags)
+	for i := range normalized {
+		if normalized[i].Parts <= 0 {
+			normalized[i].Parts = 1
+		}
+		if normalized[i].PartNo <= 0 {
+			normalized[i].PartNo = 1
+		}
+		if normalized[i].UsageType <= 0 {
+			normalized[i].UsageType = 1
+		}
+	}
+	return WriteTagRequest{
+		Event: EventWriteTag,
+		ID:    wsbrokerclient.GenerateEventID(),
+		UID:   primaryUID,
+		Tags:  normalized,
+	}
+}
+
+// NewWriteTagBatchRequestFromMap creates a new batch WriteTagRequest from a map of UID to ItemID.
+func NewWriteTagBatchRequestFromMap(items map[string]string) WriteTagRequest {
+	tags := make([]TagWriteItem, 0, len(items))
+	for uid, itemID := range items {
+		tags = append(tags, TagWriteItem{
+			UID:       uid,
+			ItemID:    itemID,
+			Parts:     1,
+			PartNo:    1,
+			UsageType: 1,
+		})
+	}
+	return NewWriteTagBatchRequest(tags)
+}
+
 // Validate checks whether the write tag request contains mandatory fields.
 func (r *WriteTagRequest) Validate() error {
+	// If batch items are provided via Tags or Items, validate them
+	if len(r.Tags) > 0 {
+		for i, tag := range r.Tags {
+			if strings.TrimSpace(tag.ItemID) == "" && strings.TrimSpace(tag.UID) == "" {
+				return errors.Errorf("write tag request: tag item [%d] must specify either itemId or uid", i)
+			}
+		}
+		return nil
+	}
+	if len(r.Items) > 0 {
+		for i, item := range r.Items {
+			if strings.TrimSpace(item.ItemID) == "" && strings.TrimSpace(item.UID) == "" {
+				return errors.Errorf("write tag request: item [%d] must specify either itemId or uid", i)
+			}
+		}
+		return nil
+	}
+	if len(r.UIDs) > 0 || len(r.ItemIDs) > 0 {
+		return nil
+	}
+
+	// Single tag write request
 	if strings.TrimSpace(r.ItemID) == "" {
 		return errors.New("write tag request: itemId must not be empty")
 	}
@@ -104,25 +201,79 @@ func (r *WriteTagRequest) Validate() error {
 	return nil
 }
 
-// WriteTagResponse represents the result of an RFID tag write operation.
+// WriteTagResponse represents the result of an RFID tag write operation (single or batch).
 type WriteTagResponse struct {
 	BaseRFIDPayload
-	Status    string `json:"status"`
-	UID       string `json:"uid,omitempty"`
-	ItemID    string `json:"itemId,omitempty"`
-	ISIL      string `json:"isil,omitempty"`
-	Country   string `json:"country,omitempty"`
-	Parts     int    `json:"parts,omitempty"`
-	PartNo    int    `json:"partNo,omitempty"`
-	UsageType int    `json:"usageType,omitempty"`
-	AFI       string `json:"afi,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Error     string `json:"error,omitempty"`
+	Status         string            `json:"status"` // "ok" | "partial" | "error"
+	UID            string            `json:"uid,omitempty"`
+	ItemID         string            `json:"itemId,omitempty"`
+	ISIL           string            `json:"isil,omitempty"`
+	Country        string            `json:"country,omitempty"`
+	Parts          int               `json:"parts,omitempty"`
+	PartNo         int               `json:"partNo,omitempty"`
+	UsageType      int               `json:"usageType,omitempty"`
+	AFI            string            `json:"afi,omitempty"`
+	UIDs           []string          `json:"uids,omitempty"`
+	SuccessfulUIDs []string          `json:"successfulUids,omitempty"`
+	FailedUIDs     map[string]string `json:"failedUids,omitempty"`
+	Results        []TagWriteResult  `json:"results,omitempty"`
+	Message        string            `json:"message,omitempty"`
+	Error          string            `json:"error,omitempty"`
 }
 
-// IsSuccess returns true if the write was successful (status == "ok").
+// IsSuccess returns true if the write was completely successful (status == "ok").
 func (r *WriteTagResponse) IsSuccess() bool {
 	return strings.EqualFold(r.Status, "ok")
+}
+
+// IsPartial returns true if some tags succeeded and some failed ("partial").
+func (r *WriteTagResponse) IsPartial() bool {
+	return strings.EqualFold(r.Status, "partial")
+}
+
+// IsError returns true if the tag write completely failed.
+func (r *WriteTagResponse) IsError() bool {
+	return strings.EqualFold(r.Status, "error") || (!r.IsSuccess() && !r.IsPartial())
+}
+
+// IsTagSuccessful checks whether a specific tag UID was written successfully.
+func (r *WriteTagResponse) IsTagSuccessful(uid string) bool {
+	if uid == "" {
+		return r.IsSuccess()
+	}
+	if slices.Contains(r.SuccessfulUIDs, uid) {
+		return true
+	}
+	for _, res := range r.Results {
+		if res.UID == uid {
+			return res.IsSuccess()
+		}
+	}
+	if r.FailedUIDs != nil {
+		if _, failed := r.FailedUIDs[uid]; failed {
+			return false
+		}
+	}
+	// Fallback for single-tag responses where SuccessfulUIDs is not populated
+	if r.UID == uid || (len(r.UIDs) == 0 && len(r.SuccessfulUIDs) == 0 && len(r.Results) == 0) {
+		return r.IsSuccess()
+	}
+	return false
+}
+
+// GetTagError returns the specific error message for a tag UID, or the general error.
+func (r *WriteTagResponse) GetTagError(uid string) string {
+	if r.FailedUIDs != nil {
+		if errStr, failed := r.FailedUIDs[uid]; failed && errStr != "" {
+			return errStr
+		}
+	}
+	for _, res := range r.Results {
+		if res.UID == uid && res.Error != "" {
+			return res.Error
+		}
+	}
+	return r.GetError()
 }
 
 // GetError returns the error description if write failed.
@@ -139,6 +290,16 @@ func (r *WriteTagResponse) GetError() string {
 // Summary returns a concise human-readable description of the write tag result.
 func (r *WriteTagResponse) Summary() string {
 	if r.IsSuccess() {
+		if len(r.UIDs) > 1 || len(r.SuccessfulUIDs) > 1 || len(r.Results) > 1 {
+			count := len(r.SuccessfulUIDs)
+			if count == 0 {
+				count = len(r.Results)
+			}
+			if count == 0 {
+				count = len(r.UIDs)
+			}
+			return fmt.Sprintf("[WRITE TAG BATCH] Status: OK | %d tags written successfully", count)
+		}
 		afiStr := ""
 		if r.AFI != "" {
 			afiStr = " | AFI: " + r.AFI
@@ -146,7 +307,16 @@ func (r *WriteTagResponse) Summary() string {
 		return fmt.Sprintf("[WRITE TAG] Status: OK | UID: %s | ItemID: %s | ISIL: %s | Country: %s%s",
 			r.UID, r.ItemID, r.ISIL, r.Country, afiStr)
 	}
+
+	if r.IsPartial() {
+		return fmt.Sprintf("[WRITE TAG BATCH PARTIAL] Succeeded: %d, Failed: %d | Error: %s",
+			len(r.SuccessfulUIDs), len(r.FailedUIDs), r.GetError())
+	}
+
 	errText := r.GetError()
+	if len(r.UIDs) > 1 || len(r.Results) > 1 {
+		return fmt.Sprintf("[WRITE TAG BATCH ERROR] %d tags failed | Error: %s", len(r.UIDs), errText)
+	}
 	return fmt.Sprintf("[WRITE TAG ERROR] UID: %s | Error: %s", r.UID, errText)
 }
 

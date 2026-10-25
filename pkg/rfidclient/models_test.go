@@ -660,3 +660,198 @@ func TestParseEvent_IDAndRefID_Propagation(t *testing.T) {
 		t.Errorf("tag.Channel = %q, want 'rfid-all'", tag.Channel)
 	}
 }
+
+func TestWriteTagBatch_ModelsAndConstructors(t *testing.T) {
+	// 1. NewWriteTagBatchRequest
+	items := []TagWriteItem{
+		{UID: "TAG-001", ItemID: "BOOK-1", Parts: 2, PartNo: 1, AFI: "07"},
+		{UID: "TAG-002", ItemID: "BOOK-2", AFI: "C2"},
+	}
+	req := NewWriteTagBatchRequest(items)
+	if req.Event != EventWriteTag {
+		t.Errorf("expected Event = %q, got %q", EventWriteTag, req.Event)
+	}
+	if req.UID != "TAG-001" {
+		t.Errorf("expected primary UID = 'TAG-001', got %q", req.UID)
+	}
+	if len(req.Tags) != 2 {
+		t.Fatalf("expected 2 tags in request, got %d", len(req.Tags))
+	}
+	if req.Tags[1].Parts != 1 || req.Tags[1].PartNo != 1 || req.Tags[1].UsageType != 1 {
+		t.Errorf("expected default values populated for item 1, got %+v", req.Tags[1])
+	}
+	if err := req.Validate(); err != nil {
+		t.Errorf("expected batch request to be valid, got: %v", err)
+	}
+
+	// 2. NewWriteTagBatchRequestFromMap
+	itemMap := map[string]string{
+		"TAG-10": "ITEM-10",
+		"TAG-20": "ITEM-20",
+	}
+	reqFromMap := NewWriteTagBatchRequestFromMap(itemMap)
+	if len(reqFromMap.Tags) != 2 {
+		t.Fatalf("expected 2 tags from map, got %d", len(reqFromMap.Tags))
+	}
+	if err := reqFromMap.Validate(); err != nil {
+		t.Errorf("expected map request to be valid, got: %v", err)
+	}
+
+	// 3. Validation failure cases
+	invalidReq := WriteTagRequest{
+		Tags: []TagWriteItem{
+			{UID: "", ItemID: ""},
+		},
+	}
+	if err := invalidReq.Validate(); err == nil {
+		t.Error("expected validation error for empty TagWriteItem")
+	}
+
+	singleInvalid := WriteTagRequest{}
+	if err := singleInvalid.Validate(); err == nil {
+		t.Error("expected validation error for single request with empty itemId")
+	}
+}
+
+func TestWriteTagBatch_JSONSerialization(t *testing.T) {
+	req := NewWriteTagBatchRequest([]TagWriteItem{
+		{UID: "E004015099887766", ItemID: "3012345678", ISIL: "000001-1", Country: "CH", Parts: 2, PartNo: 1, AFI: "07"},
+		{UID: "E004015099887777", ItemID: "3012345679", ISIL: "000001-1", Country: "CH", Parts: 2, PartNo: 2, AFI: "C2"},
+	})
+	data, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("json.Marshal failed: %v", err)
+	}
+
+	var parsed WriteTagRequest
+	if err := json.Unmarshal(data, &parsed); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
+	if len(parsed.Tags) != 2 {
+		t.Fatalf("expected 2 tags, got %d", len(parsed.Tags))
+	}
+	if parsed.Tags[0].UID != "E004015099887766" || parsed.Tags[0].ItemID != "3012345678" {
+		t.Errorf("unexpected parsed tag 0: %+v", parsed.Tags[0])
+	}
+	if parsed.Tags[1].UID != "E004015099887777" || parsed.Tags[1].AFI != "C2" {
+		t.Errorf("unexpected parsed tag 1: %+v", parsed.Tags[1])
+	}
+}
+
+func TestWriteTagResponse_BatchSuccess(t *testing.T) {
+	jsonResp := `{
+		"event": "rfid:write_tag_response",
+		"status": "ok",
+		"successfulUids": ["TAG1", "TAG2"],
+		"results": [
+			{"uid": "TAG1", "itemId": "3012345678", "status": "ok"},
+			{"uid": "TAG2", "itemId": "3012345679", "status": "ok"}
+		],
+		"message": "2 tags written successfully"
+	}`
+
+	var resp WriteTagResponse
+	if err := json.Unmarshal([]byte(jsonResp), &resp); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
+
+	if !resp.IsSuccess() {
+		t.Error("expected IsSuccess() = true")
+	}
+	if resp.IsPartial() {
+		t.Error("expected IsPartial() = false")
+	}
+	if resp.IsError() {
+		t.Error("expected IsError() = false")
+	}
+	if !resp.IsTagSuccessful("TAG1") || !resp.IsTagSuccessful("TAG2") {
+		t.Error("expected both TAG1 and TAG2 to be successful")
+	}
+	if resp.IsTagSuccessful("TAG3") {
+		t.Error("expected TAG3 to be false")
+	}
+	if !strings.Contains(resp.Summary(), "2 tags written successfully") {
+		t.Errorf("unexpected summary: %s", resp.Summary())
+	}
+}
+
+func TestWriteTagResponse_BatchPartialFailure(t *testing.T) {
+	jsonResp := `{
+		"event": "rfid:write_tag_response",
+		"status": "partial",
+		"successfulUids": ["TAG1"],
+		"failedUids": {
+			"TAG2": "lock bit set"
+		},
+		"results": [
+			{"uid": "TAG1", "status": "ok"},
+			{"uid": "TAG2", "status": "error", "error": "lock bit set"}
+		],
+		"message": "1/2 tags written successfully",
+		"error": "1 tag failed"
+	}`
+
+	var resp WriteTagResponse
+	if err := json.Unmarshal([]byte(jsonResp), &resp); err != nil {
+		t.Fatalf("json.Unmarshal failed: %v", err)
+	}
+
+	if resp.IsSuccess() {
+		t.Error("expected IsSuccess() = false")
+	}
+	if !resp.IsPartial() {
+		t.Error("expected IsPartial() = true")
+	}
+	if resp.IsError() {
+		t.Error("expected IsError() = false")
+	}
+	if !resp.IsTagSuccessful("TAG1") {
+		t.Error("expected TAG1 to be successful")
+	}
+	if resp.IsTagSuccessful("TAG2") {
+		t.Error("expected TAG2 to be unsuccessful")
+	}
+	if resp.GetTagError("TAG2") != "lock bit set" {
+		t.Errorf("expected tag error 'lock bit set', got %q", resp.GetTagError("TAG2"))
+	}
+	if !strings.Contains(resp.Summary(), "PARTIAL") {
+		t.Errorf("unexpected summary: %s", resp.Summary())
+	}
+}
+
+func TestParseRFIDPayload_WriteTagBatch(t *testing.T) {
+	payloadBytes := []byte(`{
+		"event": "rfid:write_tag",
+		"tags": [
+			{"uid": "TAG-1", "itemId": "BOOK-1"}
+		]
+	}`)
+	payload, err := ParseRFIDPayload(payloadBytes)
+	if err != nil {
+		t.Fatalf("ParseRFIDPayload failed: %v", err)
+	}
+	req, ok := payload.(*WriteTagRequest)
+	if !ok {
+		t.Fatalf("expected *WriteTagRequest, got %T", payload)
+	}
+	if len(req.Tags) != 1 || req.Tags[0].ItemID != "BOOK-1" {
+		t.Errorf("unexpected parsed request: %+v", req)
+	}
+
+	respBytes := []byte(`{
+		"event": "rfid:write_tag_response",
+		"status": "ok",
+		"successfulUids": ["TAG-1"]
+	}`)
+	respPayload, err := ParseRFIDPayload(respBytes)
+	if err != nil {
+		t.Fatalf("ParseRFIDPayload failed: %v", err)
+	}
+	resp, ok := respPayload.(*WriteTagResponse)
+	if !ok {
+		t.Fatalf("expected *WriteTagResponse, got %T", respPayload)
+	}
+	if !resp.IsTagSuccessful("TAG-1") {
+		t.Error("expected TAG-1 to be successful")
+	}
+}

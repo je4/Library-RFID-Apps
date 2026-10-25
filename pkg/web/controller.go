@@ -26,6 +26,8 @@ type Config struct {
 	WSBroker      string
 	Channels      []string
 	DefaultReader string
+	DefaultISIL   string
+	DefaultAFI    string
 	Hub           *desk.Hub
 	RFIDClient    rfidclient.Client
 	ISILList      map[string]*desk.ISILEntry
@@ -144,6 +146,9 @@ func (ctrl *Controller) init() error {
 		channelGroup.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
 		channelGroup.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)
 		channelGroup.POST("/loan/afi/single", ctrl.handleLoanAFISingle)
+		channelGroup.GET("/encode", ctrl.handleEncode)
+		channelGroup.GET("/encode/tags", ctrl.handleEncodeTagsFragment)
+		channelGroup.POST("/encode/write", ctrl.handleEncodeWrite)
 		channelGroup.GET("/events", ctrl.handleSSE)
 		channelGroup.POST("/tags/clear", ctrl.handleClearTags)
 
@@ -171,6 +176,7 @@ func (ctrl *Controller) init() error {
 		api.POST("/tags/clear", ctrl.handleClearTagsJSON)
 		api.GET("/loan/tags", ctrl.handleAPILoanTags)
 		api.POST("/loan/afi", ctrl.handleAPILoanAFI)
+		api.POST("/encode/write", ctrl.handleAPIEncodeWrite)
 	}
 
 	ctrl.server = http.Server{

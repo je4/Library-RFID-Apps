@@ -124,6 +124,19 @@ func FindISILEntry(isilMap map[string]*ISILEntry, isil string, country string) *
 	return nil
 }
 
+// ParseISIL extracts Country code and ISIL number from standard formatted input like "CH-000001" or "CH-ISIL-000001".
+func ParseISIL(input string) (string, string) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return "", ""
+	}
+	parts := strings.SplitN(input, "-", 2)
+	if len(parts) == 2 && len(parts[0]) == 2 {
+		return strings.ToUpper(parts[0]), strings.TrimSpace(parts[1])
+	}
+	return "", input
+}
+
 func loadISILFile(filename string) (map[string]*ISILEntry, error) {
 	fp, err := data.WebFS.Open(filename)
 	if err != nil {

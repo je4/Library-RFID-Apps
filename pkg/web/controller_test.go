@@ -68,6 +68,13 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for background.jpg, got %d", recBgImg.Code)
 	}
 
+	reqBubblegumBgImg := httptest.NewRequest(http.MethodGet, "/static/img/bubblegum_background.jpg", nil)
+	recBubblegumBgImg := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recBubblegumBgImg, reqBubblegumBgImg)
+	if recBubblegumBgImg.Code != http.StatusOK {
+		t.Errorf("expected 200 for bubblegum_background.jpg, got %d", recBubblegumBgImg.Code)
+	}
+
 	reqHTMX := httptest.NewRequest(http.MethodGet, "/static/js/htmx-4.0.js", nil)
 	recHTMX := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recHTMX, reqHTMX)
@@ -89,6 +96,8 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		"/static/js/modules/isil-flyout.js",
 		"/static/js/modules/afi-modal.js",
 		"/static/js/modules/sse.js",
+		"/static/js/modules/skin-selector.js",
+		"/static/js/modules/encode-controller.js",
 	} {
 		reqMod := httptest.NewRequest(http.MethodGet, modulePath, nil)
 		recMod := httptest.NewRecorder()
@@ -1530,8 +1539,8 @@ func TestController_StaticPathRendering(t *testing.T) {
 	if !strings.Contains(bodyDesk, `src="../static/img/bolt-white.svg"`) {
 		t.Errorf("expected desk to use '../static/img/bolt-white.svg', got: %s", bodyDesk)
 	}
-	if !strings.Contains(bodyDesk, `src="../static/img/book-arrow.svg"`) {
-		t.Errorf("expected desk to use '../static/img/book-arrow.svg', got: %s", bodyDesk)
+	if !strings.Contains(bodyDesk, `src="../static/img/tag.svg"`) {
+		t.Errorf("expected desk to use '../static/img/tag.svg', got: %s", bodyDesk)
 	}
 
 	// 3. Channel Loan should render StaticPath as "../static"
@@ -1564,5 +1573,233 @@ func TestController_StaticPathRendering(t *testing.T) {
 	item := hub.AddTag(tag)
 	if item.StaticPath != "../static" {
 		t.Errorf("expected item.StaticPath to be '../static', got '%s'", item.StaticPath)
+	}
+}
+
+func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Requesting index, desk, and loan without cookie -> defaults to default skin (no data-skin attribute on html)
+	for _, path := range []string{"/", "/channel-1/", "/channel-1/loan"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200 for %s, got %d", path, rec.Code)
+		}
+		body := rec.Body.String()
+		if !strings.Contains(body, `id="skin-select"`) {
+			t.Errorf("expected %s to contain #skin-select dropdown", path)
+		}
+		if !strings.Contains(body, `value="default"`) || !strings.Contains(body, `value="emerald"`) || !strings.Contains(body, `value="nord"`) || !strings.Contains(body, `value="bubblegum"`) {
+			t.Errorf("expected %s to contain skin options default, emerald, nord, bubblegum", path)
+		}
+		if strings.Contains(body, `data-skin=`) {
+			t.Errorf("expected %s without cookie not to have data-skin attribute, got: %s", path, body)
+		}
+	}
+
+	// 2. Requesting with rfid_skin=emerald cookie -> renders data-skin="emerald" and selects emerald option
+	reqEmerald := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	reqEmerald.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "emerald"})
+	recEmerald := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recEmerald, reqEmerald)
+	if recEmerald.Code != http.StatusOK {
+		t.Fatalf("expected 200 for desk with emerald cookie, got %d", recEmerald.Code)
+	}
+	bodyEmerald := recEmerald.Body.String()
+	if !strings.Contains(bodyEmerald, `data-skin="emerald"`) {
+		t.Errorf("expected desk with emerald cookie to have data-skin=\"emerald\", got: %s", bodyEmerald)
+	}
+	if !strings.Contains(bodyEmerald, `<option value="emerald" selected>Emerald</option>`) {
+		t.Errorf("expected emerald option to be selected, got: %s", bodyEmerald)
+	}
+
+	// 3. Requesting loan with rfid_skin=nord cookie -> renders data-skin="nord" and selects nord option
+	reqNord := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+	reqNord.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "nord"})
+	recNord := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recNord, reqNord)
+	if recNord.Code != http.StatusOK {
+		t.Fatalf("expected 200 for loan with nord cookie, got %d", recNord.Code)
+	}
+	bodyNord := recNord.Body.String()
+	if !strings.Contains(bodyNord, `data-skin="nord"`) {
+		t.Errorf("expected loan with nord cookie to have data-skin=\"nord\", got: %s", bodyNord)
+	}
+	if !strings.Contains(bodyNord, `<option value="nord" selected>Nord</option>`) {
+		t.Errorf("expected nord option to be selected, got: %s", bodyNord)
+	}
+
+	// 4. Requesting desk with rfid_skin=bubblegum cookie -> renders data-skin="bubblegum" and selects bubblegum option
+	reqBubblegum := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	reqBubblegum.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "bubblegum"})
+	recBubblegum := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recBubblegum, reqBubblegum)
+	if recBubblegum.Code != http.StatusOK {
+		t.Fatalf("expected 200 for desk with bubblegum cookie, got %d", recBubblegum.Code)
+	}
+	bodyBubblegum := recBubblegum.Body.String()
+	if !strings.Contains(bodyBubblegum, `data-skin="bubblegum"`) {
+		t.Errorf("expected desk with bubblegum cookie to have data-skin=\"bubblegum\", got: %s", bodyBubblegum)
+	}
+	if !strings.Contains(bodyBubblegum, `<option value="bubblegum" selected>Bubblegum</option>`) {
+		t.Errorf("expected bubblegum option to be selected, got: %s", bodyBubblegum)
+	}
+
+	// 5. Requesting index with rfid_skin=default cookie -> no data-skin attribute, default option selected
+	reqDefault := httptest.NewRequest(http.MethodGet, "/", nil)
+	reqDefault.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "default"})
+	recDefault := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDefault, reqDefault)
+	if recDefault.Code != http.StatusOK {
+		t.Fatalf("expected 200 for index with default cookie, got %d", recDefault.Code)
+	}
+	bodyDefault := recDefault.Body.String()
+	if strings.Contains(bodyDefault, `data-skin=`) {
+		t.Errorf("expected index with default cookie not to have data-skin attribute, got: %s", bodyDefault)
+	}
+	if !strings.Contains(bodyDefault, `<option value="default" selected>Slate (Standard)</option>`) {
+		t.Errorf("expected default option to be selected, got: %s", bodyDefault)
+	}
+}
+
+func TestController_EncodeEndpoints(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		DefaultISIL:   "CH-000001",
+		DefaultAFI:    "07",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// Add an active tag
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "E004015099887766",
+		ItemID: "OLD-ITEM",
+		ISIL:   "CH-000001",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID: "desk-reader",
+			Channel:  "channel-1",
+		},
+	})
+
+	// 0. Test /:channel/encode page rendering
+	reqEncode := httptest.NewRequest(http.MethodGet, "/channel-1/encode", nil)
+	recEncode := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recEncode, reqEncode)
+	if recEncode.Code != http.StatusOK {
+		t.Errorf("expected 200 for /channel-1/encode, got %d", recEncode.Code)
+	}
+	if !strings.Contains(recEncode.Body.String(), "Medium kodieren") {
+		t.Errorf("expected encode page to contain 'Medium kodieren', got: %s", recEncode.Body.String())
+	}
+	if !strings.Contains(recEncode.Body.String(), "CH-000001") {
+		t.Errorf("expected encode page to contain default ISIL CH-000001, got: %s", recEncode.Body.String())
+	}
+
+	// 1. Test /:channel/encode/tags fragment
+	reqTags := httptest.NewRequest(http.MethodGet, "/channel-1/encode/tags", nil)
+	recTags := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recTags, reqTags)
+	if recTags.Code != http.StatusOK {
+		t.Errorf("expected 200 for /channel-1/encode/tags, got %d", recTags.Code)
+	}
+	if !strings.Contains(recTags.Body.String(), "E004015099887766") {
+		t.Errorf("expected encode tags fragment to contain tag UID, got: %s", recTags.Body.String())
+	}
+
+	// 2. Test /:channel/encode/write with valid payload
+	writeJSON := `{
+		"uid": "E004015099887766",
+		"itemId": "NEW-ITEM-123",
+		"isil": "CH-000001",
+		"parts": 3,
+		"partNo": 1,
+		"afi": "07"
+	}`
+	reqWrite := httptest.NewRequest(http.MethodPost, "/channel-1/encode/write", strings.NewReader(writeJSON))
+	reqWrite.Header.Set("Content-Type", "application/json")
+	recWrite := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recWrite, reqWrite)
+	if recWrite.Code != http.StatusOK {
+		t.Errorf("expected 200 for /channel-1/encode/write, got %d (body: %s)", recWrite.Code, recWrite.Body.String())
+	}
+
+	var writeResp map[string]interface{}
+	if err := json.Unmarshal(recWrite.Body.Bytes(), &writeResp); err != nil {
+		t.Fatalf("failed to parse write response JSON: %v", err)
+	}
+	if writeResp["status"] != "success" {
+		t.Errorf("expected status 'success', got %v", writeResp["status"])
+	}
+	if writeResp["itemId"] != "NEW-ITEM-123" {
+		t.Errorf("expected itemId 'NEW-ITEM-123', got %v", writeResp["itemId"])
+	}
+
+	// Verify hub updated
+	active := hub.GetActiveTags()
+	if len(active) == 0 || active[0].ItemID != "NEW-ITEM-123" {
+		t.Errorf("expected hub active tag to have updated ItemID, got %+v", active)
+	}
+	if active[0].Parts != 3 || active[0].PartNo != 1 {
+		t.Errorf("expected parts=3, partNo=1, got parts=%d, partNo=%d", active[0].Parts, active[0].PartNo)
+	}
+
+	// 3. Test /:channel/encode/write with empty ItemID -> 400
+	emptyItemJSON := `{"uid": "E004015099887766", "itemId": ""}`
+	reqEmpty := httptest.NewRequest(http.MethodPost, "/channel-1/encode/write", strings.NewReader(emptyItemJSON))
+	reqEmpty.Header.Set("Content-Type", "application/json")
+	recEmpty := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recEmpty, reqEmpty)
+	if recEmpty.Code != http.StatusBadRequest {
+		t.Errorf("expected 400 for empty itemId, got %d", recEmpty.Code)
+	}
+
+	// 4. Test /api/v1/encode/write API endpoint
+	apiJSON := `{
+		"uid": "E004015099887766",
+		"itemId": "API-ITEM-456",
+		"isil": "CH-000001",
+		"parts": 1,
+		"partNo": 1,
+		"afi": "C2"
+	}`
+	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/encode/write?channel=channel-1", strings.NewReader(apiJSON))
+	reqAPI.Header.Set("Content-Type", "application/json")
+	recAPI := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAPI, reqAPI)
+	if recAPI.Code != http.StatusOK {
+		t.Errorf("expected 200 for /api/v1/encode/write, got %d (body: %s)", recAPI.Code, recAPI.Body.String())
 	}
 }

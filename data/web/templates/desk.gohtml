@@ -1,13 +1,25 @@
 <!DOCTYPE html>
-<html lang="de" translate="no">
+<html lang="de" translate="no" {{if and .Skin (ne .Skin "default")}}data-skin="{{.Skin}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RFID Desk - {{.ClientName}}</title>
-    <!-- Automatic Dark / Light mode detection to prevent FOUC -->
+    <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script>
         (function() {
+            function getSavedSkin() {
+                var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
+                if (match) return decodeURIComponent(match[1]);
+                try { return localStorage.getItem('rfid_skin'); } catch(e) { return null; }
+            }
+            var skin = getSavedSkin() || 'default';
+            if (skin && skin !== 'default') {
+                document.documentElement.setAttribute('data-skin', skin);
+            } else {
+                document.documentElement.removeAttribute('data-skin');
+            }
+
             function syncTheme() {
                 var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
                 if (isDark) {
@@ -37,21 +49,40 @@
     <!-- Main Content Area -->
     <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
 
-        <!-- Top Navigation / Action Bar (Single Elegant Loan Action Button) -->
-        <nav class="flex items-center" aria-label="Aktionsleiste">
+        <!-- Top Navigation / Action Bar -->
+        <nav class="flex items-center flex-wrap gap-4" aria-label="Aktionsleiste">
             <!-- Ausleihe & Rückgabe (Loan) Action Card -->
-            <a href="loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg" title="Zur Ausleihe und Rückgabe wechseln">
+            <a href="loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg flex-1 min-w-[220px]" title="Zur Ausleihe und Rückgabe wechseln">
                 <div class="flex items-center justify-between w-full mb-3">
-                    <div class="w-12 h-12 rounded-xl flex items-center justify-center card-icon-box shadow-md transition-transform duration-300 group-hover:scale-110">
-                        <img src="{{.StaticPath}}/img/book-arrow.svg" class="w-6 h-6" alt="Ausleihe &amp; Rückgabe" />
+                    <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            <path d="M9 7h6"></path>
+                            <path d="M9 11h6"></path>
+                            <path d="M9 15h4"></path>
+                        </svg>
                     </div>
-                    <span class="card-arrow-badge flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
-                        <img src="{{.StaticPath}}/img/arrow-right.svg" class="w-5 h-5" alt="Öffnen" />
-                    </span>
                 </div>
                 <div>
                     <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
                     <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Ausleihe &amp; Rückgabe</span>
+                </div>
+            </a>
+
+            <!-- Medium kodieren (Encode) Action Card -->
+            <a href="encode" id="nav-encode-btn" class="app-encode-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg flex-1 min-w-[220px]" title="Zu Medium kodieren wechseln">
+                <div class="flex items-center justify-between w-full mb-3">
+                    <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
+                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                        </svg>
+                    </div>
+                </div>
+                <div>
+                    <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
+                    <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Medium kodieren</span>
                 </div>
             </a>
         </nav>
