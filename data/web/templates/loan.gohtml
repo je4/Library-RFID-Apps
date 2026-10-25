@@ -25,10 +25,10 @@
         })();
     </script>
     <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
-    <link rel="stylesheet" href="../static/css/tailwind.min.css">
-    <script src="../static/js/htmx-4.0.js"></script>
-    <script src="../static/js/hx-sse.js"></script>
-    <link rel="stylesheet" href="../static/scss/desk.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <script src="{{.StaticPath}}/js/htmx-4.0.js"></script>
+    <script src="{{.StaticPath}}/js/hx-sse.js"></script>
+    <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
@@ -46,7 +46,7 @@
                     <div id="stats-active-tags" class="text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
-                    <img src="../static/img/book-green.svg" class="w-5 h-5" alt="Medien" />
+                    <img src="{{.StaticPath}}/img/book-green.svg" class="w-5 h-5" alt="Medien" />
                 </div>
             </div>
 
@@ -57,7 +57,7 @@
                     <div class="text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[180px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
-                    <img src="../static/img/chip.svg" class="w-5 h-5" alt="Reader" />
+                    <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
                 </div>
             </div>
 
@@ -68,7 +68,7 @@
                     <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[180px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
-                    <img src="../static/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                    <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
                 </div>
             </div>
         </section>
@@ -88,19 +88,19 @@
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
                     <button id="btn-copy-all-itemids" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
-                        <img src="../static/img/copy.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Kopieren" />
+                        <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Kopieren" />
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
                     <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
-                        <img src="../static/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Entsichern" />
+                        <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Entsichern" />
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
                     <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
-                        <img src="../static/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Sichern" />
+                        <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Sichern" />
                         <span>Sichern</span>
                     </button>
                 </div>
@@ -143,7 +143,7 @@
             <div class="app-afi-spinner-container">
                 <div class="app-afi-spinner-ring"></div>
                 <div class="app-afi-spinner-icon" id="afi-modal-icon">
-                    <img src="../static/img/lock-blue.svg" class="w-6 h-6" alt="AFI" />
+                    <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-6 h-6" alt="AFI" />
                 </div>
             </div>
             <h3 id="afi-modal-title" class="app-afi-modal-title">AFI wird geschrieben...</h3>
@@ -161,6 +161,6 @@
     </div>
 
     <!-- Interactive script for audio, counters, copy-all and actions (Relative Path) -->
-    <script type="module" src="../static/js/desk.js"></script>
+    <script type="module" src="{{.StaticPath}}/js/desk.js"></script>
 </body>
 </html>

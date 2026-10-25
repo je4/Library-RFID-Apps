@@ -38,6 +38,7 @@ type TagItem struct {
 	ClientID          string     `json:"clientId,omitempty"`
 	Channel           string     `json:"channel,omitempty"`
 	ReadTime          time.Time  `json:"readTime"`
+	StaticPath        string     `json:"staticPath,omitempty"`
 }
 
 // NewTagItem converts a low-level TagReadEvent into a display-oriented TagItem.
@@ -105,6 +106,7 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 		ClientID:          tag.ClientID,
 		Channel:           tag.Channel,
 		ReadTime:          readTime,
+		StaticPath:        "../static",
 	}
 }
 
@@ -181,6 +183,7 @@ type DeskData struct {
 	ExtAddr       string
 	Uptime        string
 	Tags          []*TagItem
+	StaticPath    string
 }
 
 // IsLoan returns true if this data model represents the loan & return view.
@@ -204,6 +207,7 @@ type LoanData struct {
 	WriteSuccessCount int
 	WriteErrorCount   int
 	FailedItems       []string
+	StaticPath        string
 }
 
 // IsLoan returns true if this data model represents the loan & return view.

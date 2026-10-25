@@ -1477,3 +1477,92 @@ func TestController_ISILLibraryNameAndFlyoutRendering(t *testing.T) {
 		t.Errorf("expected loan page to contain 'app-isil-flyout', got: %s", bodyLoan)
 	}
 }
+
+func TestController_StaticPathRendering(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Root Index should render StaticPath as "static"
+	reqIndex := httptest.NewRequest(http.MethodGet, "/", nil)
+	recIndex := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recIndex, reqIndex)
+	if recIndex.Code != http.StatusOK {
+		t.Fatalf("expected 200 for index, got %d", recIndex.Code)
+	}
+	bodyIndex := recIndex.Body.String()
+	if !strings.Contains(bodyIndex, `href="static/css/tailwind.min.css"`) {
+		t.Errorf("expected index to use 'static/css/tailwind.min.css', got: %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, `src="static/img/bolt-white.svg"`) {
+		t.Errorf("expected index to use 'static/img/bolt-white.svg', got: %s", bodyIndex)
+	}
+	if !strings.Contains(bodyIndex, `src="static/img/channel.svg"`) {
+		t.Errorf("expected index channel card to use 'static/img/channel.svg', got: %s", bodyIndex)
+	}
+
+	// 2. Channel Desk should render StaticPath as "../static"
+	reqDesk := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	recDesk := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDesk, reqDesk)
+	if recDesk.Code != http.StatusOK {
+		t.Fatalf("expected 200 for desk, got %d", recDesk.Code)
+	}
+	bodyDesk := recDesk.Body.String()
+	if !strings.Contains(bodyDesk, `href="../static/css/tailwind.min.css"`) {
+		t.Errorf("expected desk to use '../static/css/tailwind.min.css', got: %s", bodyDesk)
+	}
+	if !strings.Contains(bodyDesk, `src="../static/img/bolt-white.svg"`) {
+		t.Errorf("expected desk to use '../static/img/bolt-white.svg', got: %s", bodyDesk)
+	}
+	if !strings.Contains(bodyDesk, `src="../static/img/book-arrow.svg"`) {
+		t.Errorf("expected desk to use '../static/img/book-arrow.svg', got: %s", bodyDesk)
+	}
+
+	// 3. Channel Loan should render StaticPath as "../static"
+	reqLoan := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+	recLoan := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recLoan, reqLoan)
+	if recLoan.Code != http.StatusOK {
+		t.Fatalf("expected 200 for loan, got %d", recLoan.Code)
+	}
+	bodyLoan := recLoan.Body.String()
+	if !strings.Contains(bodyLoan, `href="../static/css/tailwind.min.css"`) {
+		t.Errorf("expected loan to use '../static/css/tailwind.min.css', got: %s", bodyLoan)
+	}
+	if !strings.Contains(bodyLoan, `src="../static/img/book-open-white.svg"`) {
+		t.Errorf("expected loan to use '../static/img/book-open-white.svg', got: %s", bodyLoan)
+	}
+	if !strings.Contains(bodyLoan, `src="../static/img/book-green.svg"`) {
+		t.Errorf("expected loan to use '../static/img/book-green.svg', got: %s", bodyLoan)
+	}
+
+	// 4. Tag Row fragment rendering
+	tag := &rfidclient.TagReadEvent{
+		UID:    "E004015011223344",
+		ItemID: "BOOK-123",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID: "desk-reader",
+			Channel:  "channel-1",
+		},
+	}
+	item := hub.AddTag(tag)
+	if item.StaticPath != "../static" {
+		t.Errorf("expected item.StaticPath to be '../static', got '%s'", item.StaticPath)
+	}
+}

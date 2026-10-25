@@ -25,10 +25,10 @@
         })();
     </script>
     <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
-    <link rel="stylesheet" href="../static/css/tailwind.min.css">
-    <script src="../static/js/htmx-4.0.js"></script>
-    <script src="../static/js/hx-sse.js"></script>
-    <link rel="stylesheet" href="../static/scss/desk.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <script src="{{.StaticPath}}/js/htmx-4.0.js"></script>
+    <script src="{{.StaticPath}}/js/hx-sse.js"></script>
+    <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
@@ -43,10 +43,10 @@
             <a href="loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-lg" title="Zur Ausleihe und Rückgabe wechseln">
                 <div class="flex items-center justify-between w-full mb-3">
                     <div class="w-12 h-12 rounded-xl flex items-center justify-center card-icon-box shadow-md transition-transform duration-300 group-hover:scale-110">
-                        <img src="../static/img/book-arrow.svg" class="w-6 h-6" alt="Ausleihe &amp; Rückgabe" />
+                        <img src="{{.StaticPath}}/img/book-arrow.svg" class="w-6 h-6" alt="Ausleihe &amp; Rückgabe" />
                     </div>
                     <span class="card-arrow-badge flex items-center justify-center transition-transform duration-300 group-hover:translate-x-1">
-                        <img src="../static/img/arrow-right.svg" class="w-5 h-5" alt="Öffnen" />
+                        <img src="{{.StaticPath}}/img/arrow-right.svg" class="w-5 h-5" alt="Öffnen" />
                     </span>
                 </div>
                 <div>
@@ -65,7 +65,7 @@
                     <div id="stats-total-tags" class="text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-blue flex items-center justify-center">
-                    <img src="../static/img/tag.svg" class="w-5 h-5" alt="Tags" />
+                    <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5" alt="Tags" />
                 </div>
             </div>
 
@@ -76,7 +76,7 @@
                     <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[160px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
-                    <img src="../static/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                    <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
                 </div>
             </div>
 
@@ -87,7 +87,7 @@
                     <div class="text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[160px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
-                    <img src="../static/img/chip.svg" class="w-5 h-5" alt="Reader" />
+                    <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
                 </div>
             </div>
 
@@ -98,7 +98,7 @@
                     <div class="text-sm font-semibold font-mono app-metric-val-emerald mt-1">{{.Uptime}}</div>
                 </div>
                 <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
-                    <img src="../static/img/clock.svg" class="w-5 h-5" alt="Laufzeit" />
+                    <img src="{{.StaticPath}}/img/clock.svg" class="w-5 h-5" alt="Laufzeit" />
                 </div>
             </div>
         </section>
@@ -118,12 +118,12 @@
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
                         <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="w-48 sm:w-64 app-input text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-mono transition-all">
-                        <img src="../static/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none" width="16" height="16" alt="Suche" />
+                        <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none" width="16" height="16" alt="Suche" />
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
                     <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="Transponder-Liste leeren">
-                        <img src="../static/img/trash.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Leeren" />
+                        <img src="{{.StaticPath}}/img/trash.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Leeren" />
                         <span>Leeren</span>
                     </button>
                 </div>
@@ -156,6 +156,6 @@
     {{template "footer.gohtml" .}}
 
     <!-- Interactive script for audio, counters and filtering (Relative Path) -->
-    <script type="module" src="../static/js/desk.js"></script>
+    <script type="module" src="{{.StaticPath}}/js/desk.js"></script>
 </body>
 </html>

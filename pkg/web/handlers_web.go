@@ -18,6 +18,10 @@ func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 	if len(channel) > 0 {
 		ch = channel[0]
 	}
+	staticPath := "static"
+	if ch != "" {
+		staticPath = "../static"
+	}
 	var tags []*desk.TagItem
 	if ch != "" {
 		tags = ctrl.hub.GetTags(ch)
@@ -34,6 +38,7 @@ func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 		ExtAddr:       ctrl.cfg.ExtAddr,
 		Uptime:        uptime,
 		Tags:          tags,
+		StaticPath:    staticPath,
 	}
 }
 
@@ -82,6 +87,7 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		WriteSuccessCount: successCount,
 		WriteErrorCount:   errorCount,
 		FailedItems:       failedItems,
+		StaticPath:        "../static",
 	}
 }
 
@@ -353,7 +359,7 @@ func (ctrl *Controller) handleClearTags(c *gin.Context) {
 	}
 	// Return empty table template for HTMX replacement
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "tags_table.gohtml", desk.DeskData{Channel: channel, Tags: nil}); err != nil {
+	if err := ctrl.templates.ExecuteTemplate(&buf, "tags_table.gohtml", desk.DeskData{Channel: channel, Tags: nil, StaticPath: "../static"}); err != nil {
 		c.String(http.StatusInternalServerError, "error rendering template")
 		return
 	}

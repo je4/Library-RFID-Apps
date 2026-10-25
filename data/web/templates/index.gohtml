@@ -25,8 +25,8 @@
         })();
     </script>
     <!-- Tailwind CSS & Desk Styles (Relative Paths) -->
-    <link rel="stylesheet" href="static/css/tailwind.min.css">
-    <link rel="stylesheet" href="static/scss/desk.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8">
 
@@ -52,7 +52,7 @@
                     <a href="{{.}}/" class="app-channel-card group" title="Channel {{.}} öffnen">
                         <div class="channel-card-left">
                             <div class="channel-card-icon">
-                                <img src="static/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                                <img src="{{$.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
                             </div>
                             <div class="channel-card-info">
                                 <span class="channel-card-badge">Channel</span>
@@ -60,7 +60,7 @@
                             </div>
                         </div>
                         <div class="channel-card-arrow">
-                            <img src="static/img/arrow-right.svg" class="w-5 h-5" alt="Öffnen" />
+                            <img src="{{$.StaticPath}}/img/arrow-right.svg" class="w-5 h-5" alt="Öffnen" />
                         </div>
                     </a>
                     {{else}}

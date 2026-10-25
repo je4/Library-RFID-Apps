@@ -1,77 +1,57 @@
 <!-- Header Bar with Navigation -->
 <header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between pb-6 mb-6 border-b app-header gap-4">
     <div class="flex items-center space-x-3.5">
-        {{if .IsLoan}}
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-emerald-600 via-teal-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-            <img src="../static/img/book-open-white.svg" class="w-6 h-6" alt="Ausleihe" />
+        <!-- Dynamisches Icon & Gradient -->
+        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{if .IsLoan}}from-emerald-600 via-teal-600 to-cyan-500 shadow-emerald-500/20{{else}}from-blue-600 via-indigo-600 to-cyan-500 shadow-blue-500/20{{end}} flex items-center justify-center shadow-lg">
+            <img src="{{.StaticPath}}/img/{{if .IsLoan}}book-open-white.svg{{else}}bolt-white.svg{{end}}" class="w-6 h-6" alt="{{if .IsLoan}}Ausleihe{{else}}RFID Desk{{end}}" />
         </div>
+
         <div>
+            <!-- Titel & Status Badge -->
             <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
-                Ausleihe &amp; Rückgabe
+                {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else}}RFID Desk{{end}}
+                {{if .Channel}}
                 <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
-            </h1>
-            <p class="text-xs app-meta-text font-mono flex items-center gap-2">
-                {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
-                <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
-                <span>&bull;</span>
-                <span>Client: <strong>{{.ClientName}}</strong></span>
-            </p>
-        </div>
-        {{else if .Channel}}
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <img src="../static/img/bolt-white.svg" class="w-6 h-6" alt="RFID Desk" />
-        </div>
-        <div>
-            <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
-                RFID Desk
-                <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
-            </h1>
-            <p class="text-xs app-meta-text font-mono flex items-center gap-2">
-                {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
-                <span>Client: <strong>{{.ClientName}}</strong></span>
-                <span>&bull;</span>
-                <span>Broker: <strong>{{.WSBroker}}</strong></span>
-            </p>
-        </div>
-        {{else}}
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-600 to-cyan-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-            <img src="static/img/bolt-white.svg" class="w-6 h-6" alt="RFID Desk" />
-        </div>
-        <div>
-            <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
-                RFID Desk
+                {{else}}
                 <span class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Channel-Auswahl</span>
+                {{end}}
             </h1>
+
+            <!-- Metadaten-Zeile -->
             <p class="text-xs app-meta-text font-mono flex items-center gap-2">
-                <span>Client: <strong>{{.ClientName}}</strong></span>
-                <span>&bull;</span>
+                {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
+                {{if .IsLoan}}
+                <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
+                {{else}}
                 <span>Broker: <strong>{{.WSBroker}}</strong></span>
+                {{end}}
+                <span>&bull;</span>
+                <span>Client: <strong>{{.ClientName}}</strong></span>
             </p>
         </div>
-        {{end}}
     </div>
 
-    {{if or .Channel .IsLoan}}
+    {{if .Channel}}
     <!-- Top Right Actions & SSE Status Badge -->
     <div class="flex items-center space-x-3">
         <!-- Back to Channels Selection Button -->
         <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
-            <img src="../static/img/arrow-left.svg" class="w-4 h-4" alt="Channels" />
+            <img src="{{.StaticPath}}/img/arrow-left.svg" class="w-4 h-4" alt="Channels" />
             <span>Channels</span>
         </a>
 
         {{if .IsLoan}}
         <!-- Back to Desk Button (Relative to Channel) -->
         <a href="." id="nav-desk-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
-            <img src="../static/img/home.svg" class="w-4 h-4" alt="Desk" />
+            <img src="{{.StaticPath}}/img/home.svg" class="w-4 h-4" alt="Desk" />
             <span>Desk</span>
         </a>
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
         <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-2 cursor-pointer" title="Signalton einschalten" aria-pressed="false">
-            <img src="../static/img/volume-off.svg" class="w-4 h-4 sound-icon-off shrink-0 block" alt="Ton Aus" />
-            <img src="../static/img/volume-high.svg" class="w-4 h-4 sound-icon-on shrink-0 block hidden" alt="Ton An" />
+            <img src="{{.StaticPath}}/img/volume-off.svg" class="w-4 h-4 sound-icon-off shrink-0 block" alt="Ton Aus" />
+            <img src="{{.StaticPath}}/img/volume-high.svg" class="w-4 h-4 sound-icon-on shrink-0 block hidden" alt="Ton An" />
             <span>Ton</span>
             <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block"></span>
         </button>
