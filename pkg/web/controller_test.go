@@ -82,6 +82,22 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for hx-sse.js, got %d", recSSEJS.Code)
 	}
 
+	for _, modulePath := range []string{
+		"/static/js/desk.js",
+		"/static/js/modules/audio.js",
+		"/static/js/modules/table-actions.js",
+		"/static/js/modules/isil-flyout.js",
+		"/static/js/modules/afi-modal.js",
+		"/static/js/modules/sse.js",
+	} {
+		reqMod := httptest.NewRequest(http.MethodGet, modulePath, nil)
+		recMod := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(recMod, reqMod)
+		if recMod.Code != http.StatusOK {
+			t.Errorf("expected 200 for %s, got %d", modulePath, recMod.Code)
+		}
+	}
+
 	// 2. Test Channel Selection Index Page
 	reqIndex := httptest.NewRequest(http.MethodGet, "/", nil)
 	recIndex := httptest.NewRecorder()
