@@ -52,25 +52,27 @@ const (
 
 // Re-exported constructors, helpers and options.
 var (
-	New                            = rfidclient.New
-	NewFromConfig                  = rfidclient.NewFromConfig
-	WithDefaultTarget              = rfidclient.WithDefaultTarget
-	WithDefaultTimeout             = rfidclient.WithDefaultTimeout
-	WithLogger                     = rfidclient.WithLogger
-	WithChannels                   = rfidclient.WithChannels
-	WithClientName                 = rfidclient.WithClientName
-	NewDeviceMetadataRequest       = rfidclient.NewDeviceMetadataRequest
-	NewWriteTagRequest             = rfidclient.NewWriteTagRequest
-	NewWriteTagBatchRequest        = rfidclient.NewWriteTagBatchRequest
-	NewWriteTagBatchRequestFromMap = rfidclient.NewWriteTagBatchRequestFromMap
-	NewWriteAFIRequest             = rfidclient.NewWriteAFIRequest
-	NewWriteAFIBatchRequest        = rfidclient.NewWriteAFIBatchRequest
-	ParseRFIDPayload               = rfidclient.ParseRFIDPayload
-	ParseEvent                     = rfidclient.ParseEvent
-	NormalizeAFI                   = rfidclient.NormalizeAFI
-	IsAFISecured                   = rfidclient.IsAFISecured
-	IsAFIUnsecured                 = rfidclient.IsAFIUnsecured
-	AFISecurityStatus              = rfidclient.AFISecurityStatus
+	New                               = rfidclient.New
+	NewFromConfig                     = rfidclient.NewFromConfig
+	WithDefaultTarget                 = rfidclient.WithDefaultTarget
+	WithDefaultReaderID               = rfidclient.WithDefaultReaderID
+	WithDefaultTimeout                = rfidclient.WithDefaultTimeout
+	WithLogger                        = rfidclient.WithLogger
+	WithChannels                      = rfidclient.WithChannels
+	WithClientName                    = rfidclient.WithClientName
+	NewDeviceMetadataRequest          = rfidclient.NewDeviceMetadataRequest
+	NewDeviceMetadataRequestForReader = rfidclient.NewDeviceMetadataRequestForReader
+	NewWriteTagRequest                = rfidclient.NewWriteTagRequest
+	NewWriteTagBatchRequest           = rfidclient.NewWriteTagBatchRequest
+	NewWriteTagBatchRequestFromMap    = rfidclient.NewWriteTagBatchRequestFromMap
+	NewWriteAFIRequest                = rfidclient.NewWriteAFIRequest
+	NewWriteAFIBatchRequest           = rfidclient.NewWriteAFIBatchRequest
+	ParseRFIDPayload                  = rfidclient.ParseRFIDPayload
+	ParseEvent                        = rfidclient.ParseEvent
+	NormalizeAFI                      = rfidclient.NormalizeAFI
+	IsAFISecured                      = rfidclient.IsAFISecured
+	IsAFIUnsecured                    = rfidclient.IsAFIUnsecured
+	AFISecurityStatus                 = rfidclient.AFISecurityStatus
 )
 
 // DefaultWSBrokerConfig returns standard WSBroker configuration with defaults.

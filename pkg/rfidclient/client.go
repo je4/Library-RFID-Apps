@@ -49,11 +49,24 @@ type Client interface {
 	// Close gracefully shuts down the client and releases connections.
 	Close() error
 
+	// ForReader returns a reader-scoped client view where commands and event handlers
+	// are automatically filtered and targeted to a specific logical reader ID.
+	ForReader(readerID string) Client
+
+	// DefaultReaderID returns the configured default reader identifier.
+	DefaultReaderID() string
+
 	// GetDeviceMetadata queries reader hardware details and diagnostic initialization report.
 	GetDeviceMetadata(ctx context.Context, target ...string) (*DeviceMetadataResponse, error)
 
+	// GetDeviceMetadataForReader queries hardware metadata for a specific reader ID on the target daemon.
+	GetDeviceMetadataForReader(ctx context.Context, target string, readerID string) (*DeviceMetadataResponse, error)
+
 	// WriteTag sends a command to program ISO 28560-2 library metadata and optional AFI to a transponder.
 	WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error)
+
+	// WriteTagForReader sends a write tag command directed to a specific logical reader ID.
+	WriteTagForReader(ctx context.Context, target string, readerID string, req WriteTagRequest) (*WriteTagResponse, error)
 
 	// WriteTagBatch sends a command to program a batch of RFID tags with individual metadata and optional AFI.
 	WriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) (*WriteTagResponse, error)
@@ -69,6 +82,9 @@ type Client interface {
 
 	// WriteAFI sends a command to set/toggle the AFI security byte on a transponder or batch of transponders.
 	WriteAFI(ctx context.Context, target string, req WriteAFIRequest) (*WriteAFIResponse, error)
+
+	// WriteAFIForReader sends an AFI write command directed to a specific logical reader ID.
+	WriteAFIForReader(ctx context.Context, target string, readerID string, req WriteAFIRequest) (*WriteAFIResponse, error)
 
 	// WriteAFIValue is a convenience wrapper for writing an AFI value to a target transponder.
 	WriteAFIValue(ctx context.Context, target string, uid string, afi string) (*WriteAFIResponse, error)
@@ -97,23 +113,44 @@ type Client interface {
 	// OnTagRead registers a listener for incoming tag read events.
 	OnTagRead(handler TagReadHandler) wsbrokerclient.UnsubscribeFunc
 
+	// OnTagReadForReader registers a listener for incoming tag read events from a specific reader ID.
+	OnTagReadForReader(readerID string, handler TagReadHandler) wsbrokerclient.UnsubscribeFunc
+
 	// OnTagsCleared registers a listener for reader cleared events.
 	OnTagsCleared(handler TagsClearedHandler) wsbrokerclient.UnsubscribeFunc
+
+	// OnTagsClearedForReader registers a listener for reader cleared events from a specific reader ID.
+	OnTagsClearedForReader(readerID string, handler TagsClearedHandler) wsbrokerclient.UnsubscribeFunc
 
 	// OnDeviceMetadata registers a listener for device metadata response events.
 	OnDeviceMetadata(handler DeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc
 
+	// OnDeviceMetadataForReader registers a listener for device metadata response events from a specific reader ID.
+	OnDeviceMetadataForReader(readerID string, handler DeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc
+
 	// OnWriteTagResponse registers a listener for write tag response events.
 	OnWriteTagResponse(handler WriteTagResponseHandler) wsbrokerclient.UnsubscribeFunc
+
+	// OnWriteTagResponseForReader registers a listener for write tag response events from a specific reader ID.
+	OnWriteTagResponseForReader(readerID string, handler WriteTagResponseHandler) wsbrokerclient.UnsubscribeFunc
 
 	// OnWriteAFIResponse registers a listener for write AFI response events.
 	OnWriteAFIResponse(handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc
 
+	// OnWriteAFIResponseForReader registers a listener for write AFI response events from a specific reader ID.
+	OnWriteAFIResponseForReader(readerID string, handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc
+
 	// OnAnyRFIDEvent registers a global listener for all RFID-related events.
 	OnAnyRFIDEvent(handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc
 
+	// OnAnyRFIDEventForReader registers a listener for all RFID-related events originating from a specific reader ID.
+	OnAnyRFIDEventForReader(readerID string, handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc
+
 	// SubscribeTags creates a channel delivering stream-based TagReadEvent objects from a given channel.
 	SubscribeTags(ctx context.Context, channel string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error)
+
+	// SubscribeTagsForReader creates a channel delivering stream-based TagReadEvent objects filtered for a specific reader ID.
+	SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error)
 
 	// HandleEvent parses and routes a raw wsbroker Event through the registered RFID handlers.
 	HandleEvent(evt *wsbrokerclient.Event) (any, error)
@@ -207,6 +244,20 @@ func (c *RFIDClient) BrokerClient() wsbrokerclient.ClientInterface {
 	return c.broker
 }
 
+// ForReader returns a reader-scoped client view where commands and event handlers
+// are automatically filtered and targeted to a specific logical reader ID.
+func (c *RFIDClient) ForReader(readerID string) Client {
+	return &readerScopedClient{
+		parent:   c,
+		readerID: strings.TrimSpace(readerID),
+	}
+}
+
+// DefaultReaderID returns the configured default reader identifier.
+func (c *RFIDClient) DefaultReaderID() string {
+	return c.config.defaultReaderID
+}
+
 // Connect initiates connection to the WSBroker server.
 func (c *RFIDClient) Connect(ctx context.Context) error {
 	return c.broker.Connect(ctx)
@@ -248,8 +299,17 @@ func (c *RFIDClient) GetDeviceMetadata(ctx context.Context, target ...string) (*
 	if err != nil {
 		return nil, err
 	}
+	return c.GetDeviceMetadataForReader(ctx, targetAddr, c.config.defaultReaderID)
+}
 
-	reqPayload := NewDeviceMetadataRequest()
+// GetDeviceMetadataForReader queries hardware metadata for a specific reader ID on the target daemon.
+func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target string, readerID string) (*DeviceMetadataResponse, error) {
+	targetAddr, err := c.resolveTarget(target)
+	if err != nil {
+		return nil, err
+	}
+
+	reqPayload := NewDeviceMetadataRequest(readerID)
 	token, err := wsbrokerclient.GenerateToken()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate correlation token")
@@ -269,7 +329,7 @@ func (c *RFIDClient) GetDeviceMetadata(ctx context.Context, target ...string) (*
 		defer cancel()
 	}
 
-	c.logger.Debug().Msgf("sending device metadata request to %s (id: %s, token: %s)", targetAddr, reqPayload.ID, token)
+	c.logger.Debug().Msgf("sending device metadata request to %s (id: %s, reader: %s, token: %s)", targetAddr, reqPayload.ID, readerID, token)
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "device metadata request failed for target %s", targetAddr)
@@ -303,6 +363,9 @@ func (c *RFIDClient) GetDeviceMetadata(ctx context.Context, target ...string) (*
 
 // WriteTag sends a command to write ISO 28560 metadata and optional AFI to a transponder.
 func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error) {
+	if req.ReaderID == "" && c.config.defaultReaderID != "" {
+		req.ReaderID = c.config.defaultReaderID
+	}
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -339,6 +402,9 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		logEvt := c.logger.Info().
 			Str("id", req.ID).
 			Str("target", targetAddr)
+		if req.ReaderID != "" {
+			logEvt = logEvt.Str("readerId", req.ReaderID)
+		}
 		if len(req.Tags) > 0 {
 			logEvt = logEvt.Int("tagsCount", len(req.Tags))
 		} else if len(req.Items) > 0 {
@@ -385,6 +451,9 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 				Str("id", writeResp.ID).
 				Str("refId", writeResp.RefID).
 				Str("target", targetAddr)
+			if writeResp.ReaderID != "" {
+				logEvt = logEvt.Str("readerId", writeResp.ReaderID)
+			}
 			if len(writeResp.SuccessfulUIDs) > 0 {
 				logEvt = logEvt.Strs("successfulUids", writeResp.SuccessfulUIDs)
 			} else if writeResp.UID != "" {
@@ -398,6 +467,7 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 				Str("id", writeResp.ID).
 				Str("refId", writeResp.RefID).
 				Str("target", targetAddr).
+				Str("readerId", writeResp.ReaderID).
 				Strs("successfulUids", writeResp.SuccessfulUIDs).
 				Interface("failedUids", writeResp.FailedUIDs).
 				Str("error", writeResp.GetError()).
@@ -409,12 +479,19 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 				Str("itemId", writeResp.ItemID).
 				Str("uid", writeResp.UID).
 				Str("target", targetAddr).
+				Str("readerId", writeResp.ReaderID).
 				Str("error", writeResp.GetError()).
 				Msg("failed to write RFID tag")
 		}
 	}
 
 	return &writeResp, nil
+}
+
+// WriteTagForReader sends a write tag command directed to a specific logical reader ID.
+func (c *RFIDClient) WriteTagForReader(ctx context.Context, target string, readerID string, req WriteTagRequest) (*WriteTagResponse, error) {
+	req.ReaderID = readerID
+	return c.WriteTag(ctx, target, req)
 }
 
 // WriteTagBatch sends a command to program a batch of RFID tags with individual metadata and optional AFI.
@@ -558,6 +635,9 @@ func (c *RFIDClient) BroadcastWriteTagBatch(ctx context.Context, channel string,
 
 // WriteAFI sends a command to set/toggle the AFI security byte on a transponder.
 func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRequest) (*WriteAFIResponse, error) {
+	if req.ReaderID == "" && c.config.defaultReaderID != "" {
+		req.ReaderID = c.config.defaultReaderID
+	}
 	if err := req.Validate(); err != nil {
 		return nil, err
 	}
@@ -596,6 +676,9 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
 			Str("target", targetAddr)
+		if req.ReaderID != "" {
+			logEvt = logEvt.Str("readerId", req.ReaderID)
+		}
 		if len(req.UIDs) > 0 {
 			logEvt = logEvt.Strs("uids", req.UIDs)
 		} else if req.UID != "" {
@@ -639,6 +722,9 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 				Str("afi", afiResp.AFI).
 				Str("status", AFISecurityStatus(afiResp.AFI)).
 				Str("target", targetAddr)
+			if afiResp.ReaderID != "" {
+				logEvt = logEvt.Str("readerId", afiResp.ReaderID)
+			}
 			if len(afiResp.SuccessfulUIDs) > 0 {
 				logEvt = logEvt.Strs("successfulUids", afiResp.SuccessfulUIDs)
 			} else if afiResp.UID != "" {
@@ -651,6 +737,7 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 				Str("refId", afiResp.RefID).
 				Str("afi", afiResp.AFI).
 				Str("target", targetAddr).
+				Str("readerId", afiResp.ReaderID).
 				Strs("successfulUids", afiResp.SuccessfulUIDs).
 				Interface("failedUids", afiResp.FailedUIDs).
 				Str("error", afiResp.GetError()).
@@ -661,6 +748,7 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 				Str("refId", afiResp.RefID).
 				Str("afi", afiResp.AFI).
 				Str("target", targetAddr).
+				Str("readerId", afiResp.ReaderID).
 				Str("uid", afiResp.UID).
 				Str("error", afiResp.GetError()).
 				Msg("failed to update RFID AFI security byte")
@@ -668,6 +756,12 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 	}
 
 	return &afiResp, nil
+}
+
+// WriteAFIForReader sends an AFI write command directed to a specific logical reader ID.
+func (c *RFIDClient) WriteAFIForReader(ctx context.Context, target string, readerID string, req WriteAFIRequest) (*WriteAFIResponse, error) {
+	req.ReaderID = readerID
+	return c.WriteAFI(ctx, target, req)
 }
 
 // WriteAFIValue is a convenience wrapper for writing an AFI value to a target reader/transponder.
@@ -702,6 +796,9 @@ func (c *RFIDClient) UnsecureTag(ctx context.Context, target string, uid string)
 
 // SendAFI sends an asynchronous AFI write command to a specific reader target or default reader.
 func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIRequest) error {
+	if req.ReaderID == "" && c.config.defaultReaderID != "" {
+		req.ReaderID = c.config.defaultReaderID
+	}
 	if err := req.Validate(); err != nil {
 		return err
 	}
@@ -722,6 +819,9 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
 			Str("target", targetAddr)
+		if req.ReaderID != "" {
+			logEvt = logEvt.Str("readerId", req.ReaderID)
+		}
 		if len(req.UIDs) > 0 {
 			logEvt = logEvt.Strs("uids", req.UIDs)
 		} else if req.UID != "" {
@@ -760,6 +860,9 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 
 // BroadcastAFI broadcasts an AFI write command to a specific broker channel or configured channels.
 func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req WriteAFIRequest) error {
+	if req.ReaderID == "" && c.config.defaultReaderID != "" {
+		req.ReaderID = c.config.defaultReaderID
+	}
 	if err := req.Validate(); err != nil {
 		return err
 	}
@@ -1047,4 +1150,365 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
 	}
 
 	return parsed, nil
+}
+
+// OnTagReadForReader registers a listener for incoming tag read events from a specific reader ID.
+func (c *RFIDClient) OnTagReadForReader(readerID string, handler TagReadHandler) wsbrokerclient.UnsubscribeFunc {
+	if strings.TrimSpace(readerID) == "" {
+		return c.OnTagRead(handler)
+	}
+	return c.OnTagRead(func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event) {
+		if strings.EqualFold(tag.ReaderID, readerID) {
+			handler(tag, rawEvt)
+		}
+	})
+}
+
+// OnTagsClearedForReader registers a listener for reader cleared events from a specific reader ID.
+func (c *RFIDClient) OnTagsClearedForReader(readerID string, handler TagsClearedHandler) wsbrokerclient.UnsubscribeFunc {
+	if strings.TrimSpace(readerID) == "" {
+		return c.OnTagsCleared(handler)
+	}
+	return c.OnTagsCleared(func(cleared *TagsClearedEvent, rawEvt *wsbrokerclient.Event) {
+		if strings.EqualFold(cleared.ReaderID, readerID) {
+			handler(cleared, rawEvt)
+		}
+	})
+}
+
+// OnDeviceMetadataForReader registers a listener for device metadata response events from a specific reader ID.
+func (c *RFIDClient) OnDeviceMetadataForReader(readerID string, handler DeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc {
+	if strings.TrimSpace(readerID) == "" {
+		return c.OnDeviceMetadata(handler)
+	}
+	return c.OnDeviceMetadata(func(meta *DeviceMetadataResponse, rawEvt *wsbrokerclient.Event) {
+		if strings.EqualFold(meta.ReaderID, readerID) {
+			handler(meta, rawEvt)
+		}
+	})
+}
+
+// OnWriteTagResponseForReader registers a listener for write tag response events from a specific reader ID.
+func (c *RFIDClient) OnWriteTagResponseForReader(readerID string, handler WriteTagResponseHandler) wsbrokerclient.UnsubscribeFunc {
+	if strings.TrimSpace(readerID) == "" {
+		return c.OnWriteTagResponse(handler)
+	}
+	return c.OnWriteTagResponse(func(resp *WriteTagResponse, rawEvt *wsbrokerclient.Event) {
+		if strings.EqualFold(resp.ReaderID, readerID) {
+			handler(resp, rawEvt)
+		}
+	})
+}
+
+// OnWriteAFIResponseForReader registers a listener for write AFI response events from a specific reader ID.
+func (c *RFIDClient) OnWriteAFIResponseForReader(readerID string, handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc {
+	if strings.TrimSpace(readerID) == "" {
+		return c.OnWriteAFIResponse(handler)
+	}
+	return c.OnWriteAFIResponse(func(resp *WriteAFIResponse, rawEvt *wsbrokerclient.Event) {
+		if strings.EqualFold(resp.ReaderID, readerID) {
+			handler(resp, rawEvt)
+		}
+	})
+}
+
+// OnAnyRFIDEventForReader registers a listener for all RFID-related events originating from a specific reader ID.
+func (c *RFIDClient) OnAnyRFIDEventForReader(readerID string, handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc {
+	if strings.TrimSpace(readerID) == "" {
+		return c.OnAnyRFIDEvent(handler)
+	}
+	return c.OnAnyRFIDEvent(func(rfidEvt any, rawEvt *wsbrokerclient.Event) {
+		if getter, ok := rfidEvt.(interface{ GetReaderID() string }); ok {
+			if strings.EqualFold(getter.GetReaderID(), readerID) {
+				handler(rfidEvt, rawEvt)
+			}
+		}
+	})
+}
+
+// SubscribeTagsForReader creates a channel delivering stream-based TagReadEvent objects filtered for a specific reader ID.
+func (c *RFIDClient) SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	tagCh := make(chan *TagReadEvent, 64)
+
+	unsub := c.OnTagReadForReader(readerID, func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event) {
+		if channel != "" && rawEvt != nil && rawEvt.Target != "" && !strings.EqualFold(rawEvt.Target, channel) && !strings.EqualFold(rawEvt.Target, "all") {
+			return
+		}
+		select {
+		case tagCh <- tag:
+		case <-ctx.Done():
+		default:
+			c.logger.Warn().Msg("tag stream buffer full, dropping event")
+		}
+	})
+
+	if channel != "" {
+		if err := c.broker.Attach(ctx, channel); err != nil {
+			unsub()
+			close(tagCh)
+			return nil, nil, errors.Wrapf(err, "failed to attach to channel %s", channel)
+		}
+	}
+
+	cleanup := func() {
+		unsub()
+		close(tagCh)
+	}
+
+	return tagCh, cleanup, nil
+}
+
+// readerScopedClient provides a scoped Client implementation targeting a specific readerID.
+type readerScopedClient struct {
+	parent   Client
+	readerID string
+}
+
+func (s *readerScopedClient) BrokerClient() wsbrokerclient.ClientInterface {
+	return s.parent.BrokerClient()
+}
+
+func (s *readerScopedClient) Connect(ctx context.Context) error {
+	return s.parent.Connect(ctx)
+}
+
+func (s *readerScopedClient) ConnectSync(ctx context.Context) error {
+	return s.parent.ConnectSync(ctx)
+}
+
+func (s *readerScopedClient) Close() error {
+	return s.parent.Close()
+}
+
+func (s *readerScopedClient) ForReader(readerID string) Client {
+	return s.parent.ForReader(readerID)
+}
+
+func (s *readerScopedClient) DefaultReaderID() string {
+	return s.readerID
+}
+
+func (s *readerScopedClient) GetDeviceMetadata(ctx context.Context, target ...string) (*DeviceMetadataResponse, error) {
+	var targetAddr string
+	if len(target) > 0 {
+		targetAddr = target[0]
+	}
+	return s.parent.GetDeviceMetadataForReader(ctx, targetAddr, s.readerID)
+}
+
+func (s *readerScopedClient) GetDeviceMetadataForReader(ctx context.Context, target string, readerID string) (*DeviceMetadataResponse, error) {
+	return s.parent.GetDeviceMetadataForReader(ctx, target, readerID)
+}
+
+func (s *readerScopedClient) WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error) {
+	if req.ReaderID == "" {
+		req.ReaderID = s.readerID
+	}
+	return s.parent.WriteTag(ctx, target, req)
+}
+
+func (s *readerScopedClient) WriteTagForReader(ctx context.Context, target string, readerID string, req WriteTagRequest) (*WriteTagResponse, error) {
+	return s.parent.WriteTagForReader(ctx, target, readerID, req)
+}
+
+func (s *readerScopedClient) WriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) (*WriteTagResponse, error) {
+	req := NewWriteTagBatchRequest(tags)
+	req.ReaderID = s.readerID
+	return s.WriteTag(ctx, target, req)
+}
+
+func (s *readerScopedClient) WriteTags(ctx context.Context, target string, tags ...TagWriteItem) (*WriteTagResponse, error) {
+	return s.WriteTagBatch(ctx, target, tags)
+}
+
+func (s *readerScopedClient) SendWriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) error {
+	req := NewWriteTagBatchRequest(tags)
+	req.ReaderID = s.readerID
+	// Use parent's underlying SendWriteTagBatch with the readerID request
+	if c, ok := s.parent.(*RFIDClient); ok {
+		if len(tags) == 0 {
+			return errors.New("send write tag batch: tags list must not be empty")
+		}
+		if err := req.Validate(); err != nil {
+			return err
+		}
+		targetAddr, err := c.resolveTarget(target)
+		if err != nil {
+			return err
+		}
+		if req.ID == "" {
+			req.ID = wsbrokerclient.GenerateEventID()
+		}
+		req.Event = EventWriteTag
+		reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+		if err != nil {
+			return errors.Wrap(err, "failed to create batch write tag request event")
+		}
+		reqEvt.ID = req.ID
+		return c.broker.Send(ctx, reqEvt)
+	}
+	return s.parent.SendWriteTagBatch(ctx, target, tags)
+}
+
+func (s *readerScopedClient) BroadcastWriteTagBatch(ctx context.Context, channel string, tags []TagWriteItem) error {
+	req := NewWriteTagBatchRequest(tags)
+	req.ReaderID = s.readerID
+	if c, ok := s.parent.(*RFIDClient); ok {
+		if len(tags) == 0 {
+			return errors.New("broadcast write tag batch: tags list must not be empty")
+		}
+		if err := req.Validate(); err != nil {
+			return err
+		}
+		if req.ID == "" {
+			req.ID = wsbrokerclient.GenerateEventID()
+		}
+		req.Event = EventWriteTag
+		channels := make([]string, 0)
+		if strings.TrimSpace(channel) != "" {
+			channels = append(channels, strings.TrimSpace(channel))
+		} else if len(c.config.channels) > 0 {
+			for _, ch := range c.config.channels {
+				if strings.TrimSpace(ch) != "" {
+					channels = append(channels, strings.TrimSpace(ch))
+				}
+			}
+		} else {
+			channels = append(channels, "all")
+		}
+		var firstErr error
+		for _, ch := range channels {
+			reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), ch, req)
+			if err != nil {
+				if firstErr == nil {
+					firstErr = errors.Wrap(err, "failed to create batch write tag broadcast event")
+				}
+				continue
+			}
+			reqEvt.Channel = ch
+			reqEvt.ID = req.ID
+			if err := c.broker.Send(ctx, reqEvt); err != nil && firstErr == nil {
+				firstErr = errors.Wrapf(err, "failed to broadcast batch write tag command to channel %s", ch)
+			}
+		}
+		return firstErr
+	}
+	return s.parent.BroadcastWriteTagBatch(ctx, channel, tags)
+}
+
+func (s *readerScopedClient) WriteAFI(ctx context.Context, target string, req WriteAFIRequest) (*WriteAFIResponse, error) {
+	if req.ReaderID == "" {
+		req.ReaderID = s.readerID
+	}
+	return s.parent.WriteAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) WriteAFIForReader(ctx context.Context, target string, readerID string, req WriteAFIRequest) (*WriteAFIResponse, error) {
+	return s.parent.WriteAFIForReader(ctx, target, readerID, req)
+}
+
+func (s *readerScopedClient) WriteAFIValue(ctx context.Context, target string, uid string, afi string) (*WriteAFIResponse, error) {
+	req := NewWriteAFIRequest(afi, uid)
+	req.ReaderID = s.readerID
+	return s.parent.WriteAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) WriteAFIBatch(ctx context.Context, target string, uids []string, afi string) (*WriteAFIResponse, error) {
+	req := NewWriteAFIBatchRequest(afi, uids)
+	req.ReaderID = s.readerID
+	return s.parent.WriteAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
+	req := NewWriteAFIRequest(AFISecured, uid...)
+	req.ReaderID = s.readerID
+	return s.parent.WriteAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) SetAFIUnsecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
+	req := NewWriteAFIRequest(AFIUnsecured, uid...)
+	req.ReaderID = s.readerID
+	return s.parent.WriteAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) SecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error) {
+	return s.SetAFISecured(ctx, target, uid)
+}
+
+func (s *readerScopedClient) UnsecureTag(ctx context.Context, target string, uid string) (*WriteAFIResponse, error) {
+	return s.SetAFIUnsecured(ctx, target, uid)
+}
+
+func (s *readerScopedClient) SendAFI(ctx context.Context, target string, req WriteAFIRequest) error {
+	if req.ReaderID == "" {
+		req.ReaderID = s.readerID
+	}
+	return s.parent.SendAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) BroadcastAFI(ctx context.Context, channel string, req WriteAFIRequest) error {
+	if req.ReaderID == "" {
+		req.ReaderID = s.readerID
+	}
+	return s.parent.BroadcastAFI(ctx, channel, req)
+}
+
+func (s *readerScopedClient) OnTagRead(handler TagReadHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnTagReadForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnTagReadForReader(readerID string, handler TagReadHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnTagReadForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnTagsCleared(handler TagsClearedHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnTagsClearedForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnTagsClearedForReader(readerID string, handler TagsClearedHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnTagsClearedForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnDeviceMetadata(handler DeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnDeviceMetadataForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnDeviceMetadataForReader(readerID string, handler DeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnDeviceMetadataForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnWriteTagResponse(handler WriteTagResponseHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnWriteTagResponseForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnWriteTagResponseForReader(readerID string, handler WriteTagResponseHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnWriteTagResponseForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnWriteAFIResponse(handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnWriteAFIResponseForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnWriteAFIResponseForReader(readerID string, handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnWriteAFIResponseForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnAnyRFIDEvent(handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnAnyRFIDEventForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnAnyRFIDEventForReader(readerID string, handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnAnyRFIDEventForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) SubscribeTags(ctx context.Context, channel string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	return s.parent.SubscribeTagsForReader(ctx, channel, s.readerID)
+}
+
+func (s *readerScopedClient) SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	return s.parent.SubscribeTagsForReader(ctx, channel, readerID)
+}
+
+func (s *readerScopedClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
+	return s.parent.HandleEvent(evt)
 }

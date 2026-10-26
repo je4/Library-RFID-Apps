@@ -36,6 +36,7 @@ type TagItem struct {
 	DateFormatted     string     `json:"dateFormatted"`
 	Raw               string     `json:"raw,omitempty"`
 	ClientID          string     `json:"clientId,omitempty"`
+	ReaderID          string     `json:"readerId,omitempty"`
 	Channel           string     `json:"channel,omitempty"`
 	ReadTime          time.Time  `json:"readTime"`
 	StaticPath        string     `json:"staticPath,omitempty"`
@@ -104,6 +105,7 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 		DateFormatted:     readTime.Format("02.01.2006"),
 		Raw:               tag.Raw,
 		ClientID:          tag.ClientID,
+		ReaderID:          tag.GetReaderID(),
 		Channel:           tag.Channel,
 		ReadTime:          readTime,
 		StaticPath:        "../static",

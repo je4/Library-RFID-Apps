@@ -8,11 +8,12 @@ import (
 )
 
 type clientConfig struct {
-	defaultTarget  string
-	defaultTimeout time.Duration
-	logger         zLogger.ZLogger
-	channels       []string
-	clientName     string
+	defaultTarget   string
+	defaultReaderID string
+	defaultTimeout  time.Duration
+	logger          zLogger.ZLogger
+	channels        []string
+	clientName      string
 }
 
 func defaultConfig() *clientConfig {
@@ -31,6 +32,13 @@ type Option func(*clientConfig)
 func WithDefaultTarget(target string) Option {
 	return func(c *clientConfig) {
 		c.defaultTarget = target
+	}
+}
+
+// WithDefaultReaderID sets the default reader identifier (reader_id) for multi-reader daemons.
+func WithDefaultReaderID(readerID string) Option {
+	return func(c *clientConfig) {
+		c.defaultReaderID = readerID
 	}
 }
 

@@ -88,6 +88,7 @@ type WriteTagRequest struct {
 	Event     string         `json:"event"`
 	ID        string         `json:"id,omitempty"`
 	RefID     string         `json:"ref_id,omitempty"`
+	ReaderID  string         `json:"reader_id,omitempty"`
 	UID       string         `json:"uid,omitempty"`
 	ItemID    string         `json:"itemId,omitempty"`
 	ISIL      string         `json:"isil,omitempty"`
@@ -101,6 +102,17 @@ type WriteTagRequest struct {
 	UIDs      []string       `json:"uids,omitempty"`
 	ItemIDs   []string       `json:"itemIds,omitempty"`
 	AFIs      []string       `json:"afis,omitempty"`
+}
+
+// GetReaderID returns the target reader identifier.
+func (r *WriteTagRequest) GetReaderID() string {
+	return r.ReaderID
+}
+
+// WithReaderID sets the target reader identifier on the write request.
+func (r *WriteTagRequest) WithReaderID(readerID string) *WriteTagRequest {
+	r.ReaderID = readerID
+	return r
 }
 
 // NewWriteTagRequest creates a new WriteTagRequest with sensible defaults for a single tag.
@@ -289,6 +301,11 @@ func (r *WriteTagResponse) GetError() string {
 
 // Summary returns a concise human-readable description of the write tag result.
 func (r *WriteTagResponse) Summary() string {
+	readerStr := ""
+	if rID := r.GetReaderID(); rID != "" {
+		readerStr = fmt.Sprintf(" | Reader: %s", rID)
+	}
+
 	if r.IsSuccess() {
 		if len(r.UIDs) > 1 || len(r.SuccessfulUIDs) > 1 || len(r.Results) > 1 {
 			count := len(r.SuccessfulUIDs)
@@ -298,26 +315,26 @@ func (r *WriteTagResponse) Summary() string {
 			if count == 0 {
 				count = len(r.UIDs)
 			}
-			return fmt.Sprintf("[WRITE TAG BATCH] Status: OK | %d tags written successfully", count)
+			return fmt.Sprintf("[WRITE TAG BATCH] Status: OK%s | %d tags written successfully", readerStr, count)
 		}
 		afiStr := ""
 		if r.AFI != "" {
 			afiStr = " | AFI: " + r.AFI
 		}
-		return fmt.Sprintf("[WRITE TAG] Status: OK | UID: %s | ItemID: %s | ISIL: %s | Country: %s%s",
-			r.UID, r.ItemID, r.ISIL, r.Country, afiStr)
+		return fmt.Sprintf("[WRITE TAG] Status: OK%s | UID: %s | ItemID: %s | ISIL: %s | Country: %s%s",
+			readerStr, r.UID, r.ItemID, r.ISIL, r.Country, afiStr)
 	}
 
 	if r.IsPartial() {
-		return fmt.Sprintf("[WRITE TAG BATCH PARTIAL] Succeeded: %d, Failed: %d | Error: %s",
-			len(r.SuccessfulUIDs), len(r.FailedUIDs), r.GetError())
+		return fmt.Sprintf("[WRITE TAG BATCH PARTIAL] Succeeded: %d, Failed: %d%s | Error: %s",
+			len(r.SuccessfulUIDs), len(r.FailedUIDs), readerStr, r.GetError())
 	}
 
 	errText := r.GetError()
 	if len(r.UIDs) > 1 || len(r.Results) > 1 {
-		return fmt.Sprintf("[WRITE TAG BATCH ERROR] %d tags failed | Error: %s", len(r.UIDs), errText)
+		return fmt.Sprintf("[WRITE TAG BATCH ERROR] %d tags failed%s | Error: %s", len(r.UIDs), readerStr, errText)
 	}
-	return fmt.Sprintf("[WRITE TAG ERROR] UID: %s | Error: %s", r.UID, errText)
+	return fmt.Sprintf("[WRITE TAG ERROR] UID: %s%s | Error: %s", r.UID, readerStr, errText)
 }
 
 // TagAFIResult represents the AFI write status of an individual RFID tag in a batch operation.
@@ -334,12 +351,24 @@ func (r *TagAFIResult) IsSuccess() bool {
 
 // WriteAFIRequest represents a command to write or toggle the AFI byte (single tag or batch).
 type WriteAFIRequest struct {
-	Event string   `json:"event"`
-	ID    string   `json:"id,omitempty"`
-	RefID string   `json:"ref_id,omitempty"`
-	UID   string   `json:"uid,omitempty"`
-	UIDs  []string `json:"uids,omitempty"`
-	AFI   string   `json:"afi"`
+	Event    string   `json:"event"`
+	ID       string   `json:"id,omitempty"`
+	RefID    string   `json:"ref_id,omitempty"`
+	ReaderID string   `json:"reader_id,omitempty"`
+	UID      string   `json:"uid,omitempty"`
+	UIDs     []string `json:"uids,omitempty"`
+	AFI      string   `json:"afi"`
+}
+
+// GetReaderID returns the target reader identifier.
+func (r *WriteAFIRequest) GetReaderID() string {
+	return r.ReaderID
+}
+
+// WithReaderID sets the target reader identifier on the AFI write request.
+func (r *WriteAFIRequest) WithReaderID(readerID string) *WriteAFIRequest {
+	r.ReaderID = readerID
+	return r
 }
 
 // NewWriteAFIRequest creates a new WriteAFIRequest for security state manipulation.
@@ -483,23 +512,28 @@ func (r *WriteAFIResponse) GetError() string {
 
 // Summary returns a concise human-readable description of the AFI write result.
 func (r *WriteAFIResponse) Summary() string {
+	readerStr := ""
+	if rID := r.GetReaderID(); rID != "" {
+		readerStr = fmt.Sprintf(" | Reader: %s", rID)
+	}
+
 	if r.IsSuccess() {
 		if len(r.UIDs) > 1 || len(r.SuccessfulUIDs) > 1 {
 			count := len(r.SuccessfulUIDs)
 			if count == 0 {
 				count = len(r.UIDs)
 			}
-			return fmt.Sprintf("[WRITE AFI] Status: OK | AFI: %s | %d tags written successfully", r.AFI, count)
+			return fmt.Sprintf("[WRITE AFI] Status: OK%s | AFI: %s | %d tags written successfully", readerStr, r.AFI, count)
 		}
-		return fmt.Sprintf("[WRITE AFI] Status: OK | UID: %s | AFI: %s", r.UID, r.AFI)
+		return fmt.Sprintf("[WRITE AFI] Status: OK%s | UID: %s | AFI: %s", readerStr, r.UID, r.AFI)
 	}
 	if r.IsPartial() {
-		return fmt.Sprintf("[WRITE AFI PARTIAL] Status: PARTIAL | AFI: %s | Successful: %d | Failed: %d | Error: %s",
-			r.AFI, len(r.SuccessfulUIDs), len(r.FailedUIDs), r.GetError())
+		return fmt.Sprintf("[WRITE AFI PARTIAL] Status: PARTIAL%s | AFI: %s | Successful: %d | Failed: %d | Error: %s",
+			readerStr, r.AFI, len(r.SuccessfulUIDs), len(r.FailedUIDs), r.GetError())
 	}
 	errText := r.GetError()
 	if len(r.UIDs) > 1 {
-		return fmt.Sprintf("[WRITE AFI ERROR] AFI: %s | Failed: %d tags | Error: %s", r.AFI, len(r.UIDs), errText)
+		return fmt.Sprintf("[WRITE AFI ERROR]%s | AFI: %s | Failed: %d tags | Error: %s", readerStr, r.AFI, len(r.UIDs), errText)
 	}
-	return fmt.Sprintf("[WRITE AFI ERROR] UID: %s | Error: %s", r.UID, errText)
+	return fmt.Sprintf("[WRITE AFI ERROR] UID: %s%s | Error: %s", r.UID, readerStr, errText)
 }

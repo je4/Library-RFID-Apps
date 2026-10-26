@@ -21,8 +21,25 @@ type BaseRFIDPayload struct {
 	RefID     string `json:"ref_id,omitempty"`
 	Session   string `json:"session,omitempty"`
 	Timestamp int64  `json:"timestamp,omitempty"`
-	ClientID  string `json:"clientId,omitempty"`
+	ClientID  string `json:"client_id,omitempty"`
+	ReaderID  string `json:"reader_id,omitempty"`
 	Channel   string `json:"channel,omitempty"`
+}
+
+// GetClientID returns the client identifier.
+func (p *BaseRFIDPayload) GetClientID() string {
+	return p.ClientID
+}
+
+// GetReaderID returns the logical reader identifier.
+func (p *BaseRFIDPayload) GetReaderID() string {
+	return p.ReaderID
+}
+
+// WithReaderID sets the logical reader identifier on the payload.
+func (p *BaseRFIDPayload) WithReaderID(readerID string) *BaseRFIDPayload {
+	p.ReaderID = readerID
+	return p
 }
 
 // Time converts the millisecond epoch timestamp to a standard time.Time.
@@ -114,8 +131,12 @@ func (e *TagReadEvent) Summary() string {
 	if e.AFI != "" {
 		afiStr = fmt.Sprintf(" | AFI: %s", e.AFI)
 	}
-	return fmt.Sprintf("[TAG READ] UID: %s | ItemID: %s | ISIL: %s | Country: %s%s | CRC: %s",
-		e.UID, e.ItemID, e.ISIL, e.Country, afiStr, crcStatus)
+	readerStr := ""
+	if rID := e.GetReaderID(); rID != "" {
+		readerStr = fmt.Sprintf(" | Reader: %s", rID)
+	}
+	return fmt.Sprintf("[TAG READ] UID: %s | ItemID: %s | ISIL: %s | Country: %s%s%s | CRC: %s",
+		e.UID, e.ItemID, e.ISIL, e.Country, afiStr, readerStr, crcStatus)
 }
 
 // TagsClearedEvent represents a reader cleared event (all RFID tags removed from reader field).
@@ -127,5 +148,8 @@ type TagsClearedEvent struct {
 
 // Summary returns a concise human-readable description of the tags cleared event.
 func (e *TagsClearedEvent) Summary() string {
+	if rID := e.GetReaderID(); rID != "" {
+		return fmt.Sprintf("[READER CLEARED] Reader: %s | All RFID tags removed from reader field", rID)
+	}
 	return "[READER CLEARED] All RFID tags removed from reader field"
 }
