@@ -19,7 +19,7 @@ type clientConfig struct {
 func defaultConfig() *clientConfig {
 	nop := zerolog.Nop()
 	return &clientConfig{
-		defaultTimeout: 10 * time.Second,
+		defaultTimeout: 15 * time.Second,
 		logger:         &nop,
 		channels:       []string{"all"},
 	}

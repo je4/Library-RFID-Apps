@@ -132,34 +132,49 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 				}
 			}
 
-			// Cluster targets by reader client ID so each write request addresses only one reader
-			readerClusters := make(map[string][]string)
+			// Cluster targets by daemon source and reader ID so each write request addresses the correct daemon & reader
+			type readerClusterKey struct {
+				target   string
+				readerID string
+			}
+			clusterMap := make(map[readerClusterKey][]string)
 			for _, uid := range uids {
-				targetReader := ctrl.cfg.DefaultReader
-				if tag, ok := tagMap[uid]; ok && tag.ReaderID != "" {
-					targetReader = tag.ReaderID
+				var targetDaemon string
+				var readerID string
+				if tag, ok := tagMap[uid]; ok {
+					targetDaemon = tag.Source
+					readerID = tag.ReaderID
 				}
-				if targetReader != "" {
-					readerClusters[targetReader] = append(readerClusters[targetReader], uid)
+				if targetDaemon == "" {
+					targetDaemon = ctrl.cfg.DefaultReader
 				}
+				if targetDaemon == "" && readerID != "" {
+					targetDaemon = readerID
+				}
+				key := readerClusterKey{
+					target:   targetDaemon,
+					readerID: readerID,
+				}
+				clusterMap[key] = append(clusterMap[key], uid)
 			}
 
-			// Execute batch write per reader cluster
-			for targetReader, clusterUIDs := range readerClusters {
+			// Execute batch write per cluster
+			for key, clusterUIDs := range clusterMap {
 				if len(clusterUIDs) == 0 {
 					continue
 				}
 				hadSyncWrite = true
 				clusterReq := rfidclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
+				clusterReq.ReaderID = key.readerID
 
-				resp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, clusterReq)
+				resp, err := ctrl.rfidClient.WriteAFI(ctx, key.target, clusterReq)
 				if err != nil {
 					for _, uid := range clusterUIDs {
 						ctrl.hub.SetTagAFIResult(uid, afi, false, err.Error())
 						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, err.Error()))
 					}
 					if ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("reader", targetReader).Strs("uids", clusterUIDs).Msg("failed to write batch AFI update to reader via API")
+						ctrl.logger.Warn().Err(err).Str("target", key.target).Str("readerId", key.readerID).Strs("uids", clusterUIDs).Msg("failed to write batch AFI update to reader via API")
 					}
 				} else if resp != nil {
 					for _, uid := range clusterUIDs {
@@ -173,7 +188,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 							ctrl.hub.SetTagAFIResult(uid, afi, false, errMsg)
 							writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, errMsg))
 							if ctrl.logger != nil {
-								ctrl.logger.Warn().Str("reader", targetReader).Str("uid", uid).Str("error", errMsg).Msg("failed to write tag AFI in batch operation via API")
+								ctrl.logger.Warn().Str("target", key.target).Str("readerId", key.readerID).Str("uid", uid).Str("error", errMsg).Msg("failed to write tag AFI in batch operation via API")
 							}
 						}
 					}

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/je4/utils/v2/pkg/zLogger"
@@ -354,6 +355,9 @@ func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target stri
 			metaResp.RefID = reqPayload.ID
 		}
 	}
+	if metaResp.Source == "" && respEvt.Source != "" {
+		metaResp.Source = respEvt.Source
+	}
 	if metaResp.ReaderID == "" && respEvt.Source != "" {
 		metaResp.ReaderID = respEvt.Source
 	}
@@ -394,7 +398,21 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 	reqCtx := ctx
 	var cancel context.CancelFunc
 	if _, hasDeadline := ctx.Deadline(); !hasDeadline && c.config.defaultTimeout > 0 {
-		reqCtx, cancel = context.WithTimeout(ctx, c.config.defaultTimeout)
+		timeout := c.config.defaultTimeout
+		count := len(req.Tags)
+		if len(req.Items) > count {
+			count = len(req.Items)
+		}
+		if len(req.UIDs) > count {
+			count = len(req.UIDs)
+		}
+		if count > 1 {
+			batchTimeout := time.Duration(count)*2*time.Second + 5*time.Second
+			if batchTimeout > timeout {
+				timeout = batchTimeout
+			}
+		}
+		reqCtx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
 
@@ -419,6 +437,9 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 	}
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || strings.Contains(err.Error(), "context deadline") || strings.Contains(err.Error(), "deadline exceeded") {
+			return nil, errors.Wrapf(err, "write tag request timed out waiting for response from reader hardware (target: %s, readerId: %s)", targetAddr, req.ReaderID)
+		}
 		return nil, errors.Wrapf(err, "write tag request failed for target %s", targetAddr)
 	}
 
@@ -440,6 +461,9 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		} else {
 			writeResp.RefID = req.ID
 		}
+	}
+	if writeResp.Source == "" && respEvt.Source != "" {
+		writeResp.Source = respEvt.Source
 	}
 	if writeResp.ReaderID == "" && respEvt.Source != "" {
 		writeResp.ReaderID = respEvt.Source
@@ -666,7 +690,16 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 	reqCtx := ctx
 	var cancel context.CancelFunc
 	if _, hasDeadline := ctx.Deadline(); !hasDeadline && c.config.defaultTimeout > 0 {
-		reqCtx, cancel = context.WithTimeout(ctx, c.config.defaultTimeout)
+		timeout := c.config.defaultTimeout
+		// Dynamically scale timeout for batch operations if multiple UIDs are provided
+		count := len(req.UIDs)
+		if count > 1 {
+			batchTimeout := time.Duration(count)*1500*time.Millisecond + 5*time.Second
+			if batchTimeout > timeout {
+				timeout = batchTimeout
+			}
+		}
+		reqCtx, cancel = context.WithTimeout(ctx, timeout)
 		defer cancel()
 	}
 
@@ -688,6 +721,9 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 	}
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) || strings.Contains(err.Error(), "context deadline") || strings.Contains(err.Error(), "deadline exceeded") {
+			return nil, errors.Wrapf(err, "write afi request timed out waiting for response from reader hardware (target: %s, readerId: %s)", targetAddr, req.ReaderID)
+		}
 		return nil, errors.Wrapf(err, "write afi request failed for target %s", targetAddr)
 	}
 
@@ -709,6 +745,9 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		} else {
 			afiResp.RefID = req.ID
 		}
+	}
+	if afiResp.Source == "" && respEvt.Source != "" {
+		afiResp.Source = respEvt.Source
 	}
 	if afiResp.ReaderID == "" && respEvt.Source != "" {
 		afiResp.ReaderID = respEvt.Source

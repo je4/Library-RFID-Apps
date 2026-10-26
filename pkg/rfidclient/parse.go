@@ -130,6 +130,9 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
+		if v.Source == "" && evt.Source != "" {
+			v.Source = evt.Source
+		}
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
@@ -143,6 +146,9 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
+		if v.Source == "" && evt.Source != "" {
+			v.Source = evt.Source
+		}
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
@@ -155,6 +161,9 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		}
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
+		}
+		if v.Source == "" && evt.Source != "" {
+			v.Source = evt.Source
 		}
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
@@ -176,6 +185,9 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
+		if v.Source == "" && evt.Source != "" {
+			v.Source = evt.Source
+		}
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
@@ -195,6 +207,9 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		}
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
+		}
+		if v.Source == "" && evt.Source != "" {
+			v.Source = evt.Source
 		}
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source

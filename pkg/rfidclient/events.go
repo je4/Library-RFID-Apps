@@ -22,6 +22,7 @@ type BaseRFIDPayload struct {
 	Session   string `json:"session,omitempty"`
 	Timestamp int64  `json:"timestamp,omitempty"`
 	ReaderID  string `json:"readerId,omitempty"`
+	Source    string `json:"source,omitempty"`
 	Channel   string `json:"channel,omitempty"`
 }
 
@@ -33,6 +34,17 @@ func (p *BaseRFIDPayload) GetReaderID() string {
 // WithReaderID sets the logical reader identifier on the payload.
 func (p *BaseRFIDPayload) WithReaderID(readerID string) *BaseRFIDPayload {
 	p.ReaderID = readerID
+	return p
+}
+
+// GetSource returns the daemon/client source name from the message envelope.
+func (p *BaseRFIDPayload) GetSource() string {
+	return p.Source
+}
+
+// WithSource sets the daemon/client source name on the payload.
+func (p *BaseRFIDPayload) WithSource(source string) *BaseRFIDPayload {
+	p.Source = source
 	return p
 }
 
