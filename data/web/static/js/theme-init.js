@@ -4,6 +4,7 @@
  */
 (function() {
     var DARK_THEMES = ['dark', 'synthwave', 'dracula', 'halloween', 'forest', 'night', 'luxury', 'business', 'coffee', 'dim', 'sunset', 'black', 'abyss'];
+    var LIGHT_THEMES = ['corporate', 'light', 'emerald', 'nord', 'cupcake', 'retro', 'garden', 'aqua', 'lofi', 'pastel', 'fantasy', 'winter', 'autumn', 'acid', 'lemonade', 'cyberpunk', 'valentine', 'wireframe', 'cmyk', 'silk'];
 
     function getCookie(name) {
         var match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
@@ -12,6 +13,11 @@
 
     function getStorage(name) {
         try { return localStorage.getItem(name); } catch(e) { return null; }
+    }
+
+    function isValidTheme(theme, isDark) {
+        if (!theme) return false;
+        return isDark ? (DARK_THEMES.indexOf(theme) !== -1) : (LIGHT_THEMES.indexOf(theme) !== -1);
     }
 
     function syncTheme() {
@@ -37,16 +43,19 @@
             document.documentElement.classList.remove('dark');
         }
 
+        if (!isValidTheme(themeLight, false)) themeLight = 'corporate';
+        if (!isValidTheme(themeDark, true)) themeDark = 'dark';
+
         var activeTheme = 'corporate';
         if (mode === 'auto') {
             activeTheme = isDark ? themeDark : themeLight;
         } else if (isDark) {
-            activeTheme = (directTheme && DARK_THEMES.indexOf(directTheme) !== -1) ? directTheme : themeDark;
+            activeTheme = isValidTheme(directTheme, true) ? directTheme : themeDark;
         } else {
-            activeTheme = (directTheme && DARK_THEMES.indexOf(directTheme) === -1) ? directTheme : themeLight;
+            activeTheme = isValidTheme(directTheme, false) ? directTheme : themeLight;
         }
 
-        if (!activeTheme) {
+        if (!activeTheme || !isValidTheme(activeTheme, isDark)) {
             activeTheme = isDark ? 'dark' : 'corporate';
         }
 

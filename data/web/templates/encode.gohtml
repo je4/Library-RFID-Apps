@@ -25,8 +25,8 @@
         <section class="app-panel">
             <div class="app-panel-toolbar">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
-                        <span class="app-icon icon-tag w-5 h-5 text-indigo-400" aria-hidden="true"></span>
+                    <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+                        <span class="app-icon icon-tag w-5 h-5 text-primary" aria-hidden="true"></span>
                     </div>
                     <div>
                         <h2 class="text-base font-semibold app-panel-title">Transponder beschreiben (ISO 28560-2)</h2>
@@ -52,21 +52,32 @@
                         </div>
                     </div>
 
-                    <!-- ISIL Identifier & AFI Checkbox Row -->
+                    <!-- ISIL Identifier & AFI Switch -->
                     <div class="md:col-span-6 flex flex-col gap-1.5">
-                        <label for="encode-isil" class="text-xs font-semibold app-metric-label flex items-center justify-between">
-                            <span>Bibliothek / ISIL</span>
-                            <span class="text-xs font-normal app-text-dim">Format: Land-ISIL</span>
-                        </label>
+                        <div class="flex items-center justify-between">
+                            <label for="encode-isil" class="text-xs font-semibold app-metric-label">
+                                <span>Bibliothek / ISIL</span>
+                            </label>
+                            <span class="text-xs font-semibold app-metric-label">AFI Sicherheitsstatus</span>
+                        </div>
                         <div class="flex items-center gap-3">
                             <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
                                    class="input input-bordered flex-1 font-mono app-input">
-                            <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-semibold app-metric-label whitespace-nowrap h-9 px-2">
-                                <input type="checkbox" id="encode-afi-checkbox" class="checkbox checkbox-primary cursor-pointer"
-                                       {{if eq .DefaultAFI "07"}}checked{{end}}>
-                                <span>AFI gesichert (07)</span>
-                            </label>
-                            <input type="hidden" id="encode-afi-input" value="{{.DefaultAFI}}">
+                            <div class="join shrink-0" id="encode-afi-toggle-group" role="radiogroup" aria-label="AFI Sicherheitsstatus">
+                                <button type="button" id="encode-afi-btn-secure" data-afi="07"
+                                        class="btn btn-sm join-item app-btn {{if eq .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
+                                        role="radio" aria-checked="{{if eq .DefaultAFI "07"}}true{{else}}false{{end}}" title="AFI 07: Gesichert / EAS aktiv">
+                                    <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
+                                    <span>Gesichert (07)</span>
+                                </button>
+                                <button type="button" id="encode-afi-btn-unsecure" data-afi="C2"
+                                        class="btn btn-sm join-item app-btn {{if ne .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
+                                        role="radio" aria-checked="{{if ne .DefaultAFI "07"}}true{{else}}false{{end}}" title="AFI C2: Entsichert / EAS deaktiviert">
+                                    <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
+                                    <span>Entsichert (C2)</span>
+                                </button>
+                            </div>
+                            <input type="hidden" id="encode-afi-input" value="{{if .DefaultAFI}}{{.DefaultAFI}}{{else}}07{{end}}">
                         </div>
                     </div>
                 </div>

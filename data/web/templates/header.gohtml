@@ -2,8 +2,8 @@
 <header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 app-header gap-4 p-0 min-h-0">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
-        <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{if .IsLoan}}from-emerald-600 via-teal-600 to-cyan-500 shadow-emerald-500/20{{else if .IsEncode}}from-indigo-600 via-purple-600 to-pink-500 shadow-purple-500/20{{else}}from-blue-600 via-indigo-600 to-cyan-500 shadow-blue-500/20{{end}} flex items-center justify-center shadow-lg">
-            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else}}bolt.svg{{end}}" class="w-6 h-6" alt="{{if .IsLoan}}Ausleihe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}" />
+        <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
+            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else}}bolt.svg{{end}}" class="w-6 h-6 brightness-0 invert" alt="{{if .IsLoan}}Ausleihe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}" />
         </div>
 
         <div>

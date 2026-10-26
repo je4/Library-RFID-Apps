@@ -138,43 +138,57 @@
 // SSE Connection Status Badge
 .app-sse-badge {
     @include tw-blur(md);
-    background-color: var(--color-sse-connecting-bg);
-    border: 1px solid var(--color-sse-connecting-border);
-    color: var(--color-sse-connecting-text);
+    background-color: hsla(var(--wa) / 0.15);
+    border: 1px solid hsla(var(--wa) / 0.35);
+    color: hsl(var(--wa));
 
     #sse-status-dot {
-        background-color: var(--color-sse-connecting-dot);
+        background-color: hsl(var(--wa));
     }
 
     #sse-status-text {
-        color: var(--color-sse-connecting-text);
+        color: hsl(var(--wa));
     }
 
     &.connected {
-        background-color: var(--color-sse-connected-bg);
-        border-color: var(--color-sse-connected-border);
-        color: var(--color-sse-connected-text);
+        background-color: hsla(var(--su) / 0.15);
+        border-color: hsla(var(--su) / 0.35);
+        color: hsl(var(--su));
 
         #sse-status-dot {
-            background-color: var(--color-sse-connected-dot);
+            background-color: hsl(var(--su));
         }
 
         #sse-status-text {
-            color: var(--color-sse-connected-text);
+            color: hsl(var(--su));
         }
     }
 
     &.connecting {
-        background-color: var(--color-sse-connecting-bg);
-        border-color: var(--color-sse-connecting-border);
-        color: var(--color-sse-connecting-text);
+        background-color: hsla(var(--wa) / 0.15);
+        border-color: hsla(var(--wa) / 0.35);
+        color: hsl(var(--wa));
 
         #sse-status-dot {
-            background-color: var(--color-sse-connecting-dot);
+            background-color: hsl(var(--wa));
         }
 
         #sse-status-text {
-            color: var(--color-sse-connecting-text);
+            color: hsl(var(--wa));
+        }
+    }
+
+    &.error {
+        background-color: hsla(var(--er) / 0.15);
+        border-color: hsla(var(--er) / 0.35);
+        color: hsl(var(--er));
+
+        #sse-status-dot {
+            background-color: hsl(var(--er));
+        }
+
+        #sse-status-text {
+            color: hsl(var(--er));
         }
     }
 }
@@ -185,6 +199,66 @@
 .app-input {
     &.has-leading-icon {
         padding-left: tw-space(8);
+    }
+}
+
+// ==========================================================================
+// DaisyUI Button Outline Extensions for Custom Theme Palette Support
+// ==========================================================================
+.btn-outline {
+    &.btn-secondary {
+        color: hsl(var(--sf, var(--p)));
+        border-color: hsl(var(--sf, var(--p)));
+        &:hover {
+            background-color: hsl(var(--sf, var(--p)));
+            color: hsl(var(--sc));
+        }
+    }
+    &.btn-accent {
+        color: hsl(var(--af, var(--p)));
+        border-color: hsl(var(--af, var(--p)));
+        &:hover {
+            background-color: hsl(var(--af, var(--p)));
+            color: hsl(var(--ac));
+        }
+    }
+    &.btn-info {
+        color: hsl(var(--in));
+        border-color: hsl(var(--in));
+        &:hover {
+            background-color: hsl(var(--in));
+            color: hsl(var(--inc));
+        }
+    }
+    &.btn-warning {
+        color: hsl(var(--wa));
+        border-color: hsl(var(--wa));
+        &:hover {
+            background-color: hsl(var(--wa));
+            color: hsl(var(--wac));
+        }
+    }
+    &.btn-success {
+        color: hsl(var(--su));
+        border-color: hsl(var(--su));
+        &:hover {
+            background-color: hsl(var(--su));
+            color: hsl(var(--suc));
+        }
+    }
+    &.btn-error {
+        color: hsl(var(--er));
+        border-color: hsl(var(--er));
+        &:hover {
+            background-color: hsl(var(--er));
+            color: hsl(var(--erc));
+        }
+    }
+}
+
+.stat-figure {
+    .app-icon {
+        background-color: currentColor;
     }
 }
 
@@ -201,7 +275,8 @@
     flex-shrink: 0;
 
     img,
-    svg {
+    svg,
+    .app-icon {
         width: calc(#{$size} * 0.5);
         height: calc(#{$size} * 0.5);
         flex-shrink: 0;
@@ -217,44 +292,67 @@
     color: var(--color-text-main);
 }
 
-.app-icon-box-blue {
+.app-icon-box-blue,
+.app-icon-box-primary {
     @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
-    background-color: var(--color-metric-total-bg);
-    border: 1px solid var(--color-metric-total-border);
-    color: var(--color-metric-total-text);
+    background-color: hsla(var(--p) / 0.12);
+    border: 1px solid hsla(var(--p) / 0.28);
+    color: hsl(var(--p));
 }
 
-.app-icon-box-indigo {
+.app-metric-val-blue,
+.app-metric-val-primary {
+    color: hsl(var(--p));
+}
+
+.app-icon-box-indigo,
+.app-icon-box-secondary {
     @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
-    background-color: var(--color-metric-channel-bg);
-    border: 1px solid var(--color-metric-channel-border);
-    color: var(--color-metric-channel-text);
+    background-color: hsla(var(--sf, var(--p)) / 0.12);
+    border: 1px solid hsla(var(--sf, var(--p)) / 0.28);
+    color: hsl(var(--sf, var(--p)));
 }
 
-.app-metric-val-indigo {
-    color: var(--color-metric-channel-text);
+.app-metric-val-indigo,
+.app-metric-val-secondary {
+    color: hsl(var(--sf, var(--p)));
 }
 
-.app-icon-box-cyan {
+.app-icon-box-cyan,
+.app-icon-box-accent {
     @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
-    background-color: var(--color-metric-reader-bg);
-    border: 1px solid var(--color-metric-reader-border);
-    color: var(--color-metric-reader-text);
+    background-color: hsla(var(--af, var(--p)) / 0.12);
+    border: 1px solid hsla(var(--af, var(--p)) / 0.28);
+    color: hsl(var(--af, var(--p)));
 }
 
-.app-metric-val-cyan {
-    color: var(--color-metric-reader-text);
+.app-metric-val-cyan,
+.app-metric-val-accent {
+    color: hsl(var(--af, var(--p)));
 }
 
-.app-icon-box-emerald {
+.app-icon-box-emerald,
+.app-icon-box-success {
     @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
-    background-color: var(--color-metric-uptime-bg);
-    border: 1px solid var(--color-metric-uptime-border);
-    color: var(--color-metric-uptime-text);
+    background-color: hsla(var(--su) / 0.14);
+    border: 1px solid hsla(var(--su) / 0.32);
+    color: hsl(var(--su));
 }
 
-.app-metric-val-emerald {
-    color: var(--color-metric-uptime-text);
+.app-metric-val-emerald,
+.app-metric-val-success {
+    color: hsl(var(--su));
+}
+
+.app-icon-box-info {
+    @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
+    background-color: hsla(var(--in) / 0.14);
+    border: 1px solid hsla(var(--in) / 0.32);
+    color: hsl(var(--in));
+}
+
+.app-metric-val-info {
+    color: hsl(var(--in));
 }
 
 // ==========================================================================

@@ -82,11 +82,23 @@ export function setAFIStatus(afiValue) {
     const afiCheckbox = getElement('encode-afi-checkbox');
     const unsecureBtn = getElement('encode-afi-btn-unsecure');
     const secureBtn = getElement('encode-afi-btn-secure');
+    const statusBadge = getElement('encode-afi-status-badge');
 
     const normalized = (afiValue === '07' || afiValue === 'secure' || afiValue === 'gesichert' || afiValue === true) ? '07' : 'C2';
+    currentAFI = normalized;
 
     if (afiInput) {
         afiInput.value = normalized;
+    }
+
+    if (statusBadge) {
+        if (normalized === '07') {
+            statusBadge.textContent = '07 (Gesichert)';
+            statusBadge.className = 'badge badge-xs badge-info font-mono';
+        } else {
+            statusBadge.textContent = 'C2 (Entsichert)';
+            statusBadge.className = 'badge badge-xs badge-warning font-mono';
+        }
     }
 
     if (afiCheckbox) {
@@ -95,20 +107,24 @@ export function setAFIStatus(afiValue) {
 
     if (unsecureBtn) {
         if (normalized === 'C2') {
-            unsecureBtn.classList.add('app-afi-active-unsecure');
+            unsecureBtn.classList.add('btn-primary', 'app-afi-active');
+            unsecureBtn.classList.remove('btn-ghost');
             unsecureBtn.setAttribute('aria-checked', 'true');
         } else {
-            unsecureBtn.classList.remove('app-afi-active-unsecure');
+            unsecureBtn.classList.remove('btn-primary', 'app-afi-active');
+            unsecureBtn.classList.add('btn-ghost');
             unsecureBtn.setAttribute('aria-checked', 'false');
         }
     }
 
     if (secureBtn) {
         if (normalized === '07') {
-            secureBtn.classList.add('app-afi-active-secure');
+            secureBtn.classList.add('btn-primary', 'app-afi-active');
+            secureBtn.classList.remove('btn-ghost');
             secureBtn.setAttribute('aria-checked', 'true');
         } else {
-            secureBtn.classList.remove('app-afi-active-secure');
+            secureBtn.classList.remove('btn-primary', 'app-afi-active');
+            secureBtn.classList.add('btn-ghost');
             secureBtn.setAttribute('aria-checked', 'false');
         }
     }

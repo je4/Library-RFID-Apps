@@ -68,20 +68,37 @@ export function setStorage(name, value) {
     } catch (_) {}
 }
 
+export function isValidTheme(themeId, expectedType = null) {
+    if (!themeId) return false;
+    const theme = THEMES.find(t => t.id === themeId);
+    return Boolean(theme && (!expectedType || theme.type === expectedType));
+}
+
 export function getStoredMode() {
     return getCookie('rfid_theme_mode') || getStorage('rfid_theme_mode') || 'auto';
 }
 
 export function getStoredLight() {
-    return getCookie('rfid_theme_light') || getStorage('rfid_theme_light') || 'corporate';
+    const theme = getCookie('rfid_theme_light') || getStorage('rfid_theme_light');
+    if (isValidTheme(theme, 'light')) return theme;
+    return 'corporate';
 }
 
 export function getStoredDark() {
-    return getCookie('rfid_theme_dark') || getStorage('rfid_theme_dark') || 'dark';
+    const theme = getCookie('rfid_theme_dark') || getStorage('rfid_theme_dark');
+    if (isValidTheme(theme, 'dark')) return theme;
+    return 'dark';
 }
 
 export function getStoredTheme() {
     return getCookie('rfid_theme') || getStorage('rfid_theme') || null;
+}
+
+export function getEffectiveType(mode) {
+    if (mode === 'darkmode' || mode === 'dark') return 'dark';
+    if (mode === 'lightmode' || mode === 'light') return 'light';
+    const isSystemDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+    return isSystemDark ? 'dark' : 'light';
 }
 
 /**
@@ -89,16 +106,8 @@ export function getStoredTheme() {
  */
 export function applyTheme(mode, specificTheme = null) {
     const effectiveMode = mode || getStoredMode();
-    const isSystemDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
-    let isDark = false;
-    if (effectiveMode === 'darkmode' || effectiveMode === 'dark') {
-        isDark = true;
-    } else if (effectiveMode === 'lightmode' || effectiveMode === 'light') {
-        isDark = false;
-    } else {
-        isDark = isSystemDark;
-    }
+    const effectiveType = getEffectiveType(effectiveMode);
+    const isDark = (effectiveType === 'dark');
 
     // 1. Update .dark / .light classes on <html>
     if (isDark) {
@@ -109,19 +118,19 @@ export function applyTheme(mode, specificTheme = null) {
         document.documentElement.classList.remove('dark');
     }
 
-    // 2. Resolve target theme
-    let targetTheme = specificTheme;
-    if (!targetTheme) {
-        if (effectiveMode === 'auto') {
-            targetTheme = isDark ? getStoredDark() : getStoredLight();
-        } else if (isDark) {
-            targetTheme = getStoredDark();
-        } else {
-            targetTheme = getStoredLight();
-        }
+    // 2. Resolve target theme strictly matching effectiveType (light or dark)
+    let targetTheme = null;
+    if (specificTheme && isValidTheme(specificTheme, effectiveType)) {
+        targetTheme = specificTheme;
+    } else if (effectiveMode === 'auto') {
+        targetTheme = isDark ? getStoredDark() : getStoredLight();
+    } else if (isDark) {
+        targetTheme = getStoredDark();
+    } else {
+        targetTheme = getStoredLight();
     }
 
-    if (!targetTheme) {
+    if (!targetTheme || !isValidTheme(targetTheme, effectiveType)) {
         targetTheme = isDark ? 'dark' : 'corporate';
     }
 
@@ -174,36 +183,55 @@ export function initThemeSelector() {
     const applyCloseBtn = document.getElementById('theme-apply-close-btn');
     const resetBtn = document.getElementById('theme-reset-btn');
     const modeButtons = document.querySelectorAll('.theme-mode-btn');
-    const filterButtons = document.querySelectorAll('.theme-filter-btn');
     const searchInput = document.getElementById('theme-search-input');
     const gridContainer = document.getElementById('theme-grid');
 
     let currentMode = getStoredMode();
-    let currentTheme = document.documentElement.getAttribute('data-theme') || (currentMode === 'darkmode' ? getStoredDark() : getStoredLight());
-    let activeFilter = 'all';
     let searchQuery = '';
 
     // Synchronize initial theme & indicators
-    applyTheme(currentMode, currentTheme);
+    applyTheme(currentMode);
 
-    // Render Theme Cards in Modal Grid
+    // Render Theme Cards in Modal Grid (strictly matching currentMode / light or dark)
     function renderGrid() {
         if (!gridContainer) return;
 
+        const effectiveType = getEffectiveType(currentMode);
         const currentActiveTheme = document.documentElement.getAttribute('data-theme');
         gridContainer.innerHTML = '';
 
-        const filtered = THEMES.filter(t => {
-            const matchesFilter = (activeFilter === 'all') || (activeFilter === t.type);
+        // Update toolbar indicators
+        const summaryTextEl = document.getElementById('theme-mode-summary-text');
+        const countVisibleEl = document.getElementById('theme-count-visible');
+        const isSystemDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        if (summaryTextEl) {
+            if (currentMode === 'auto') {
+                summaryTextEl.textContent = isSystemDark ? 'Auto (System: Dunkel)' : 'Auto (System: Hell)';
+            } else if (currentMode === 'darkmode' || currentMode === 'dark') {
+                summaryTextEl.textContent = 'Dunkle Themes';
+            } else {
+                summaryTextEl.textContent = 'Helle Themes';
+            }
+        }
+
+        // Only themes matching the active mode (light or dark)
+        const modeMatchedThemes = THEMES.filter(t => t.type === effectiveType);
+
+        const filtered = modeMatchedThemes.filter(t => {
             const matchesSearch = !searchQuery || 
                 t.name.toLowerCase().includes(searchQuery) || 
                 t.id.toLowerCase().includes(searchQuery) || 
                 t.desc.toLowerCase().includes(searchQuery);
-            return matchesFilter && matchesSearch;
+            return matchesSearch;
         });
 
+        if (countVisibleEl) {
+            countVisibleEl.textContent = filtered.length;
+        }
+
         if (filtered.length === 0) {
-            gridContainer.innerHTML = `<div class="col-span-full py-6 text-center text-xs app-meta-text">Keine Themes gefunden.</div>`;
+            gridContainer.innerHTML = `<div class="col-span-full py-6 text-center text-xs app-meta-text">Keine passenden Themes gefunden.</div>`;
             return;
         }
 
@@ -236,28 +264,12 @@ export function initThemeSelector() {
             // Click Handler for Instant Live Test & Selection
             const selectThisTheme = () => {
                 const selectedId = t.id;
-                const isDarkTheme = (t.type === 'dark');
-
-                // If user was in auto mode and clicks a dark theme or light theme, persist preferred light/dark
-                if (isDarkTheme) {
+                if (t.type === 'dark') {
                     setCookie('rfid_theme_dark', selectedId);
                     setStorage('rfid_theme_dark', selectedId);
                 } else {
                     setCookie('rfid_theme_light', selectedId);
                     setStorage('rfid_theme_light', selectedId);
-                }
-
-                // If current mode was opposite, adapt mode or set direct theme
-                if (currentMode === 'lightmode' && isDarkTheme) {
-                    currentMode = 'darkmode';
-                    setCookie('rfid_theme_mode', 'darkmode');
-                    setStorage('rfid_theme_mode', 'darkmode');
-                    updateModeButtonsUI('darkmode');
-                } else if (currentMode === 'darkmode' && !isDarkTheme) {
-                    currentMode = 'lightmode';
-                    setCookie('rfid_theme_mode', 'lightmode');
-                    setStorage('rfid_theme_mode', 'lightmode');
-                    updateModeButtonsUI('lightmode');
                 }
 
                 setCookie('rfid_theme', selectedId);
@@ -295,25 +307,12 @@ export function initThemeSelector() {
         });
     }
 
-    function updateFilterButtonsUI(filter) {
-        filterButtons.forEach(btn => {
-            const btnFilter = btn.getAttribute('data-filter');
-            const isActive = (btnFilter === filter);
-            if (isActive) {
-                btn.classList.add('btn-primary');
-                btn.classList.remove('btn-ghost');
-            } else {
-                btn.classList.remove('btn-primary');
-                btn.classList.add('btn-ghost');
-            }
-        });
-    }
-
     // Modal Trigger
     if (dialogBtn && dialog) {
         dialogBtn.addEventListener('click', () => {
             currentMode = getStoredMode();
             updateModeButtonsUI(currentMode);
+            applyTheme(currentMode);
             renderGrid();
             if (typeof dialog.showModal === 'function') {
                 dialog.showModal();
@@ -353,15 +352,6 @@ export function initThemeSelector() {
         });
     });
 
-    // Filter Buttons Click
-    filterButtons.forEach(btn => {
-        btn.addEventListener('click', () => {
-            activeFilter = btn.getAttribute('data-filter') || 'all';
-            updateFilterButtonsUI(activeFilter);
-            renderGrid();
-        });
-    });
-
     // Search Input
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -387,7 +377,7 @@ export function initThemeSelector() {
             setStorage('rfid_theme', 'corporate');
 
             updateModeButtonsUI('auto');
-            applyTheme('auto', 'corporate');
+            applyTheme('auto');
             renderGrid();
         });
     }
