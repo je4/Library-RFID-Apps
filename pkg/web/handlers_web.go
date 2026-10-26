@@ -343,10 +343,10 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 		}
 	}
 	if targetSource == "" {
-		targetSource = targetReader
-	}
-	if targetSource == "" && targetReaderID != "" {
 		targetSource = targetReaderID
+	}
+	if targetSource == "" {
+		targetSource = targetReader
 	}
 
 	req := rfidclient.WriteTagRequest{
@@ -546,10 +546,10 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 				}
 				targetDaemon := tag.Source
 				if targetDaemon == "" {
-					targetDaemon = ctrl.cfg.DefaultReader
-				}
-				if targetDaemon == "" && tag.ReaderID != "" {
 					targetDaemon = tag.ReaderID
+				}
+				if targetDaemon == "" {
+					targetDaemon = ctrl.cfg.DefaultReader
 				}
 				key := readerClusterKey{
 					target:   targetDaemon,

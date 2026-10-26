@@ -146,10 +146,10 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 					readerID = tag.ReaderID
 				}
 				if targetDaemon == "" {
-					targetDaemon = ctrl.cfg.DefaultReader
-				}
-				if targetDaemon == "" && readerID != "" {
 					targetDaemon = readerID
+				}
+				if targetDaemon == "" {
+					targetDaemon = ctrl.cfg.DefaultReader
 				}
 				key := readerClusterKey{
 					target:   targetDaemon,

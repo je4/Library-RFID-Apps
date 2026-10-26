@@ -304,10 +304,10 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 		targetReaderID = activeTags[0].ReaderID
 	}
 	if targetSource == "" {
-		targetSource = targetReader
-	}
-	if targetSource == "" && targetReaderID != "" {
 		targetSource = targetReaderID
+	}
+	if targetSource == "" {
+		targetSource = targetReader
 	}
 	success := false
 
@@ -448,10 +448,10 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 		targetReaderID = activeTags[0].ReaderID
 	}
 	if targetSource == "" {
-		targetSource = targetReader
-	}
-	if targetSource == "" && targetReaderID != "" {
 		targetSource = targetReaderID
+	}
+	if targetSource == "" {
+		targetSource = targetReader
 	}
 	success := false
 
@@ -611,10 +611,10 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 		targetReaderID = activeTags[0].ReaderID
 	}
 	if targetSource == "" {
-		targetSource = targetReader
-	}
-	if targetSource == "" && targetReaderID != "" {
 		targetSource = targetReaderID
+	}
+	if targetSource == "" {
+		targetSource = targetReader
 	}
 	success := false
 
