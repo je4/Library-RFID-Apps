@@ -87,8 +87,8 @@ func (r *TagWriteResult) IsSuccess() bool {
 type WriteTagRequest struct {
 	Event     string         `json:"event"`
 	ID        string         `json:"id,omitempty"`
-	RefID     string         `json:"ref_id,omitempty"`
-	ReaderID  string         `json:"reader_id,omitempty"`
+	RefID     string         `json:"refId,omitempty"`
+	ReaderID  string         `json:"readerId,omitempty"`
 	UID       string         `json:"uid,omitempty"`
 	ItemID    string         `json:"itemId,omitempty"`
 	ISIL      string         `json:"isil,omitempty"`
@@ -353,8 +353,8 @@ func (r *TagAFIResult) IsSuccess() bool {
 type WriteAFIRequest struct {
 	Event    string   `json:"event"`
 	ID       string   `json:"id,omitempty"`
-	RefID    string   `json:"ref_id,omitempty"`
-	ReaderID string   `json:"reader_id,omitempty"`
+	RefID    string   `json:"refId,omitempty"`
+	ReaderID string   `json:"readerId,omitempty"`
 	UID      string   `json:"uid,omitempty"`
 	UIDs     []string `json:"uids,omitempty"`
 	AFI      string   `json:"afi"`

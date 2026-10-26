@@ -210,7 +210,7 @@ func (h *Hub) GetActiveTagsForChannel(channel string, readerFilter ...string) []
 		if targetChannel != "" && !MatchChannel(item.Channel, targetChannel) {
 			continue
 		}
-		if targetReader != "" && !MatchReader(item.ClientID, targetReader) {
+		if targetReader != "" && !MatchReader(item.ReaderID, targetReader) {
 			continue
 		}
 		active = append(active, item)
@@ -271,7 +271,7 @@ func (h *Hub) ClearActiveForChannel(channel string, reader ...string) {
 			if targetChannel != "" && !MatchChannel(item.Channel, targetChannel) {
 				continue
 			}
-			if MatchReader(item.ClientID, targetReader) {
+			if MatchReader(item.ReaderID, targetReader) {
 				delete(h.activeTags, uid)
 			}
 		}

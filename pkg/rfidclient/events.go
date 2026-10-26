@@ -18,17 +18,11 @@ const (
 type BaseRFIDPayload struct {
 	Event     string `json:"event"`
 	ID        string `json:"id,omitempty"`
-	RefID     string `json:"ref_id,omitempty"`
+	RefID     string `json:"refId,omitempty"`
 	Session   string `json:"session,omitempty"`
 	Timestamp int64  `json:"timestamp,omitempty"`
-	ClientID  string `json:"client_id,omitempty"`
-	ReaderID  string `json:"reader_id,omitempty"`
+	ReaderID  string `json:"readerId,omitempty"`
 	Channel   string `json:"channel,omitempty"`
-}
-
-// GetClientID returns the client identifier.
-func (p *BaseRFIDPayload) GetClientID() string {
-	return p.ClientID
 }
 
 // GetReaderID returns the logical reader identifier.

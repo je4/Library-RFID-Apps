@@ -201,7 +201,7 @@ func TestRFIDClient_GetDeviceMetadata(t *testing.T) {
 		respData := DeviceMetadataResponse{
 			BaseRFIDPayload: BaseRFIDPayload{
 				Event:    EventDeviceMetadataResponse,
-				ClientID: "rfid-reader-station-01",
+				ReaderID: "rfid-reader-station-01",
 			},
 			Status:          "ok",
 			DeviceID:        "0052E688",
@@ -1376,7 +1376,7 @@ func TestRFIDClient_MultiReader_EventFiltering(t *testing.T) {
 		Type:   event.TypeMessage,
 		Data: []byte(`{
 			"event": "rfid:tag_read",
-			"reader_id": "gate-01",
+			"readerId": "gate-01",
 			"uid": "UID-G1",
 			"itemId": "BOOK-G1"
 		}`),
@@ -1394,7 +1394,7 @@ func TestRFIDClient_MultiReader_EventFiltering(t *testing.T) {
 		Type:   event.TypeMessage,
 		Data: []byte(`{
 			"event": "rfid:tag_read",
-			"reader_id": "gate-02",
+			"readerId": "gate-02",
 			"uid": "UID-G2",
 			"itemId": "BOOK-G2"
 		}`),
@@ -1441,7 +1441,7 @@ func TestRFIDClient_MultiReader_SubscribeTagsForReader(t *testing.T) {
 		Type:   event.TypeMessage,
 		Data: []byte(`{
 			"event": "rfid:tag_read",
-			"reader_id": "gate-02",
+			"readerId": "gate-02",
 			"uid": "UID-G2",
 			"itemId": "BOOK-G2"
 		}`),
@@ -1455,7 +1455,7 @@ func TestRFIDClient_MultiReader_SubscribeTagsForReader(t *testing.T) {
 		Type:   event.TypeMessage,
 		Data: []byte(`{
 			"event": "rfid:tag_read",
-			"reader_id": "gate-01",
+			"readerId": "gate-01",
 			"uid": "UID-G1",
 			"itemId": "BOOK-G1"
 		}`),

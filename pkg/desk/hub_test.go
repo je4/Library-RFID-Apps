@@ -32,7 +32,7 @@ func TestHub_AddTagAndGetTags(t *testing.T) {
 		PartNo:  &partNo,
 		AFI:     "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "rfid:reader:01",
+			ReaderID:  "rfid:reader:01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	}
@@ -47,8 +47,8 @@ func TestHub_AddTagAndGetTags(t *testing.T) {
 	if item1.AFI != "07" {
 		t.Errorf("expected AFI '07', got %s", item1.AFI)
 	}
-	if item1.ClientID != "rfid:reader:01" {
-		t.Errorf("expected ClientID 'rfid:reader:01', got %s", item1.ClientID)
+	if item1.ReaderID != "rfid:reader:01" {
+		t.Errorf("expected ReaderID 'rfid:reader:01', got %s", item1.ReaderID)
 	}
 
 	if count := hub.Count(); count != 1 {
@@ -225,7 +225,7 @@ func TestHub_ActiveTagsAndAFI(t *testing.T) {
 		ItemID: "ITEM-001",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "rfid:reader:desk01",
+			ReaderID:  "rfid:reader:desk01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	}
@@ -235,7 +235,7 @@ func TestHub_ActiveTagsAndAFI(t *testing.T) {
 		ItemID: "ITEM-002",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "rfid:reader:other",
+			ReaderID:  "rfid:reader:other",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	}
@@ -269,7 +269,7 @@ func TestHub_ActiveTagsAndAFI(t *testing.T) {
 		UID:    "UID-OLD",
 		ItemID: "ITEM-OLD",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "rfid:reader:desk01",
+			ReaderID:  "rfid:reader:desk01",
 			Timestamp: time.Now().Add(-1 * time.Second).UnixMilli(),
 		},
 	}
@@ -294,7 +294,7 @@ func TestHub_SequentialTagsAccumulation(t *testing.T) {
 		UID:    "UID-1",
 		ItemID: "ITEM-1",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-1",
+			ReaderID:  "reader-1",
 			Timestamp: time.Now().Add(-10 * time.Second).UnixMilli(),
 		},
 	})
@@ -304,7 +304,7 @@ func TestHub_SequentialTagsAccumulation(t *testing.T) {
 		UID:    "UID-2",
 		ItemID: "ITEM-2",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-1",
+			ReaderID:  "reader-1",
 			Timestamp: time.Now().Add(-5 * time.Second).UnixMilli(),
 		},
 	})
@@ -314,7 +314,7 @@ func TestHub_SequentialTagsAccumulation(t *testing.T) {
 		UID:    "UID-3",
 		ItemID: "ITEM-3",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-1",
+			ReaderID:  "reader-1",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -453,7 +453,7 @@ func TestHub_ChannelFiltering(t *testing.T) {
 		UID:    "UID-CH-A",
 		ItemID: "ITEM-A",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Channel:   "channel-a",
 			Timestamp: time.Now().UnixMilli(),
 		},
@@ -462,7 +462,7 @@ func TestHub_ChannelFiltering(t *testing.T) {
 		UID:    "UID-CH-B",
 		ItemID: "ITEM-B",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Channel:   "channel-b",
 			Timestamp: time.Now().UnixMilli(),
 		},

@@ -354,8 +354,8 @@ func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target stri
 			metaResp.RefID = reqPayload.ID
 		}
 	}
-	if metaResp.ClientID == "" && respEvt.Source != "" {
-		metaResp.ClientID = respEvt.Source
+	if metaResp.ReaderID == "" && respEvt.Source != "" {
+		metaResp.ReaderID = respEvt.Source
 	}
 
 	return &metaResp, nil
@@ -441,8 +441,8 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 			writeResp.RefID = req.ID
 		}
 	}
-	if writeResp.ClientID == "" && respEvt.Source != "" {
-		writeResp.ClientID = respEvt.Source
+	if writeResp.ReaderID == "" && respEvt.Source != "" {
+		writeResp.ReaderID = respEvt.Source
 	}
 
 	if c.logger != nil {
@@ -710,8 +710,8 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 			afiResp.RefID = req.ID
 		}
 	}
-	if afiResp.ClientID == "" && respEvt.Source != "" {
-		afiResp.ClientID = respEvt.Source
+	if afiResp.ReaderID == "" && respEvt.Source != "" {
+		afiResp.ReaderID = respEvt.Source
 	}
 
 	if c.logger != nil {

@@ -35,7 +35,6 @@ type TagItem struct {
 	TimeFormatted     string     `json:"timeFormatted"`
 	DateFormatted     string     `json:"dateFormatted"`
 	Raw               string     `json:"raw,omitempty"`
-	ClientID          string     `json:"clientId,omitempty"`
 	ReaderID          string     `json:"readerId,omitempty"`
 	Channel           string     `json:"channel,omitempty"`
 	ReadTime          time.Time  `json:"readTime"`
@@ -104,7 +103,6 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 		TimeFormatted:     readTime.Format("15:04:05"),
 		DateFormatted:     readTime.Format("02.01.2006"),
 		Raw:               tag.Raw,
-		ClientID:          tag.ClientID,
 		ReaderID:          tag.GetReaderID(),
 		Channel:           tag.Channel,
 		ReadTime:          readTime,

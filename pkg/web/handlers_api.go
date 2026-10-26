@@ -136,8 +136,8 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 			readerClusters := make(map[string][]string)
 			for _, uid := range uids {
 				targetReader := ctrl.cfg.DefaultReader
-				if tag, ok := tagMap[uid]; ok && tag.ClientID != "" {
-					targetReader = tag.ClientID
+				if tag, ok := tagMap[uid]; ok && tag.ReaderID != "" {
+					targetReader = tag.ReaderID
 				}
 				if targetReader != "" {
 					readerClusters[targetReader] = append(readerClusters[targetReader], uid)

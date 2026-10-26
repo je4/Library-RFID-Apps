@@ -114,8 +114,8 @@ func main() {
 	// 6. Register event listeners for tag scans and antenna field events
 	rfidCli.OnTagRead(func(tag *rfidclient.TagReadEvent, rawEvt *wsbrokerclient.Event) {
 		if rawEvt != nil {
-			if rawEvt.Source != "" {
-				tag.ClientID = rawEvt.Source
+			if tag.ReaderID == "" && rawEvt.Source != "" {
+				tag.ReaderID = rawEvt.Source
 			}
 			if tag.Channel == "" && rawEvt.Channel != "" {
 				tag.Channel = rawEvt.Channel
@@ -128,7 +128,7 @@ func main() {
 			Str("uid", tag.UID).
 			Str("itemId", tag.ItemID).
 			Str("isil", tag.ISIL).
-			Str("reader", tag.ClientID).
+			Str("reader", tag.ReaderID).
 			Str("channel", tag.Channel).
 			Str("afi", tag.AFI).
 			Bool("crcOk", tag.IsCRCValidStatus()).

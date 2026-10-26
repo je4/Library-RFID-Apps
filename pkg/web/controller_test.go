@@ -182,7 +182,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		CRCOk:   true,
 		AFI:     "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "rfid:reader:01",
+			ReaderID:  "rfid:reader:01",
 			Channel:   "rfid",
 			Timestamp: time.Now().UnixMilli(),
 		},
@@ -267,7 +267,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		ISIL:   "CH-000001-1",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	}
@@ -278,7 +278,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		ISIL:   "CH-000001-1",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "other-reader-99",
+			ReaderID:  "other-reader-99",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	}
@@ -413,7 +413,7 @@ func TestController_AFIViaRFIDClient_Success(t *testing.T) {
 		ItemID: "ITEM-SUCCESS-1",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -491,7 +491,7 @@ func TestController_AFIViaRFIDClient_Error(t *testing.T) {
 		ItemID: "ITEM-ERR-1",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -550,7 +550,7 @@ func TestController_HandleWriteAFIResponse_Success(t *testing.T) {
 		ItemID: "ITEM-ASYNC-1",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -616,7 +616,7 @@ func TestController_HandleWriteAFIResponse_Error(t *testing.T) {
 		ItemID: "ITEM-ERR-ASYNC",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -692,7 +692,7 @@ func TestController_SetAFI_SynchronousFailure(t *testing.T) {
 		ItemID: "ITEM-SYNC-ERR",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -749,7 +749,7 @@ func TestController_SetAFI_TargetedReader(t *testing.T) {
 		ItemID: "ITEM-TARGETED-1",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "rfid:reader:desk-antenna-01",
+			ReaderID:  "rfid:reader:desk-antenna-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -795,7 +795,7 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 		ItemID: "BOOK-01",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -804,7 +804,7 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 		ItemID: "BOOK-02",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Timestamp: time.Now().UnixMilli(),
 		},
 	})
@@ -918,13 +918,13 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 		UID:             "TAG-01",
 		ItemID:          "BOOK-SUCCESS",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
 	})
 	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
 		UID:             "TAG-02",
 		ItemID:          "BOOK-FAIL",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
 	})
 
 	// Execute batch unsecure
@@ -1040,13 +1040,13 @@ func TestController_APILoanAFI_MixedBatch(t *testing.T) {
 		UID:             "TAG-OK",
 		ItemID:          "BOOK-OK",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
 	})
 	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
 		UID:             "TAG-ERR",
 		ItemID:          "BOOK-ERR",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
 	})
 
 	req := httptest.NewRequest(http.MethodPost, "/api/v1/loan/afi", strings.NewReader(`{"action":"unsecure"}`))
@@ -1096,7 +1096,7 @@ func TestController_ChannelIsolationAndCardDisplay(t *testing.T) {
 		ItemID: "BOOK-AAA",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Channel:   "desk-a",
 			Timestamp: time.Now().UnixMilli(),
 		},
@@ -1106,7 +1106,7 @@ func TestController_ChannelIsolationAndCardDisplay(t *testing.T) {
 		ItemID: "BOOK-BBB",
 		AFI:    "07",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID:  "reader-01",
+			ReaderID:  "reader-01",
 			Channel:   "desk-b",
 			Timestamp: time.Now().UnixMilli(),
 		},
@@ -1256,25 +1256,25 @@ func TestController_LoanAFI_ClusteredByReader(t *testing.T) {
 		UID:             "TAG-R1-A",
 		ItemID:          "BOOK-R1-A",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
 	})
 	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
 		UID:             "TAG-R1-B",
 		ItemID:          "BOOK-R1-B",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
 	})
 	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
 		UID:             "TAG-R2-A",
 		ItemID:          "BOOK-R2-A",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
 	})
 	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
 		UID:             "TAG-R2-B",
 		ItemID:          "BOOK-R2-B",
 		AFI:             "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ClientID: "reader-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
 	})
 
 	// 1. Web desk unsecure operation
@@ -1466,7 +1466,7 @@ func TestController_ISILLibraryNameAndFlyoutRendering(t *testing.T) {
 		Country: "CH",
 		CRCOk:   true,
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID: "desk-reader",
+			ReaderID: "desk-reader",
 			Channel:  "all",
 		},
 	}
@@ -1585,7 +1585,7 @@ func TestController_StaticPathRendering(t *testing.T) {
 		UID:    "E004015011223344",
 		ItemID: "BOOK-123",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID: "desk-reader",
+			ReaderID: "desk-reader",
 			Channel:  "channel-1",
 		},
 	}
@@ -1706,7 +1706,7 @@ func TestController_EncodeEndpoints(t *testing.T) {
 		ItemID: "OLD-ITEM",
 		ISIL:   "CH-000001",
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID: "desk-reader",
+			ReaderID: "desk-reader",
 			Channel:  "channel-1",
 		},
 	})
@@ -1858,7 +1858,7 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 		AFI:    "07",
 		CRCOk:  true,
 		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ClientID: "reader-01",
+			ReaderID: "reader-01",
 			Channel:  "channel-1",
 		},
 	})
@@ -1913,5 +1913,73 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 		if strings.Contains(pBody, "var themeMap =") {
 			t.Errorf("expected %s not to contain redundant inline themeMap script", pagePath)
 		}
+	}
+}
+
+func TestReaderIDRenderingInDeskTable(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8764",
+		ClientName:    "reader-id-test-desk",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"rfid"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Tag with ReaderID
+	tagWithReader := &rfidclient.TagReadEvent{
+		UID:    "E004015011110001",
+		ItemID: "ITEM-READER-01",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ReaderID: "gate-reader-01",
+			Channel:  "rfid",
+		},
+	}
+	hub.AddTag(tagWithReader)
+
+	req := httptest.NewRequest(http.MethodGet, "/rfid/", nil)
+	rec := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", rec.Code)
+	}
+	body := rec.Body.String()
+
+	if !strings.Contains(body, "gate-reader-01") {
+		t.Errorf("expected body to contain ReaderID 'gate-reader-01', got: %s", body)
+	}
+	if !strings.Contains(body, `title="Reader: gate-reader-01"`) {
+		t.Errorf("expected body to contain title attribute for ReaderID, got: %s", body)
+	}
+
+	// 2. Tag with second ReaderID
+	tagOnlyReaderID := &rfidclient.TagReadEvent{
+		UID:    "E004015011110002",
+		ItemID: "ITEM-READER-ONLY",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ReaderID: "desk-pad-02",
+			Channel:  "rfid",
+		},
+	}
+	hub.AddTag(tagOnlyReaderID)
+
+	rec2 := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec2, req)
+	body2 := rec2.Body.String()
+	if !strings.Contains(body2, "desk-pad-02") {
+		t.Errorf("expected body to contain ReaderID 'desk-pad-02', got: %s", body2)
+	}
+	if !strings.Contains(body2, `title="Reader: desk-pad-02"`) {
+		t.Errorf("expected body to contain title attribute for ReaderID, got: %s", body2)
 	}
 }

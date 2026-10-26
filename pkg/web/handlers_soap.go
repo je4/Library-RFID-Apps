@@ -294,10 +294,10 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 
 	ctx := c.Request.Context()
 	targetReader := ctrl.cfg.DefaultReader
-	if targetTag != nil && targetTag.ClientID != "" {
-		targetReader = targetTag.ClientID
-	} else if len(activeTags) > 0 && activeTags[0].ClientID != "" {
-		targetReader = activeTags[0].ClientID
+	if targetTag != nil && targetTag.ReaderID != "" {
+		targetReader = targetTag.ReaderID
+	} else if len(activeTags) > 0 && activeTags[0].ReaderID != "" {
+		targetReader = activeTags[0].ReaderID
 	}
 	success := false
 
@@ -426,10 +426,10 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 
 	ctx := c.Request.Context()
 	targetReader := ctrl.cfg.DefaultReader
-	if targetTag != nil && targetTag.ClientID != "" {
-		targetReader = targetTag.ClientID
-	} else if len(activeTags) > 0 && activeTags[0].ClientID != "" {
-		targetReader = activeTags[0].ClientID
+	if targetTag != nil && targetTag.ReaderID != "" {
+		targetReader = targetTag.ReaderID
+	} else if len(activeTags) > 0 && activeTags[0].ReaderID != "" {
+		targetReader = activeTags[0].ReaderID
 	}
 	success := false
 
@@ -575,10 +575,10 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 
 	ctx := c.Request.Context()
 	targetReader := ctrl.cfg.DefaultReader
-	if targetTag != nil && targetTag.ClientID != "" {
-		targetReader = targetTag.ClientID
-	} else if len(activeTags) > 0 && activeTags[0].ClientID != "" {
-		targetReader = activeTags[0].ClientID
+	if targetTag != nil && targetTag.ReaderID != "" {
+		targetReader = targetTag.ReaderID
+	} else if len(activeTags) > 0 && activeTags[0].ReaderID != "" {
+		targetReader = activeTags[0].ReaderID
 	}
 	success := false
 

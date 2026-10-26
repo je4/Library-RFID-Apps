@@ -82,7 +82,7 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("unexpected ClientName in default config: %s", cfg.ClientName)
 	}
 
-	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid:tag_read","uid":"E004","itemId":"TEST-1","reader_id":"gate-01"}`))
+	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid:tag_read","uid":"E004","itemId":"TEST-1","readerId":"gate-01"}`))
 	if err != nil {
 		t.Fatalf("ParseRFIDPayload failed: %v", err)
 	}

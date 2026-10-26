@@ -333,8 +333,8 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 	if uid != "" {
 		activeTags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
 		for _, t := range activeTags {
-			if strings.EqualFold(t.UID, uid) && t.ClientID != "" {
-				targetReader = t.ClientID
+			if strings.EqualFold(t.UID, uid) && t.ReaderID != "" {
+				targetReader = t.ReaderID
 				break
 			}
 		}
@@ -523,13 +523,13 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 				}
 			}
 
-			// Cluster targets by reader client ID so each write request addresses only one reader
+			// Cluster targets by reader ID so each write request addresses only one reader
 			readerClusters := make(map[string][]string)
 			for _, tag := range targets {
 				if tag.UID == "" {
 					continue
 				}
-				targetReader := tag.ClientID
+				targetReader := tag.ReaderID
 				if targetReader == "" {
 					targetReader = ctrl.cfg.DefaultReader
 				}

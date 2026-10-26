@@ -45,8 +45,7 @@ func TestTagReadEvent_UnmarshalJSON(t *testing.T) {
 				"afi": "07",
 				"session": "main-scan",
 				"timestamp": 1792756801123,
-				"client_id": "rfid-reader-station-01",
-				"reader_id": "gate-south"
+				"readerId": "gate-south"
 			}`,
 			wantUID:      "E004010000001234",
 			wantItemID:   "3012345678",
@@ -141,8 +140,7 @@ func TestTagsClearedEvent(t *testing.T) {
 		"totalTags": 0,
 		"session": "main-scan",
 		"timestamp": 1792756801500,
-		"client_id": "rfid-station-01",
-		"reader_id": "reader-01"
+		"readerId": "reader-01"
 	}`
 
 	var cleared TagsClearedEvent
@@ -155,9 +153,6 @@ func TestTagsClearedEvent(t *testing.T) {
 	}
 	if cleared.TotalTags != 0 {
 		t.Errorf("TotalTags = %d, want 0", cleared.TotalTags)
-	}
-	if cleared.ClientID != "rfid-station-01" {
-		t.Errorf("ClientID = %q, want 'rfid-station-01'", cleared.ClientID)
 	}
 	if cleared.ReaderID != "reader-01" {
 		t.Errorf("ReaderID = %q, want 'reader-01'", cleared.ReaderID)
@@ -181,8 +176,7 @@ func TestDeviceMetadataResponse_UnmarshalJSON(t *testing.T) {
 		"deviceType": "ISC.MR102-USB",
 		"initDescription": "FEIG Electronic ISC.MR102-USB (0052E688)\nReader initialized.",
 		"timestamp": 1792756802045,
-		"client_id": "rfid-reader-station-01",
-		"reader_id": "reader-main"
+		"readerId": "reader-main"
 	}`
 
 	var resp DeviceMetadataResponse
@@ -494,8 +488,8 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected *TagReadEvent, got %T", parsedEvt)
 	}
-	if tagFromEvt.ClientID != "rfid:reader:desk01" {
-		t.Errorf("ClientID = %q, want 'rfid:reader:desk01'", tagFromEvt.ClientID)
+	if tagFromEvt.ReaderID != "rfid:reader:desk01" {
+		t.Errorf("ReaderID = %q, want 'rfid:reader:desk01'", tagFromEvt.ReaderID)
 	}
 	if tagFromEvt.Channel != "rfid" {
 		t.Errorf("Channel = %q, want 'rfid'", tagFromEvt.Channel)
@@ -634,8 +628,8 @@ func TestIDAndRefID_JSONSerialization(t *testing.T) {
 	if !strings.Contains(str, `"id":"evt-12345"`) {
 		t.Errorf("expected json to contain \"id\":\"evt-12345\", got: %s", str)
 	}
-	if !strings.Contains(str, `"ref_id":"req-67890"`) {
-		t.Errorf("expected json to contain \"ref_id\":\"req-67890\", got: %s", str)
+	if !strings.Contains(str, `"refId":"req-67890"`) {
+		t.Errorf("expected json to contain \"refId\":\"req-67890\", got: %s", str)
 	}
 }
 
@@ -662,8 +656,8 @@ func TestParseEvent_IDAndRefID_Propagation(t *testing.T) {
 	if tag.RefID != "env-req-002" {
 		t.Errorf("tag.RefID = %q, want 'env-req-002'", tag.RefID)
 	}
-	if tag.ClientID != "reader-desk-1" {
-		t.Errorf("tag.ClientID = %q, want 'reader-desk-1'", tag.ClientID)
+	if tag.ReaderID != "reader-desk-1" {
+		t.Errorf("tag.ReaderID = %q, want 'reader-desk-1'", tag.ReaderID)
 	}
 	if tag.Channel != "rfid-all" {
 		t.Errorf("tag.Channel = %q, want 'rfid-all'", tag.Channel)
@@ -866,11 +860,10 @@ func TestParseRFIDPayload_WriteTagBatch(t *testing.T) {
 }
 
 func TestMultiReaderPayloadModels(t *testing.T) {
-	// 1. TagReadEvent with reader_id
+	// 1. TagReadEvent with readerId
 	tagJSON := `{
 		"event": "rfid:tag_read",
-		"client_id": "bib-gate-south",
-		"reader_id": "gate-01",
+		"readerId": "gate-01",
 		"uid": "E00401509200B02A",
 		"itemId": "12345678",
 		"country": "CH",
@@ -889,9 +882,6 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected *TagReadEvent, got %T", parsedTag)
 	}
-	if tagEvent.GetClientID() != "bib-gate-south" {
-		t.Errorf("GetClientID() = %q, want 'bib-gate-south'", tagEvent.GetClientID())
-	}
 	if tagEvent.GetReaderID() != "gate-01" {
 		t.Errorf("GetReaderID() = %q, want 'gate-01'", tagEvent.GetReaderID())
 	}
@@ -899,11 +889,10 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 		t.Errorf("Summary() should include reader: %s", tagEvent.Summary())
 	}
 
-	// 2. TagsClearedEvent with reader_id
+	// 2. TagsClearedEvent with readerId
 	clearedJSON := `{
 		"event": "rfid:tags_cleared",
-		"client_id": "bib-gate-south",
-		"reader_id": "gate-02",
+		"readerId": "gate-02",
 		"status": "cleared"
 	}`
 	parsedCleared, err := ParseRFIDPayload([]byte(clearedJSON))
@@ -935,11 +924,10 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 		t.Errorf("WithReaderID failed: %s", metaReq.GetReaderID())
 	}
 
-	// 4. DeviceMetadataResponse with reader_id
+	// 4. DeviceMetadataResponse with readerId
 	metaJSON := `{
 		"event": "rfid:device_metadata",
-		"client_id": "bib-gate-south",
-		"reader_id": "gate-01",
+		"readerId": "gate-01",
 		"status": "ok",
 		"deviceId": "OBID-LRU1002-01",
 		"deviceType": "FEIG LRU1002",
@@ -960,7 +948,7 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 		t.Errorf("Summary() should include reader: %s", metaResp.Summary())
 	}
 
-	// 5. WriteTagRequest with reader_id
+	// 5. WriteTagRequest with readerId
 	writeTagReq := NewWriteTagRequest("BOOK-123", "UID-123")
 	writeTagReq.WithReaderID("gate-01")
 	if writeTagReq.GetReaderID() != "gate-01" {
@@ -970,11 +958,11 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal failed: %v", err)
 	}
-	if !strings.Contains(string(reqData), `"reader_id":"gate-01"`) {
-		t.Errorf("marshaled json missing reader_id: %s", string(reqData))
+	if !strings.Contains(string(reqData), `"readerId":"gate-01"`) {
+		t.Errorf("marshaled json missing readerId: %s", string(reqData))
 	}
 
-	// 6. WriteAFIRequest with reader_id
+	// 6. WriteAFIRequest with readerId
 	writeAFIReq := NewWriteAFIRequest(AFISecured, "UID-123")
 	writeAFIReq.WithReaderID("gate-01")
 	if writeAFIReq.GetReaderID() != "gate-01" {
@@ -984,8 +972,8 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 	if err != nil {
 		t.Fatalf("json.Marshal failed: %v", err)
 	}
-	if !strings.Contains(string(afiData), `"reader_id":"gate-01"`) {
-		t.Errorf("marshaled json missing reader_id: %s", string(afiData))
+	if !strings.Contains(string(afiData), `"readerId":"gate-01"`) {
+		t.Errorf("marshaled json missing readerId: %s", string(afiData))
 	}
 
 	// 7. WriteTagResponse & WriteAFIResponse summaries with reader_id

@@ -35,7 +35,7 @@ func WithDefaultTarget(target string) Option {
 	}
 }
 
-// WithDefaultReaderID sets the default reader identifier (reader_id) for multi-reader daemons.
+// WithDefaultReaderID sets the default reader identifier (readerId) for multi-reader daemons.
 func WithDefaultReaderID(readerID string) Option {
 	return func(c *clientConfig) {
 		c.defaultReaderID = readerID

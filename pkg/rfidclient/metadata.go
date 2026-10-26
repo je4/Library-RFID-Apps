@@ -18,8 +18,8 @@ const (
 type DeviceMetadataRequest struct {
 	Event    string `json:"event"`
 	ID       string `json:"id,omitempty"`
-	RefID    string `json:"ref_id,omitempty"`
-	ReaderID string `json:"reader_id,omitempty"`
+	RefID    string `json:"refId,omitempty"`
+	ReaderID string `json:"readerId,omitempty"`
 }
 
 // GetReaderID returns the target reader identifier.
