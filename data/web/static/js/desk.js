@@ -5,7 +5,7 @@ import { initTableActions } from './modules/table-actions.js';
 import { initIsilFlyout } from './modules/isil-flyout.js';
 import { initAfiModal } from './modules/afi-modal.js';
 import { initSSE } from './modules/sse.js';
-import { initSkinSelector } from './modules/skin-selector.js';
+import { initThemeSelector } from './modules/theme-selector.js';
 import { initEncodeController } from './modules/encode-controller.js';
 
 export function initDesk() {
@@ -14,7 +14,7 @@ export function initDesk() {
     initIsilFlyout();
     initAfiModal();
     initSSE();
-    initSkinSelector();
+    initThemeSelector();
     initEncodeController();
 }
 

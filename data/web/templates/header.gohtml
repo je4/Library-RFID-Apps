@@ -33,31 +33,13 @@
 
     <!-- Top Right Actions & Theme Selector -->
     <div class="flex items-center space-x-3">
-        <!-- Skin / Theme Selector Dropdown -->
-        <div class="relative inline-flex items-center">
-            <!-- label for="skin-select" class="sr-only">Farbschema auswählen</label -->
-            <div class="join app-btn btn btn-sm btn-ghost gap-1 px-2">
-                <span class="app-icon icon-palette w-4 h-4 opacity-75 shrink-0" aria-hidden="true"></span>
-                <select id="skin-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Farbschema auswählen">
-                    <option value="default" {{if or (not .Skin) (eq .Skin "default")}}selected{{end}}>Slate (Standard)</option>
-                    <option value="emerald" {{if eq .Skin "emerald"}}selected{{end}}>Emerald</option>
-                    <option value="nord" {{if eq .Skin "nord"}}selected{{end}}>Nord</option>
-                    <option value="bubblegum" {{if eq .Skin "bubblegum"}}selected{{end}}>Bubblegum</option>
-                </select>
-            </div>
-        </div>
-
-        <!-- Light / Dark Mode Selector Dropdown -->
-        <div class="relative inline-flex items-center">
-            <div class="join app-btn btn btn-sm btn-ghost gap-1 px-2">
-                <span class="app-icon icon-sun-moon w-4 h-4 opacity-75 shrink-0" aria-hidden="true"></span>
-                <select id="theme-mode-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Anzeigemodus auswählen (Auto / Hell / Dunkel)">
-                    <option value="auto" {{if or (not .ThemeMode) (eq .ThemeMode "auto")}}selected{{end}}>Auto</option>
-                    <option value="lightmode" {{if eq .ThemeMode "lightmode"}}selected{{end}}>Lightmode</option>
-                    <option value="darkmode" {{if eq .ThemeMode "darkmode"}}selected{{end}}>Darkmode</option>
-                </select>
-            </div>
-        </div>
+        <!-- Theme & Appearance Dialog Trigger Button -->
+        <button id="theme-dialog-btn" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Themes)" aria-haspopup="dialog" aria-controls="theme-modal-dialog">
+            <span class="app-icon icon-palette w-4 h-4 shrink-0" aria-hidden="true"></span>
+            <span class="hidden sm:inline text-xs font-semibold">Design</span>
+            <span id="theme-mode-indicator" class="badge badge-xs badge-outline font-mono text-[10px] uppercase">Auto</span>
+            <span id="theme-name-indicator" class="badge badge-xs badge-primary font-mono text-[10px]">corporate</span>
+        </button>
 
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
@@ -90,3 +72,5 @@
         {{end}}
     </div>
 </header>
+
+{{template "theme_modal.gohtml" .}}

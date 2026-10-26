@@ -1,7 +1,110 @@
 // ==========================================================================
-// RFID Desk SCSS Variables & Color Themes
-// Automatic Browser Light / Dark Mode Support via CSS Custom Properties & Skins
+// RFID Desk SCSS Variables & Color System
+// Powered by DaisyUI Themes & Ambient Background Glassmorphism
 // ==========================================================================
 
-@import "skins/skin-mixin";
-@import "skins/default";
+:root {
+    --color-bg-body: hsl(var(--b1, 0 0% 100%));
+    --color-bg-image: url('../img/background.jpg');
+    --color-bg-overlay: linear-gradient(135deg, rgba(248, 250, 252, 0.72) 0%, rgba(241, 245, 249, 0.85) 100%);
+    --color-text-main: hsl(var(--bc, 215 28% 17%));
+    --color-text-muted: hsla(var(--bc, 215 28% 17%) / 0.65);
+    --color-text-dim: hsla(var(--bc, 215 28% 17%) / 0.45);
+    --color-border-subtle: hsla(var(--bc, 215 28% 17%) / 0.12);
+    --color-border-main: hsla(var(--bc, 215 28% 17%) / 0.20);
+
+    --color-header-bg: hsla(var(--b1, 0 0% 100%) / 0.75);
+    --color-footer-bg: hsla(var(--b1, 0 0% 100%) / 0.70);
+
+    --color-card-bg: hsla(var(--b1, 0 0% 100%) / 0.85);
+    --color-card-border: hsla(var(--bc, 215 28% 17%) / 0.12);
+    --color-panel-bg: hsla(var(--b1, 0 0% 100%) / 0.88);
+    --color-panel-border: hsla(var(--bc, 215 28% 17%) / 0.12);
+    --color-panel-toolbar-bg: hsla(var(--b2, 210 20% 98%) / 0.85);
+    --color-panel-toolbar-border: hsla(var(--bc, 215 28% 17%) / 0.12);
+
+    --color-table-header-bg: hsla(var(--b2, 210 20% 98%) / 0.90);
+    --color-table-header-text: hsla(var(--bc, 215 28% 17%) / 0.75);
+    --color-table-header-border: hsla(var(--bc, 215 28% 17%) / 0.12);
+
+    --color-btn-text: hsl(var(--bc, 215 28% 17%));
+    --color-btn-hover-bg: hsla(var(--bc, 215 28% 17%) / 0.08);
+
+    --color-metric-total-bg: hsla(var(--p, 230 74% 58%) / 0.10);
+    --color-metric-total-border: hsla(var(--p, 230 74% 58%) / 0.25);
+    --color-metric-total-text: hsl(var(--p, 230 74% 58%));
+
+    --color-metric-channel-bg: hsla(var(--sf, 215 19% 45%) / 0.10);
+    --color-metric-channel-border: hsla(var(--sf, 215 19% 45%) / 0.25);
+    --color-metric-channel-text: hsl(var(--sf, 215 19% 45%));
+
+    --color-metric-reader-bg: hsla(var(--af, 150 60% 45%) / 0.10);
+    --color-metric-reader-border: hsla(var(--af, 150 60% 45%) / 0.25);
+    --color-metric-reader-text: hsl(var(--af, 150 60% 45%));
+
+    --color-metric-uptime-bg: hsla(var(--su, 158 64% 52%) / 0.12);
+    --color-metric-uptime-border: hsla(var(--su, 158 64% 52%) / 0.30);
+    --color-metric-uptime-text: hsl(var(--su, 158 64% 52%));
+
+    --color-badge-status-bg: hsla(var(--p, 230 74% 58%) / 0.12);
+    --color-badge-status-border: hsla(var(--p, 230 74% 58%) / 0.30);
+    --color-badge-status-text: hsl(var(--p, 230 74% 58%));
+
+    --color-tag-uid-bg: hsla(var(--b2, 210 20% 98%) / 0.90);
+    --color-tag-uid-border: hsla(var(--bc, 215 28% 17%) / 0.15);
+    --color-tag-uid-text: hsl(var(--bc, 215 28% 17%));
+    --color-tag-uid-hover-border: hsla(var(--bc, 215 28% 17%) / 0.35);
+    --color-tag-item-id: inherit;
+    --color-tag-isil-text: hsla(var(--bc, 215 28% 17%) / 0.85);
+    --color-tag-single-bg: hsla(var(--b2, 210 20% 98%) / 0.80);
+    --color-tag-single-border: hsla(var(--bc, 215 28% 17%) / 0.15);
+    --color-tag-single-text: hsla(var(--bc, 215 28% 17%) / 0.80);
+
+    --color-sse-connected-bg: hsla(var(--su, 158 64% 52%) / 0.12);
+    --color-sse-connected-border: hsla(var(--su, 158 64% 52%) / 0.30);
+    --color-sse-connected-text: hsl(var(--su, 158 64% 52%));
+    --color-sse-connected-dot: hsl(var(--su, 158 64% 52%));
+
+    --color-sse-connecting-bg: hsla(var(--wa, 43 96% 56%) / 0.12);
+    --color-sse-connecting-border: hsla(var(--wa, 43 96% 56%) / 0.30);
+    --color-sse-connecting-text: hsl(var(--wa, 43 96% 56%));
+    --color-sse-connecting-dot: hsl(var(--wa, 43 96% 56%));
+
+    --scrollbar-track: hsla(var(--b2, 210 20% 98%) / 0.6);
+    --scrollbar-thumb: hsla(var(--bc, 215 28% 17%) / 0.25);
+    --scrollbar-thumb-hover: hsla(var(--bc, 215 28% 17%) / 0.40);
+
+    --scan-flash-bg: hsla(var(--p, 230 74% 58%) / 0.18);
+    --scan-flash-shadow: hsla(var(--p, 230 74% 58%) / 0.30);
+
+    --action-card-bg: linear-gradient(135deg, hsl(var(--b1)) 0%, hsl(var(--b2)) 100%);
+}
+
+.dark,
+[data-theme="dark"],
+[data-theme="synthwave"],
+[data-theme="halloween"],
+[data-theme="forest"],
+[data-theme="black"],
+[data-theme="luxury"],
+[data-theme="dracula"],
+[data-theme="business"],
+[data-theme="night"],
+[data-theme="coffee"],
+[data-theme="dim"],
+[data-theme="sunset"],
+[data-theme="abyss"] {
+    --color-bg-overlay: linear-gradient(135deg, rgba(15, 23, 42, 0.78) 0%, rgba(3, 7, 18, 0.88) 100%);
+    --color-header-bg: hsla(var(--b1, 220 18% 18%) / 0.75);
+    --color-footer-bg: hsla(var(--b1, 220 18% 18%) / 0.70);
+    --color-card-bg: hsla(var(--b1, 220 18% 18%) / 0.85);
+    --color-card-border: hsla(var(--bc, 220 13% 85%) / 0.15);
+    --color-panel-bg: hsla(var(--b1, 220 18% 18%) / 0.88);
+    --color-panel-border: hsla(var(--bc, 220 13% 85%) / 0.15);
+    --color-panel-toolbar-bg: hsla(var(--b2, 220 17% 14%) / 0.85);
+    --color-panel-toolbar-border: hsla(var(--bc, 220 13% 85%) / 0.15);
+
+    --scrollbar-track: hsla(var(--b2, 220 17% 14%) / 0.6);
+    --scrollbar-thumb: hsla(var(--bc, 220 13% 85%) / 0.25);
+    --scrollbar-thumb-hover: hsla(var(--bc, 220 13% 85%) / 0.40);
+}

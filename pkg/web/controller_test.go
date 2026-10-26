@@ -115,6 +115,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		"/static/js/modules/afi-modal.js",
 		"/static/js/modules/sse.js",
 		"/static/js/modules/skin-selector.js",
+		"/static/js/modules/theme-selector.js",
 		"/static/js/modules/encode-controller.js",
 	} {
 		reqMod := httptest.NewRequest(http.MethodGet, modulePath, nil)
@@ -1614,7 +1615,7 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 		t.Fatalf("failed to create web controller: %v", err)
 	}
 
-	// 1. Requesting index, desk, and loan without cookie -> defaults to default skin (no data-skin attribute on html)
+	// 1. Requesting index, desk, and loan -> contains #theme-dialog-btn and #theme-modal-dialog
 	for _, path := range []string{"/", "/channel-1/", "/channel-1/loan"} {
 		req := httptest.NewRequest(http.MethodGet, path, nil)
 		rec := httptest.NewRecorder()
@@ -1623,79 +1624,57 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 			t.Fatalf("expected 200 for %s, got %d", path, rec.Code)
 		}
 		body := rec.Body.String()
-		if !strings.Contains(body, `id="skin-select"`) {
-			t.Errorf("expected %s to contain #skin-select dropdown", path)
+		if !strings.Contains(body, `id="theme-dialog-btn"`) {
+			t.Errorf("expected %s to contain #theme-dialog-btn trigger button", path)
 		}
-		if !strings.Contains(body, `value="default"`) || !strings.Contains(body, `value="emerald"`) || !strings.Contains(body, `value="nord"`) || !strings.Contains(body, `value="bubblegum"`) {
-			t.Errorf("expected %s to contain skin options default, emerald, nord, bubblegum", path)
+		if !strings.Contains(body, `id="theme-modal-dialog"`) {
+			t.Errorf("expected %s to contain #theme-modal-dialog", path)
 		}
-		if strings.Contains(body, `data-skin=`) {
-			t.Errorf("expected %s without cookie not to have data-skin attribute, got: %s", path, body)
+		if !strings.Contains(body, `id="theme-live-preview-box"`) {
+			t.Errorf("expected %s to contain #theme-live-preview-box", path)
+		}
+		if strings.Contains(body, `id="skin-select"`) {
+			t.Errorf("expected %s not to contain obsolete #skin-select dropdown", path)
 		}
 	}
 
-	// 2. Requesting with rfid_skin=emerald cookie -> renders data-skin="emerald" and selects emerald option
+	// 2. Requesting with rfid_theme=emerald cookie -> renders data-theme="emerald"
 	reqEmerald := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
-	reqEmerald.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "emerald"})
+	reqEmerald.AddCookie(&http.Cookie{Name: "rfid_theme", Value: "emerald"})
 	recEmerald := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recEmerald, reqEmerald)
 	if recEmerald.Code != http.StatusOK {
 		t.Fatalf("expected 200 for desk with emerald cookie, got %d", recEmerald.Code)
 	}
 	bodyEmerald := recEmerald.Body.String()
-	if !strings.Contains(bodyEmerald, `data-skin="emerald"`) {
-		t.Errorf("expected desk with emerald cookie to have data-skin=\"emerald\", got: %s", bodyEmerald)
-	}
-	if !strings.Contains(bodyEmerald, `<option value="emerald" selected>Emerald</option>`) {
-		t.Errorf("expected emerald option to be selected, got: %s", bodyEmerald)
+	if !strings.Contains(bodyEmerald, `data-theme="emerald"`) {
+		t.Errorf("expected desk with emerald cookie to have data-theme=\"emerald\", got: %s", bodyEmerald)
 	}
 
-	// 3. Requesting loan with rfid_skin=nord cookie -> renders data-skin="nord" and selects nord option
+	// 3. Requesting loan with rfid_theme=nord cookie -> renders data-theme="nord"
 	reqNord := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
-	reqNord.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "nord"})
+	reqNord.AddCookie(&http.Cookie{Name: "rfid_theme", Value: "nord"})
 	recNord := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recNord, reqNord)
 	if recNord.Code != http.StatusOK {
 		t.Fatalf("expected 200 for loan with nord cookie, got %d", recNord.Code)
 	}
 	bodyNord := recNord.Body.String()
-	if !strings.Contains(bodyNord, `data-skin="nord"`) {
-		t.Errorf("expected loan with nord cookie to have data-skin=\"nord\", got: %s", bodyNord)
-	}
-	if !strings.Contains(bodyNord, `<option value="nord" selected>Nord</option>`) {
-		t.Errorf("expected nord option to be selected, got: %s", bodyNord)
+	if !strings.Contains(bodyNord, `data-theme="nord"`) {
+		t.Errorf("expected loan with nord cookie to have data-theme=\"nord\", got: %s", bodyNord)
 	}
 
-	// 4. Requesting desk with rfid_skin=bubblegum cookie -> renders data-skin="bubblegum" and selects bubblegum option
-	reqBubblegum := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
-	reqBubblegum.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "bubblegum"})
-	recBubblegum := httptest.NewRecorder()
-	ctrl.router.ServeHTTP(recBubblegum, reqBubblegum)
-	if recBubblegum.Code != http.StatusOK {
-		t.Fatalf("expected 200 for desk with bubblegum cookie, got %d", recBubblegum.Code)
+	// 4. Requesting desk with rfid_theme=synthwave cookie -> renders data-theme="synthwave"
+	reqSynth := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	reqSynth.AddCookie(&http.Cookie{Name: "rfid_theme", Value: "synthwave"})
+	recSynth := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recSynth, reqSynth)
+	if recSynth.Code != http.StatusOK {
+		t.Fatalf("expected 200 for desk with synthwave cookie, got %d", recSynth.Code)
 	}
-	bodyBubblegum := recBubblegum.Body.String()
-	if !strings.Contains(bodyBubblegum, `data-skin="bubblegum"`) {
-		t.Errorf("expected desk with bubblegum cookie to have data-skin=\"bubblegum\", got: %s", bodyBubblegum)
-	}
-	if !strings.Contains(bodyBubblegum, `<option value="bubblegum" selected>Bubblegum</option>`) {
-		t.Errorf("expected bubblegum option to be selected, got: %s", bodyBubblegum)
-	}
-
-	// 5. Requesting index with rfid_skin=default cookie -> no data-skin attribute, default option selected
-	reqDefault := httptest.NewRequest(http.MethodGet, "/", nil)
-	reqDefault.AddCookie(&http.Cookie{Name: "rfid_skin", Value: "default"})
-	recDefault := httptest.NewRecorder()
-	ctrl.router.ServeHTTP(recDefault, reqDefault)
-	if recDefault.Code != http.StatusOK {
-		t.Fatalf("expected 200 for index with default cookie, got %d", recDefault.Code)
-	}
-	bodyDefault := recDefault.Body.String()
-	if strings.Contains(bodyDefault, `data-skin=`) {
-		t.Errorf("expected index with default cookie not to have data-skin attribute, got: %s", bodyDefault)
-	}
-	if !strings.Contains(bodyDefault, `<option value="default" selected>Slate (Standard)</option>`) {
-		t.Errorf("expected default option to be selected, got: %s", bodyDefault)
+	bodySynth := recSynth.Body.String()
+	if !strings.Contains(bodySynth, `data-theme="synthwave"`) {
+		t.Errorf("expected desk with synthwave cookie to have data-theme=\"synthwave\", got: %s", bodySynth)
 	}
 }
 
@@ -1842,15 +1821,14 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 		t.Fatalf("failed to create web controller: %v", err)
 	}
 
-	// 1. Test Theme Mode Dropdown and Cookie Selection
+	// 1. Test Theme Dialog & Mode Controls
 	testCases := []struct {
-		modeCookie   string
-		expectedHTML string
+		modeCookie string
 	}{
-		{"", `<option value="auto" selected>Auto</option>`},
-		{"auto", `<option value="auto" selected>Auto</option>`},
-		{"lightmode", `<option value="lightmode" selected>Lightmode</option>`},
-		{"darkmode", `<option value="darkmode" selected>Darkmode</option>`},
+		{""},
+		{"auto"},
+		{"lightmode"},
+		{"darkmode"},
 	}
 
 	for _, tc := range testCases {
@@ -1864,11 +1842,11 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 			t.Fatalf("expected 200 for /channel-1/loan, got %d", rec.Code)
 		}
 		body := rec.Body.String()
-		if !strings.Contains(body, `id="theme-mode-select"`) {
-			t.Errorf("expected theme-mode-select element in header, got: %s", body)
+		if !strings.Contains(body, `id="theme-dialog-btn"`) {
+			t.Errorf("expected theme-dialog-btn element in header, got: %s", body)
 		}
-		if !strings.Contains(body, tc.expectedHTML) {
-			t.Errorf("expected %q for mode cookie %q, got: %s", tc.expectedHTML, tc.modeCookie, body)
+		if !strings.Contains(body, `id="theme-mode-radios"`) {
+			t.Errorf("expected theme-mode-radios element in theme modal, got: %s", body)
 		}
 	}
 

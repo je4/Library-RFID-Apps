@@ -1,36 +1,25 @@
 /**
- * Early Theme & Skin Initializer for RFID Desk (FOUC Prevention).
- * Executes synchronously in the <head> before rendering to prevent layout/theme flashes.
+ * Early Theme & Mode Initializer for RFID Desk (FOUC Prevention).
+ * Executes synchronously in the <head> before rendering to prevent layout or color flashes.
  */
 (function() {
-    var themeMap = {
-        'default':   { light: 'corporate', dark: 'dark' },
-        'emerald':   { light: 'emerald',   dark: 'emerald' },
-        'nord':      { light: 'nord',      dark: 'nord' },
-        'bubblegum': { light: 'cupcake',   dark: 'synthwave' }
-    };
+    var DARK_THEMES = ['dark', 'synthwave', 'dracula', 'halloween', 'forest', 'night', 'luxury', 'business', 'coffee', 'dim', 'sunset', 'black', 'abyss'];
 
-    function getSavedSkin() {
-        var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
-        if (match) return decodeURIComponent(match[1]);
-        try { return localStorage.getItem('rfid_skin'); } catch(e) { return null; }
+    function getCookie(name) {
+        var match = document.cookie.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]+)'));
+        return match ? decodeURIComponent(match[1]) : null;
     }
 
-    function getSavedMode() {
-        var match = document.cookie.match(/(?:^|;\s*)rfid_theme_mode=([^;]+)/);
-        if (match) return decodeURIComponent(match[1]);
-        try { return localStorage.getItem('rfid_theme_mode'); } catch(e) { return null; }
-    }
-
-    var skin = getSavedSkin() || 'default';
-    if (skin && skin !== 'default') {
-        document.documentElement.setAttribute('data-skin', skin);
-    } else {
-        document.documentElement.removeAttribute('data-skin');
+    function getStorage(name) {
+        try { return localStorage.getItem(name); } catch(e) { return null; }
     }
 
     function syncTheme() {
-        var mode = getSavedMode() || 'auto';
+        var mode = getCookie('rfid_theme_mode') || getStorage('rfid_theme_mode') || 'auto';
+        var themeLight = getCookie('rfid_theme_light') || getStorage('rfid_theme_light') || 'corporate';
+        var themeDark = getCookie('rfid_theme_dark') || getStorage('rfid_theme_dark') || 'dark';
+        var directTheme = getCookie('rfid_theme') || getStorage('rfid_theme');
+
         var isDark = false;
         if (mode === 'darkmode' || mode === 'dark') {
             isDark = true;
@@ -48,17 +37,30 @@
             document.documentElement.classList.remove('dark');
         }
 
-        var currentSkin = document.documentElement.getAttribute('data-skin') || 'default';
-        var mapping = themeMap[currentSkin] || themeMap['default'];
-        document.documentElement.setAttribute('data-theme', isDark ? mapping.dark : mapping.light);
+        var activeTheme = 'corporate';
+        if (mode === 'auto') {
+            activeTheme = isDark ? themeDark : themeLight;
+        } else if (isDark) {
+            activeTheme = (directTheme && DARK_THEMES.indexOf(directTheme) !== -1) ? directTheme : themeDark;
+        } else {
+            activeTheme = (directTheme && DARK_THEMES.indexOf(directTheme) === -1) ? directTheme : themeLight;
+        }
+
+        if (!activeTheme) {
+            activeTheme = isDark ? 'dark' : 'corporate';
+        }
+
+        document.documentElement.setAttribute('data-theme', activeTheme);
     }
 
     syncTheme();
 
     if (window.matchMedia) {
         window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
-            var mode = getSavedMode() || 'auto';
-            if (mode === 'auto') syncTheme();
+            var mode = getCookie('rfid_theme_mode') || getStorage('rfid_theme_mode') || 'auto';
+            if (mode === 'auto') {
+                syncTheme();
+            }
         });
     }
 })();

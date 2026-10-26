@@ -16,7 +16,7 @@
 
 // Header & Meta
 .app-header {
-    background-color: var(--color-header-bg, rgba(255, 255, 255, 0.45));
+    background-color: var(--color-header-bg);
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-2xl, 1rem);
     padding: tw-space(4) tw-space(5);
@@ -24,11 +24,6 @@
     backdrop-filter: blur(var(--blur-md, 12px));
     -webkit-backdrop-filter: blur(var(--blur-md, 12px));
     box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.05));
-
-    .dark & {
-        background-color: var(--color-header-bg-dark, rgba(15, 23, 42, 0.45));
-        border-color: var(--color-border-subtle);
-    }
 }
 
 .app-title {
@@ -57,7 +52,7 @@
 
 // Footer
 .app-footer {
-    background-color: var(--color-footer-bg, rgba(255, 255, 255, 0.40));
+    background-color: var(--color-footer-bg);
     border: 1px solid var(--color-border-subtle);
     border-radius: var(--radius-2xl, 1rem);
     padding: tw-space(3.5) tw-space(5);
@@ -66,11 +61,6 @@
     -webkit-backdrop-filter: blur(var(--blur-md, 12px));
     box-shadow: var(--shadow-sm, 0 1px 3px 0 rgba(0, 0, 0, 0.05));
     color: var(--color-text-dim);
-
-    .dark & {
-        background-color: var(--color-footer-bg-dark, rgba(15, 23, 42, 0.40));
-        border-color: var(--color-border-subtle);
-    }
 
     .server-addr {
         color: var(--color-text-muted);

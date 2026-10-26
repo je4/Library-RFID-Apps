@@ -117,10 +117,46 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 	}
 }
 
+func getThemeFromCookie(c *gin.Context) string {
+	if c == nil {
+		return ""
+	}
+	theme, err := c.Cookie("rfid_theme")
+	if err != nil || theme == "" {
+		return ""
+	}
+	return theme
+}
+
+func getThemeLightFromCookie(c *gin.Context) string {
+	if c == nil {
+		return "corporate"
+	}
+	theme, err := c.Cookie("rfid_theme_light")
+	if err != nil || theme == "" {
+		return "corporate"
+	}
+	return theme
+}
+
+func getThemeDarkFromCookie(c *gin.Context) string {
+	if c == nil {
+		return "dark"
+	}
+	theme, err := c.Cookie("rfid_theme_dark")
+	if err != nil || theme == "" {
+		return "dark"
+	}
+	return theme
+}
+
 func (ctrl *Controller) handleIndex(c *gin.Context) {
 	data := ctrl.getDeskData()
 	data.Skin = getSkinFromCookie(c)
+	data.Theme = getThemeFromCookie(c)
 	data.ThemeMode = getThemeModeFromCookie(c)
+	data.ThemeLight = getThemeLightFromCookie(c)
+	data.ThemeDark = getThemeDarkFromCookie(c)
 	c.HTML(http.StatusOK, "index.gohtml", data)
 }
 
@@ -128,7 +164,10 @@ func (ctrl *Controller) handleChannelIndex(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getDeskData(channel)
 	data.Skin = getSkinFromCookie(c)
+	data.Theme = getThemeFromCookie(c)
 	data.ThemeMode = getThemeModeFromCookie(c)
+	data.ThemeLight = getThemeLightFromCookie(c)
+	data.ThemeDark = getThemeDarkFromCookie(c)
 	c.HTML(http.StatusOK, "desk.gohtml", data)
 }
 
@@ -136,7 +175,10 @@ func (ctrl *Controller) handleLoan(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getLoanData(channel)
 	data.Skin = getSkinFromCookie(c)
+	data.Theme = getThemeFromCookie(c)
 	data.ThemeMode = getThemeModeFromCookie(c)
+	data.ThemeLight = getThemeLightFromCookie(c)
+	data.ThemeDark = getThemeDarkFromCookie(c)
 	c.HTML(http.StatusOK, "loan.gohtml", data)
 }
 
@@ -203,7 +245,10 @@ func (ctrl *Controller) handleEncode(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getEncodeData(channel)
 	data.Skin = getSkinFromCookie(c)
+	data.Theme = getThemeFromCookie(c)
 	data.ThemeMode = getThemeModeFromCookie(c)
+	data.ThemeLight = getThemeLightFromCookie(c)
+	data.ThemeDark = getThemeDarkFromCookie(c)
 	c.HTML(http.StatusOK, "encode.gohtml", data)
 }
 
