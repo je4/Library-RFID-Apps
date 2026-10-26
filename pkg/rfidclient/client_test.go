@@ -1470,3 +1470,61 @@ func TestRFIDClient_MultiReader_SubscribeTagsForReader(t *testing.T) {
 		t.Fatal("timed out waiting for gate-01 tag")
 	}
 }
+
+func TestRFIDClient_WriteAFI_TimeoutError(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	fake.requestFunc = func(ctx context.Context, evt *event.Event) (*event.Event, error) {
+		<-ctx.Done()
+		return nil, ctx.Err()
+	}
+
+	rfid, err := New(fake, WithDefaultTimeout(50*time.Millisecond))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+
+	req := NewWriteAFIBatchRequest("07", []string{"UID-1", "UID-2"})
+	req.ReaderID = "gate-01"
+	_, err = rfid.WriteAFI(ctx, "daemon-01", req)
+	if err == nil {
+		t.Fatal("expected error on timeout, got nil")
+	}
+	if !strings.Contains(err.Error(), "timed out waiting for response from reader hardware") {
+		t.Errorf("expected timeout message in error, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "daemon-01") || !strings.Contains(err.Error(), "gate-01") {
+		t.Errorf("expected target and reader in error message, got: %v", err)
+	}
+}
+
+func TestRFIDClient_WriteTag_TimeoutError(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	fake.requestFunc = func(ctx context.Context, evt *event.Event) (*event.Event, error) {
+		<-ctx.Done()
+		return nil, ctx.Err()
+	}
+
+	rfid, err := New(fake, WithDefaultTimeout(50*time.Millisecond))
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancel()
+
+	req := NewWriteTagRequest("3012345678", "E00401509200B02A")
+	req.ReaderID = "gate-01"
+	_, err = rfid.WriteTag(ctx, "daemon-01", req)
+	if err == nil {
+		t.Fatal("expected error on timeout, got nil")
+	}
+	if !strings.Contains(err.Error(), "timed out waiting for response from reader hardware") {
+		t.Errorf("expected timeout message in error, got: %v", err)
+	}
+	if !strings.Contains(err.Error(), "daemon-01") || !strings.Contains(err.Error(), "gate-01") {
+		t.Errorf("expected target and reader in error message, got: %v", err)
+	}
+}

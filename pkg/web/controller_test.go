@@ -1345,6 +1345,110 @@ func TestController_LoanAFI_ClusteredByReader(t *testing.T) {
 	writeCallsMu.Unlock()
 }
 
+func TestController_LoanAFI_ClusteredBySourceAndReaderID(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	var writeCallsMu sync.Mutex
+	type writeCallRecord struct {
+		Target   string
+		ReaderID string
+		UIDs     []string
+		AFI      string
+	}
+	var recordedCalls []writeCallRecord
+
+	mockCli := &mockRFIDClient{
+		writeAFIHandler: func(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
+			writeCallsMu.Lock()
+			recordedCalls = append(recordedCalls, writeCallRecord{
+				Target:   target,
+				ReaderID: req.ReaderID,
+				UIDs:     req.UIDs,
+				AFI:      req.AFI,
+			})
+			writeCallsMu.Unlock()
+
+			return &rfidclient.WriteAFIResponse{
+				BaseRFIDPayload: rfidclient.BaseRFIDPayload{Event: rfidclient.EventWriteAFIResponse},
+				Status:          "ok",
+				UIDs:            req.UIDs,
+				SuccessfulUIDs:  req.UIDs,
+				AFI:             req.AFI,
+			}, nil
+		},
+	}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
+		DefaultReader: "rfid:reader:01",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 2 tags on daemon-A (gate-01) and 2 tags on daemon-B (gate-02)
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-DA-1",
+		ItemID:          "BOOK-DA-1",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{Source: "rfid:daemon:01", ReaderID: "gate-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-DA-2",
+		ItemID:          "BOOK-DA-2",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{Source: "rfid:daemon:01", ReaderID: "gate-01", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-DB-1",
+		ItemID:          "BOOK-DB-1",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{Source: "rfid:daemon:02", ReaderID: "gate-02", Channel: "rfid-ch", Timestamp: time.Now().UnixMilli()},
+	})
+
+	reqUI := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
+	recUI := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recUI, reqUI)
+
+	if recUI.Code != http.StatusOK {
+		t.Fatalf("expected 200 from /loan/afi/unsecure, got %d", recUI.Code)
+	}
+
+	writeCallsMu.Lock()
+	if len(recordedCalls) != 2 {
+		t.Fatalf("expected 2 clustered WriteAFI calls, got %d", len(recordedCalls))
+	}
+	for _, call := range recordedCalls {
+		if call.Target == "rfid:daemon:01" {
+			if call.ReaderID != "gate-01" {
+				t.Errorf("expected readerId gate-01 on target rfid:daemon:01, got: %s", call.ReaderID)
+			}
+			if len(call.UIDs) != 2 || !slices.Contains(call.UIDs, "TAG-DA-1") || !slices.Contains(call.UIDs, "TAG-DA-2") {
+				t.Errorf("rfid:daemon:01 received unexpected UIDs: %v", call.UIDs)
+			}
+		} else if call.Target == "rfid:daemon:02" {
+			if call.ReaderID != "gate-02" {
+				t.Errorf("expected readerId gate-02 on target rfid:daemon:02, got: %s", call.ReaderID)
+			}
+			if len(call.UIDs) != 1 || call.UIDs[0] != "TAG-DB-1" {
+				t.Errorf("rfid:daemon:02 received unexpected UIDs: %v", call.UIDs)
+			}
+		} else {
+			t.Errorf("unexpected target in write call: %s", call.Target)
+		}
+	}
+	writeCallsMu.Unlock()
+}
+
 func TestController_HeaderFooterTemplates(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
