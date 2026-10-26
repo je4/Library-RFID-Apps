@@ -2,18 +2,70 @@
 // Component Styles: Buttons, Cards, Badges, Inputs & Toolbars
 // ==========================================================================
 
-// Interactive Buttons
-.app-btn {
+// ==========================================================================
+// Tailwind v4 Bridge Functions
+// ==========================================================================
+// Rechnet Tailwind-Spacing-Faktoren dynamisch anhand der CSS-Variable --spacing um
+@function tw-space($factor) {
+    @return calc(var(--spacing, 0.25rem) * #{$factor});
+}
+
+// ==========================================================================
+// SCSS Button Mixins & Placeholders (Modular Tailwind-equivalent patterns)
+// ==========================================================================
+
+// Mixin für Flex-Ausrichtung & Gap (Tailwind: inline-flex items-center justify-center gap-*)
+@mixin app-btn-layout($gap: tw-space(1.5)) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $gap;
+    white-space: nowrap;
+    text-decoration: none;
+    user-select: none;
+    cursor: pointer;
+}
+
+// Mixin für Button-Größen & Typografie (Tailwind: px-* py-* text-* font-* rounded-*)
+@mixin app-btn-size($padding-y: tw-space(1.5), $padding-x: tw-space(3), $font-size: 0.75rem, $radius: 0.375rem, $font-weight: 600) {
+    padding: $padding-y $padding-x;
+    font-size: $font-size;
+    font-weight: $font-weight;
+    line-height: 1rem;
+    border-radius: $radius;
+}
+
+// Mixin für barrierefreien Tastatur-Fokus (Tailwind: focus-visible:ring-2 focus-visible:ring-blue-500)
+@mixin app-btn-focus-ring($ring-color: #3b82f6, $ring-width: 2px) {
+    &:focus-visible,
+    &:focus {
+        outline: none;
+        box-shadow: 0 0 0 $ring-width rgba(59, 130, 246, 0.45);
+        border-color: $ring-color;
+    }
+}
+
+// Placeholder Selector für gemeinsamen Basis-Code (@extend %app-btn-base)
+%app-btn-base {
+    @include app-btn-layout(tw-space(1.5));
+    @include app-btn-size(tw-space(1.5), tw-space(3), 0.75rem, 0.375rem, 600);
+    @include app-btn-focus-ring(#3b82f6, 2px);
+
     background-color: var(--color-btn-bg);
     color: var(--color-btn-text);
     border: 1px solid var(--color-btn-border);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
 
     &:hover {
         background-color: var(--color-btn-hover-bg);
         color: var(--color-btn-hover-text);
+        border-color: #3b82f6;
+    }
+
+    &:active {
+        transform: scale(0.98);
     }
 
     &.active {
@@ -28,16 +80,38 @@
         opacity: 0.55 !important;
         pointer-events: none !important;
         cursor: not-allowed !important;
+        transform: none !important;
     }
 
     img,
     svg {
+        width: 1rem;
+        height: 1rem;
         flex-shrink: 0;
         display: block;
 
         &.hidden,
         &[hidden] {
             display: none !important;
+        }
+    }
+}
+
+// ==========================================================================
+// Interactive Button Classes
+// ==========================================================================
+.app-btn {
+    @extend %app-btn-base;
+
+    // Kompakte Variante für Tabellenzeilen
+    &.app-btn-sm {
+        @include app-btn-size(tw-space(1), tw-space(2), 0.6875rem, 0.25rem, 500);
+        gap: tw-space(1);
+
+        img,
+        svg {
+            width: 0.875rem;
+            height: 0.875rem;
         }
     }
 }

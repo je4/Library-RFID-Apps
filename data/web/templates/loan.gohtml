@@ -99,20 +99,20 @@
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
-                        <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Kopieren" />
+                    <button id="btn-copy-all-itemids" type="button" class="app-btn" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                        <img src="{{.StaticPath}}/img/copy.svg" alt="Kopieren" />
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
-                        <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Entsichern" />
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="app-btn" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                        <img src="{{.StaticPath}}/img/lock-open-emerald.svg" alt="Entsichern" />
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
-                        <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Sichern" />
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="app-btn" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                        <img src="{{.StaticPath}}/img/lock-blue.svg" alt="Sichern" />
                         <span>Sichern</span>
                     </button>
                 </div>

@@ -226,9 +226,9 @@
                     hx-post="loan/afi/unsecure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
-                    class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                    class="app-btn app-btn-sm"
                     title="Diesen Transponder einzeln entsichern (C2)">
-                <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Entsichern" />
+                <img src="{{.StaticPath}}/img/lock-open-emerald.svg" alt="Entsichern" />
                 <span>Entsichern</span>
             </button>
             {{end}}
@@ -237,9 +237,9 @@
                     hx-post="loan/afi/secure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
-                    class="px-3 py-1.5 text-[11px] font-medium rounded app-btn transition-colors inline-flex items-center gap-2 whitespace-nowrap cursor-pointer"
+                    class="app-btn app-btn-sm"
                     title="Diesen Transponder einzeln sichern (07)">
-                <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0 block" alt="Sichern" />
+                <img src="{{.StaticPath}}/img/lock-blue.svg" alt="Sichern" />
                 <span>Sichern</span>
             </button>
             {{end}}

@@ -36,8 +36,8 @@
         <!-- Skin / Theme Selector Dropdown -->
         <div class="relative inline-flex items-center">
             <!-- label for="skin-select" class="sr-only">Farbschema auswählen</label -->
-            <div class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5">
-                <svg class="w-4 h-4 shrink-0 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <div class="app-btn">
+                <svg class="opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
                 </svg>
                 <select id="skin-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Farbschema auswählen">
@@ -51,23 +51,23 @@
 
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
-        <a href="../" id="nav-channels-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur Channel-Auswahl">
-            <img src="{{.StaticPath}}/img/arrow-left.svg" class="w-4 h-4" alt="Channels" />
+        <a href="../" id="nav-channels-btn" class="app-btn" title="Zurück zur Channel-Auswahl">
+            <img src="{{.StaticPath}}/img/arrow-left.svg" alt="Channels" />
             <span>Channels</span>
         </a>
 
         {{if or .IsLoan .IsEncode}}
         <!-- Back to Desk Button (Relative to Channel) -->
-        <a href="." id="nav-desk-btn" class="px-3 py-1.5 text-xs font-semibold rounded app-btn transition-all inline-flex items-center gap-1.5 hover:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" title="Zurück zur RFID Desk Gesamtübersicht">
-            <img src="{{.StaticPath}}/img/home.svg" class="w-4 h-4" alt="Desk" />
+        <a href="." id="nav-desk-btn" class="app-btn" title="Zurück zur RFID Desk Gesamtübersicht">
+            <img src="{{.StaticPath}}/img/home.svg" alt="Desk" />
             <span>Desk</span>
         </a>
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
-        <button id="sound-toggle" type="button" class="px-3 py-1.5 text-xs font-medium rounded app-btn transition-colors inline-flex items-center gap-2 cursor-pointer" title="Signalton einschalten" aria-pressed="false">
-            <img src="{{.StaticPath}}/img/volume-off.svg" class="w-4 h-4 sound-icon-off shrink-0 block" alt="Ton Aus" />
-            <img src="{{.StaticPath}}/img/volume-high.svg" class="w-4 h-4 sound-icon-on shrink-0 block hidden" alt="Ton An" />
+        <button id="sound-toggle" type="button" class="app-btn" title="Signalton einschalten" aria-pressed="false">
+            <img src="{{.StaticPath}}/img/volume-off.svg" class="sound-icon-off" alt="Ton Aus" />
+            <img src="{{.StaticPath}}/img/volume-high.svg" class="sound-icon-on hidden" alt="Ton An" />
             <span>Ton</span>
             <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block"></span>
         </button>
