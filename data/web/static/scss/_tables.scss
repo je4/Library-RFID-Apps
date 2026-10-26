@@ -36,8 +36,13 @@
     color: var(--color-tag-uid-text);
     display: inline-flex;
     align-items: center;
+    gap: tw-space(1.5);
+    padding: tw-space(1) tw-space(2);
+    border-radius: var(--radius-sm, 0.25rem);
     flex-shrink: 0;
     white-space: nowrap;
+    font-family: var(--font-mono, monospace);
+    @include tw-transition(border-color);
 }
 
 .app-copy-btn {
@@ -45,12 +50,17 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    padding: tw-space(0.5);
+    border-radius: var(--radius-sm, 0.25rem);
     flex-shrink: 0;
     line-height: 1;
     vertical-align: middle;
+    cursor: pointer;
+    @include tw-transition((color, background-color));
 
     &:hover {
         color: var(--color-text-main);
+        background-color: var(--color-btn-hover-bg);
     }
 
     img,
@@ -68,20 +78,23 @@
 
 // Country & Reader Badges
 .app-country-badge {
+    @extend %app-badge-base;
     background-color: var(--color-tag-country-bg);
     color: var(--color-tag-country-text);
 }
 
 .app-reader-badge {
+    @extend %app-badge-base;
     background-color: var(--color-tag-reader-bg);
     color: var(--color-tag-reader-text);
-    border: 1px solid var(--color-tag-reader-border);
+    border-color: var(--color-tag-reader-border);
 }
 
 .app-channel-badge {
+    @extend %app-badge-base;
     background-color: rgba(6, 182, 212, 0.12);
     color: #0891b2;
-    border: 1px solid rgba(6, 182, 212, 0.3);
+    border-color: rgba(6, 182, 212, 0.3);
 }
 
 .dark .app-channel-badge {
@@ -96,45 +109,52 @@
 
 // Status Badges (Multipart, CRC, AFI)
 .app-badge-multipart {
+    @extend %app-badge-base;
     background-color: var(--color-tag-multipart-bg);
     color: var(--color-tag-multipart-text);
-    border: 1px solid var(--color-tag-multipart-border);
+    border-color: var(--color-tag-multipart-border);
 }
 
 .app-badge-single {
+    @extend %app-badge-base;
     background-color: var(--color-tag-single-bg);
     color: var(--color-tag-single-text);
-    border: 1px solid var(--color-tag-single-border);
+    border-color: var(--color-tag-single-border);
 }
 
 .app-badge-crc-ok {
+    @extend %app-badge-base;
     background-color: var(--color-tag-crc-ok-bg);
     color: var(--color-tag-crc-ok-text);
-    border: 1px solid var(--color-tag-crc-ok-border);
+    border-color: var(--color-tag-crc-ok-border);
 }
 
 .app-badge-crc-err {
+    @extend %app-badge-base;
     background-color: var(--color-tag-crc-err-bg);
     color: var(--color-tag-crc-err-text);
-    border: 1px solid var(--color-tag-crc-err-border);
+    border-color: var(--color-tag-crc-err-border);
 }
 
 .app-badge-afi {
+    @extend %app-badge-base;
     background-color: var(--color-tag-afi-bg);
     color: var(--color-tag-afi-text);
-    border: 1px solid var(--color-tag-afi-border);
+    border-color: var(--color-tag-afi-border);
 }
 
 .app-badge-afi-secured {
+    @extend %app-badge-base;
     background-color: var(--color-tag-afi-secured-bg);
     color: var(--color-tag-afi-secured-text);
-    border: 1px solid var(--color-tag-afi-secured-border);
+    border-color: var(--color-tag-afi-secured-border);
 }
 
 .app-badge-afi-unsecured {
+    @extend %app-badge-base;
     background-color: var(--color-tag-afi-unsecured-bg);
     color: var(--color-tag-afi-unsecured-text);
-    border: 1px solid var(--color-tag-afi-unsecured-border);
+    border-color: var(--color-tag-afi-unsecured-border);
 }
 
 // AFI Status column & multiline error message
@@ -159,9 +179,10 @@
 }
 
 .app-afi-write-success {
+    @extend %app-badge-base;
     background-color: rgba(16, 185, 129, 0.15);
     color: #059669;
-    border: 1px solid rgba(16, 185, 129, 0.35);
+    border-color: rgba(16, 185, 129, 0.35);
 }
 
 .dark .app-afi-write-success {
@@ -171,9 +192,10 @@
 }
 
 .app-afi-write-error {
+    @extend %app-badge-base;
     background-color: rgba(244, 63, 94, 0.15);
     color: #e11d48;
-    border: 1px solid rgba(244, 63, 94, 0.35);
+    border-color: rgba(244, 63, 94, 0.35);
 }
 
 .dark .app-afi-write-error {
@@ -183,9 +205,10 @@
 }
 
 .app-afi-write-pending {
+    @extend %app-badge-base;
     background-color: rgba(59, 130, 246, 0.15);
     color: #2563eb;
-    border: 1px solid rgba(59, 130, 246, 0.35);
+    border-color: rgba(59, 130, 246, 0.35);
 }
 
 .dark .app-afi-write-pending {
@@ -321,8 +344,7 @@
         top: 0;
         z-index: 10;
         background-color: var(--color-table-header-bg);
-        backdrop-filter: blur(8px);
-        -webkit-backdrop-filter: blur(8px);
+        @include tw-blur(md);
         color: var(--color-table-header-text);
         border-bottom: 1px solid var(--color-table-header-border);
     }

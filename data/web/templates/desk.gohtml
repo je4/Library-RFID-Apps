@@ -141,14 +141,14 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Live NFC / RFID Transponder Stream</h2>
-                        <span id="tag-count-badge" class="px-2 py-0.5 text-xs font-semibold rounded-full app-count-badge">{{len .Tags}}</span>
+                        <span id="tag-count-badge" class="app-count-badge">{{len .Tags}}</span>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-2.5">
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
-                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="w-48 sm:w-64 app-input text-xs rounded-lg pl-8 pr-3 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 font-mono transition-all">
+                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="app-input has-leading-icon w-48 sm:w-64 font-mono">
                         <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none" width="16" height="16" alt="Suche" />
                     </div>
 

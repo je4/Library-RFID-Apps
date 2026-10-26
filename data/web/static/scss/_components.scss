@@ -3,16 +3,35 @@
 // ==========================================================================
 
 // ==========================================================================
-// Tailwind v4 Bridge Functions
+// Tailwind v4 Bridge Functions & Mixins
 // ==========================================================================
 // Rechnet Tailwind-Spacing-Faktoren dynamisch anhand der CSS-Variable --spacing um
 @function tw-space($factor) {
     @return calc(var(--spacing, 0.25rem) * #{$factor});
 }
 
-// ==========================================================================
-// SCSS Button Mixins & Placeholders (Modular Tailwind-equivalent patterns)
-// ==========================================================================
+// Mixin für Border-Radius Tokens (--radius-*)
+@mixin tw-radius($size: md) {
+    border-radius: var(--radius-#{$size}, 0.375rem);
+}
+
+// Mixin für Box-Shadow Tokens (--shadow-*)
+@mixin tw-shadow($size: md) {
+    box-shadow: var(--shadow-#{$size});
+}
+
+// Mixin für Backdrop-Blur Filter (--blur-*)
+@mixin tw-blur($size: md) {
+    backdrop-filter: blur(var(--blur-#{$size}, 8px));
+    -webkit-backdrop-filter: blur(var(--blur-#{$size}, 8px));
+}
+
+// Mixin für konsistente Transitions
+@mixin tw-transition($props: (background-color, color, border-color, box-shadow, transform)) {
+    transition-property: $props;
+    transition-duration: var(--default-transition-duration, 150ms);
+    transition-timing-function: var(--default-transition-timing-function, cubic-bezier(0.4, 0, 0.2, 1));
+}
 
 // Mixin für Flex-Ausrichtung & Gap (Tailwind: inline-flex items-center justify-center gap-*)
 @mixin app-btn-layout($gap: tw-space(1.5)) {
@@ -162,13 +181,91 @@
     }
 }
 
+// ==========================================================================
+// Badges, Status Pills & Dots
+// ==========================================================================
+@mixin app-badge-layout($gap: tw-space(1)) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: $gap;
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1;
+}
+
+@mixin app-badge-size($padding-y: tw-space(0.5), $padding-x: tw-space(2), $font-size: 0.75rem, $radius: var(--radius-full, 9999px), $font-weight: 600) {
+    padding: $padding-y $padding-x;
+    font-size: $font-size;
+    font-weight: $font-weight;
+    border-radius: $radius;
+}
+
+%app-badge-base {
+    @include app-badge-layout(tw-space(1));
+    @include app-badge-size(tw-space(0.5), tw-space(2), 0.75rem, var(--radius-full, 9999px), 600);
+    border: 1px solid transparent;
+}
+
+.app-badge,
+.app-count-badge {
+    @extend %app-badge-base;
+    background-color: var(--color-badge-count-bg);
+    color: var(--color-badge-count-text);
+    border-color: var(--color-badge-count-border);
+
+    &.app-badge-sm,
+    &.app-flyout-badge {
+        @include app-badge-size(tw-space(0.5), tw-space(1.5), 0.625rem, var(--radius-sm, 0.25rem), 500);
+        font-family: var(--font-mono, monospace);
+    }
+}
+
+.app-flyout-badge {
+    @extend %app-badge-base;
+    @include app-badge-size(tw-space(0.5), tw-space(1.5), 0.625rem, var(--radius-sm, 0.25rem), 500);
+    font-family: var(--font-mono, monospace);
+    background-color: var(--color-badge-count-bg);
+    color: var(--color-badge-count-text);
+    border-color: var(--color-badge-count-border);
+}
+
+// Status Dots (z. B. CRC OK/Fehler, Verbindungsstatus)
+.app-status-dot {
+    width: tw-space(2);
+    height: tw-space(2);
+    border-radius: var(--radius-full, 9999px);
+    flex-shrink: 0;
+    display: inline-block;
+
+    &.is-success,
+    &.bg-emerald-500 {
+        background-color: #10b981;
+    }
+
+    &.is-danger,
+    &.bg-rose-500 {
+        background-color: #f43f5e;
+    }
+
+    &.is-warning {
+        background-color: #f59e0b;
+    }
+
+    &.is-dim,
+    &.bg-slate-400 {
+        background-color: #94a3b8;
+    }
+}
+
 // SSE Connection Status Badge
 .app-sse-badge {
+    @include app-badge-layout(tw-space(1.5));
+    @include app-badge-size(tw-space(1), tw-space(2.5), 0.75rem, var(--radius-full, 9999px), 500);
+    @include tw-blur(md);
     background-color: var(--color-sse-connecting-bg);
     border: 1px solid var(--color-sse-connecting-border);
     color: var(--color-sse-connecting-text);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
 
     #sse-status-dot {
         background-color: var(--color-sse-connecting-dot);
@@ -207,14 +304,81 @@
     }
 }
 
-// Metric Stat Cards
+// ==========================================================================
+// Form Inputs & Search Fields
+// ==========================================================================
+@mixin app-input-layout {
+    display: block;
+    width: 100%;
+    outline: none;
+    @include tw-blur(md);
+    @include tw-transition((background-color, border-color, box-shadow, color));
+}
+
+@mixin app-input-size($padding-y: tw-space(1.5), $padding-x: tw-space(3), $font-size: 0.75rem, $radius: var(--radius-lg, 0.5rem), $height: auto) {
+    padding: $padding-y $padding-x;
+    font-size: $font-size;
+    border-radius: $radius;
+    @if $height != auto {
+        height: $height;
+    }
+}
+
+.app-input {
+    @include app-input-layout;
+    @include app-input-size(tw-space(1.5), tw-space(3), 0.75rem, var(--radius-lg, 0.5rem));
+
+    background-color: var(--color-input-bg);
+    border: 1px solid var(--color-input-border);
+    color: var(--color-input-text);
+
+    &::placeholder {
+        color: var(--color-input-placeholder);
+    }
+
+    &:focus-visible,
+    &:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+    }
+
+    &.has-leading-icon {
+        padding-left: tw-space(8);
+    }
+
+    &.app-input-lg {
+        @include app-input-size(tw-space(2.5), tw-space(4), 1rem, var(--radius-xl, 0.75rem), tw-space(12));
+    }
+}
+
+// ==========================================================================
+// Metric Stat Cards & Icon Boxes
+// ==========================================================================
+@mixin app-icon-box($size: tw-space(10), $radius: var(--radius-lg, 0.5rem)) {
+    width: $size;
+    height: $size;
+    border-radius: $radius;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    img,
+    svg {
+        width: calc(#{$size} * 0.5);
+        height: calc(#{$size} * 0.5);
+        flex-shrink: 0;
+        display: block;
+    }
+}
+
 .app-card {
     background-color: var(--color-card-bg);
     border: 1px solid var(--color-card-border);
     box-shadow: var(--color-card-shadow);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    border-radius: var(--radius-xl, 0.75rem);
+    @include tw-blur(lg);
+    @include tw-transition((background-color, border-color, transform, box-shadow));
 }
 
 .app-metric-label {
@@ -226,12 +390,14 @@
 }
 
 .app-icon-box-blue {
+    @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
     background-color: var(--color-metric-total-bg);
     border: 1px solid var(--color-metric-total-border);
     color: var(--color-metric-total-text);
 }
 
 .app-icon-box-indigo {
+    @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
     background-color: var(--color-metric-channel-bg);
     border: 1px solid var(--color-metric-channel-border);
     color: var(--color-metric-channel-text);
@@ -242,6 +408,7 @@
 }
 
 .app-icon-box-cyan {
+    @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
     background-color: var(--color-metric-reader-bg);
     border: 1px solid var(--color-metric-reader-border);
     color: var(--color-metric-reader-text);
@@ -252,6 +419,7 @@
 }
 
 .app-icon-box-emerald {
+    @include app-icon-box(tw-space(10), var(--radius-lg, 0.5rem));
     background-color: var(--color-metric-uptime-bg);
     border: 1px solid var(--color-metric-uptime-border);
     color: var(--color-metric-uptime-text);
@@ -261,49 +429,32 @@
     color: var(--color-metric-uptime-text);
 }
 
-// Main Panel & Toolbar
+// ==========================================================================
+// Main Panels & Toolbars
+// ==========================================================================
 .app-panel {
     background: var(--color-panel-bg);
-    border-color: var(--color-panel-border);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--color-panel-border);
+    border-radius: var(--radius-2xl, 1rem);
+    @include tw-blur(xl);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
 }
 
 .app-panel-toolbar {
     background-color: var(--color-panel-toolbar-bg);
-    border-color: var(--color-panel-toolbar-border);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--color-panel-toolbar-border);
+    @include tw-blur(md);
 }
 
 .app-panel-title {
     color: var(--color-text-main);
 }
 
-.app-count-badge {
-    background-color: var(--color-badge-count-bg);
-    color: var(--color-badge-count-text);
-    border: 1px solid var(--color-badge-count-border);
-}
-
-.app-input {
-    background-color: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-input-text);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-
-    &::placeholder {
-        color: var(--color-input-placeholder);
-    }
-}
-
 .app-clear-btn {
     background-color: var(--color-btn-bg);
     color: var(--color-btn-text);
     border: 1px solid var(--color-btn-border);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    @include tw-blur(md);
 
     &:hover {
         background-color: var(--color-tag-crc-err-bg);

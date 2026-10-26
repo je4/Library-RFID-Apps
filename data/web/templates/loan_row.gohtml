@@ -2,11 +2,11 @@
     <!-- Item ID -->
     <td class="py-3.5 px-4 font-mono font-medium whitespace-nowrap">
         <div class="flex items-center space-x-2">
-            <span class="w-2 h-2 rounded-full flex-shrink-0 {{if .CRCOk}}bg-emerald-500{{else}}bg-rose-500{{end}}"></span>
+            <span class="app-status-dot {{if .CRCOk}}is-success{{else}}is-danger{{end}}"></span>
             {{if .ItemID}}
             <div class="inline-flex items-center space-x-1.5 flex-nowrap">
                 <span class="text-sm font-semibold tracking-wide app-tag-item-id loan-item-id">{{.ItemID}}</span>
-                <button type="button" class="copy-itemid-btn app-copy-btn p-0.5 rounded transition-colors flex-shrink-0" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
+                <button type="button" class="copy-itemid-btn app-copy-btn" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
                     <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 flex-shrink-0" width="14" height="14" alt="Kopieren" />
                 </button>
             </div>
@@ -18,9 +18,9 @@
 
     <!-- UID with Copy Button -->
     <td class="py-3.5 px-4 font-mono text-xs whitespace-nowrap">
-        <div class="inline-flex items-center space-x-1.5 app-uid-box px-2 py-1 rounded transition-colors flex-nowrap">
+        <div class="app-uid-box">
             <span class="whitespace-nowrap">{{.UID}}</span>
-            <button type="button" class="copy-uid-btn app-copy-btn p-0.5 rounded transition-colors flex-shrink-0" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
+            <button type="button" class="copy-uid-btn app-copy-btn" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
                 <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 flex-shrink-0" width="14" height="14" alt="Kopieren" />
             </button>
         </div>
@@ -66,10 +66,10 @@
                                 {{end}}
                             </div>
                             <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                                <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-medium app-flyout-badge">{{.ISILEntry.ISIL}}</span>
+                                <span class="app-flyout-badge">{{.ISILEntry.ISIL}}</span>
                                 {{if .ISILEntry.Status}}
                                 <span class="inline-flex items-center gap-1 text-[10px] font-medium {{if eq .ISILEntry.Status "aktiv"}}text-emerald-600 dark:text-emerald-400{{else}}app-text-dim{{end}}">
-                                    <span class="w-1.5 h-1.5 rounded-full {{if eq .ISILEntry.Status "aktiv"}}bg-emerald-500{{else}}bg-slate-400{{end}}"></span>
+                                    <span class="app-status-dot w-1.5 h-1.5 {{if eq .ISILEntry.Status "aktiv"}}is-success{{else}}is-dim{{end}}"></span>
                                     {{.ISILEntry.Status}}
                                 </span>
                                 {{end}}
