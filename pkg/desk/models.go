@@ -184,6 +184,7 @@ type DeskData struct {
 	Uptime        string
 	Tags          []*TagItem
 	Skin          string
+	ThemeMode     string
 	StaticPath    string
 }
 
@@ -214,6 +215,7 @@ type LoanData struct {
 	WriteErrorCount   int
 	FailedItems       []string
 	Skin              string
+	ThemeMode         string
 	StaticPath        string
 }
 
@@ -245,6 +247,7 @@ type EncodeData struct {
 	DefaultAFI     string
 	DefaultParts   int
 	Skin           string
+	ThemeMode      string
 	StaticPath     string
 }
 

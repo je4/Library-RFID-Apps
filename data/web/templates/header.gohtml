@@ -47,6 +47,18 @@
             </div>
         </div>
 
+        <!-- Light / Dark Mode Selector Dropdown -->
+        <div class="relative inline-flex items-center">
+            <div class="join app-btn btn btn-sm btn-ghost gap-1 px-2">
+                <span class="app-icon icon-sun-moon w-4 h-4 opacity-75 shrink-0" aria-hidden="true"></span>
+                <select id="theme-mode-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Anzeigemodus auswählen (Auto / Hell / Dunkel)">
+                    <option value="auto" {{if or (not .ThemeMode) (eq .ThemeMode "auto")}}selected{{end}}>Auto</option>
+                    <option value="lightmode" {{if eq .ThemeMode "lightmode"}}selected{{end}}>Lightmode</option>
+                    <option value="darkmode" {{if eq .ThemeMode "darkmode"}}selected{{end}}>Darkmode</option>
+                </select>
+            </div>
+        </div>
+
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
         <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur Channel-Auswahl">

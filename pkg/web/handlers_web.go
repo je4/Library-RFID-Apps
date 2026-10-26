@@ -25,6 +25,17 @@ func getSkinFromCookie(c *gin.Context) string {
 	return skin
 }
 
+func getThemeModeFromCookie(c *gin.Context) string {
+	if c == nil {
+		return "auto"
+	}
+	mode, err := c.Cookie("rfid_theme_mode")
+	if err != nil || mode == "" {
+		return "auto"
+	}
+	return mode
+}
+
 func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
 	ch := ""
@@ -109,6 +120,7 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 func (ctrl *Controller) handleIndex(c *gin.Context) {
 	data := ctrl.getDeskData()
 	data.Skin = getSkinFromCookie(c)
+	data.ThemeMode = getThemeModeFromCookie(c)
 	c.HTML(http.StatusOK, "index.gohtml", data)
 }
 
@@ -116,6 +128,7 @@ func (ctrl *Controller) handleChannelIndex(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getDeskData(channel)
 	data.Skin = getSkinFromCookie(c)
+	data.ThemeMode = getThemeModeFromCookie(c)
 	c.HTML(http.StatusOK, "desk.gohtml", data)
 }
 
@@ -123,6 +136,7 @@ func (ctrl *Controller) handleLoan(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getLoanData(channel)
 	data.Skin = getSkinFromCookie(c)
+	data.ThemeMode = getThemeModeFromCookie(c)
 	c.HTML(http.StatusOK, "loan.gohtml", data)
 }
 
@@ -189,6 +203,7 @@ func (ctrl *Controller) handleEncode(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getEncodeData(channel)
 	data.Skin = getSkinFromCookie(c)
+	data.ThemeMode = getThemeModeFromCookie(c)
 	c.HTML(http.StatusOK, "encode.gohtml", data)
 }
 

@@ -170,13 +170,13 @@
     <!-- CRC Check Status -->
     <td class="py-3.5 px-4 text-xs font-mono">
         {{if .CRCOk}}
-        <span class="badge badge-sm badge-success gap-1 text-[11px] font-mono">
-            <img src="{{.StaticPath}}/img/icons/check.svg" class="w-3.5 h-3.5" alt="OK" />
+        <span class="inline-flex items-center gap-1.5 text-success font-medium">
+            <span class="app-icon icon-check w-3.5 h-3.5" aria-hidden="true"></span>
             <span>OK (Gültig)</span>
         </span>
         {{else}}
-        <span class="badge badge-sm badge-error gap-1 text-[11px] font-mono">
-            <img src="{{.StaticPath}}/img/icons/x-mark.svg" class="w-3.5 h-3.5" alt="Fehler" />
+        <span class="inline-flex items-center gap-1.5 text-error font-medium">
+            <span class="app-icon icon-x-mark w-3.5 h-3.5" aria-hidden="true"></span>
             <span>Fehler</span>
         </span>
         {{end}}
@@ -187,17 +187,17 @@
         <div class="flex flex-col space-y-1">
             <div class="flex items-center space-x-1.5 flex-wrap gap-1">
                 {{if .AFISecured}}
-                <span class="badge badge-sm badge-info gap-1 text-[11px] font-mono" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
-                    <img src="{{.StaticPath}}/img/icons/lock-closed.svg" class="w-3.5 h-3.5" alt="Gesichert" />
+                <span class="inline-flex items-center gap-1.5 text-info font-medium" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
+                    <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
                     <span>Gesichert (07)</span>
                 </span>
                 {{else if .AFIUnsecured}}
-                <span class="badge badge-sm badge-success gap-1 text-[11px] font-mono" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
-                    <img src="{{.StaticPath}}/img/icons/lock-open.svg" class="w-3.5 h-3.5" alt="Entsichert" />
+                <span class="inline-flex items-center gap-1.5 text-success font-medium" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
+                    <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
                     <span>Entsichert (C2)</span>
                 </span>
                 {{else if .AFI}}
-                <span class="badge badge-sm badge-ghost font-mono">AFI: {{.AFI}}</span>
+                <span class="font-mono">AFI: {{.AFI}}</span>
                 {{else}}
                 <span class="app-text-dim">-</span>
                 {{end}}

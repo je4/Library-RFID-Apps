@@ -951,11 +951,13 @@
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
 }
 
-#skin-select {
+#skin-select,
+#theme-mode-select {
   color: var(--color-btn-text);
   background-color: transparent;
 }
-#skin-select option {
+#skin-select option,
+#theme-mode-select option {
   background-color: var(--color-bg-body);
   color: var(--color-text-main);
 }
@@ -1317,6 +1319,10 @@
 .app-icon.icon-search {
   mask-image: url("../img/icons/search.svg");
   -webkit-mask-image: url("../img/icons/search.svg");
+}
+.app-icon.icon-sun-moon {
+  mask-image: url("../img/icons/sun-moon.svg");
+  -webkit-mask-image: url("../img/icons/sun-moon.svg");
 }
 .app-icon.icon-tag {
   mask-image: url("../img/icons/tag.svg");

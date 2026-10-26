@@ -107,6 +107,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	}
 
 	for _, modulePath := range []string{
+		"/static/js/theme-init.js",
 		"/static/js/desk.js",
 		"/static/js/modules/audio.js",
 		"/static/js/modules/table-actions.js",
@@ -1818,5 +1819,121 @@ func TestController_EncodeEndpoints(t *testing.T) {
 	ctrl.router.ServeHTTP(recAPI, reqAPI)
 	if recAPI.Code != http.StatusOK {
 		t.Errorf("expected 200 for /api/v1/encode/write, got %d (body: %s)", recAPI.Code, recAPI.Body.String())
+	}
+}
+
+func TestThemeModeAndColumnBadges(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8763",
+		ClientName:    "bib-client-mode-test",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Test Theme Mode Dropdown and Cookie Selection
+	testCases := []struct {
+		modeCookie   string
+		expectedHTML string
+	}{
+		{"", `<option value="auto" selected>Auto</option>`},
+		{"auto", `<option value="auto" selected>Auto</option>`},
+		{"lightmode", `<option value="lightmode" selected>Lightmode</option>`},
+		{"darkmode", `<option value="darkmode" selected>Darkmode</option>`},
+	}
+
+	for _, tc := range testCases {
+		req := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+		if tc.modeCookie != "" {
+			req.AddCookie(&http.Cookie{Name: "rfid_theme_mode", Value: tc.modeCookie})
+		}
+		rec := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200 for /channel-1/loan, got %d", rec.Code)
+		}
+		body := rec.Body.String()
+		if !strings.Contains(body, `id="theme-mode-select"`) {
+			t.Errorf("expected theme-mode-select element in header, got: %s", body)
+		}
+		if !strings.Contains(body, tc.expectedHTML) {
+			t.Errorf("expected %q for mode cookie %q, got: %s", tc.expectedHTML, tc.modeCookie, body)
+		}
+	}
+
+	// 2. Add Tag with valid CRC and Secured AFI
+	hub.AddTag(&rfidclient.TagReadEvent{
+		UID:    "E004015011112222",
+		ItemID: "ITEM-AFI-07",
+		ISIL:   "CH-000001-1",
+		AFI:    "07",
+		CRCOk:  true,
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+			ClientID: "reader-01",
+			Channel:  "channel-1",
+		},
+	})
+
+	// Render desk page and loan table fragment
+	reqDesk := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	recDesk := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDesk, reqDesk)
+	deskBody := recDesk.Body.String()
+
+	reqLoan := httptest.NewRequest(http.MethodGet, "/channel-1/loan/tags", nil)
+	recLoan := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recLoan, reqLoan)
+	loanBody := recLoan.Body.String()
+
+	// Verify text and icon presence
+	for name, body := range map[string]string{"desk": deskBody, "loan": loanBody} {
+		if !strings.Contains(body, "OK (Gültig)") {
+			t.Errorf("[%s] expected 'OK (Gültig)', got: %s", name, body)
+		}
+		if !strings.Contains(body, "Gesichert (07)") {
+			t.Errorf("[%s] expected 'Gesichert (07)', got: %s", name, body)
+		}
+		if !strings.Contains(body, "icon-check") {
+			t.Errorf("[%s] expected 'icon-check', got: %s", name, body)
+		}
+		if !strings.Contains(body, "icon-lock-closed") {
+			t.Errorf("[%s] expected 'icon-lock-closed', got: %s", name, body)
+		}
+
+		// Verify NO badge classes in the CRC and AFI display
+		if strings.Contains(body, `badge badge-sm badge-success gap-1 text-[11px] font-mono`) {
+			t.Errorf("[%s] found obsolete badge class on CRC/AFI element in body: %s", name, body)
+		}
+		if strings.Contains(body, `badge badge-sm badge-info gap-1 text-[11px] font-mono`) {
+			t.Errorf("[%s] found obsolete badge-info class on AFI element in body: %s", name, body)
+		}
+	}
+
+	// Verify theme-init.js inclusion in all full page views
+	for _, pagePath := range []string{"/", "/channel-1/", "/channel-1/loan", "/channel-1/encode"} {
+		reqPage := httptest.NewRequest(http.MethodGet, pagePath, nil)
+		recPage := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(recPage, reqPage)
+		if recPage.Code != http.StatusOK {
+			t.Errorf("expected 200 for %s, got %d", pagePath, recPage.Code)
+		}
+		pBody := recPage.Body.String()
+		if !strings.Contains(pBody, `/js/theme-init.js`) {
+			t.Errorf("expected %s to contain /js/theme-init.js script reference, got: %s", pagePath, pBody)
+		}
+		if strings.Contains(pBody, "var themeMap =") {
+			t.Errorf("expected %s not to contain redundant inline themeMap script", pagePath)
+		}
 	}
 }
