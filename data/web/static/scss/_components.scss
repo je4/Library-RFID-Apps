@@ -430,14 +430,63 @@
 }
 
 // ==========================================================================
-// Main Panels & Toolbars
+// Layout Containers & Section Panels
 // ==========================================================================
+
+// Zentraler Hauptcontainer für alle Ansichten
+.app-main {
+    width: 100%;
+    max-width: 80rem; // max-w-7xl
+    margin-left: auto;
+    margin-right: auto;
+    flex: 1 1 0%;
+    display: flex;
+    flex-direction: column;
+    gap: tw-space(6); // Einheitlicher 1.5rem Abstand zwischen allen Sections
+}
+
+// Zentrales Panel mit Glassmorphism
 .app-panel {
-    background: var(--color-panel-bg);
+    background-color: var(--color-panel-bg);
     border: 1px solid var(--color-panel-border);
     border-radius: var(--radius-2xl, 1rem);
-    @include tw-blur(xl);
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    @include tw-blur(xl);
+
+    // Toolbar / Header des Panels
+    .app-panel-toolbar {
+        padding: tw-space(4) tw-space(5);
+        border-bottom: 1px solid var(--color-panel-toolbar-border);
+        background-color: var(--color-panel-toolbar-bg);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: tw-space(3);
+        @include tw-blur(md);
+    }
+
+    // Standardisierter Inhaltsbereich für Formulare und Detailansichten
+    .app-panel-body {
+        padding: tw-space(5) tw-space(6);
+        display: flex;
+        flex-direction: column;
+        gap: tw-space(5);
+    }
+
+    // Aktions- und Footer-Leiste innerhalb eines Panels
+    .app-panel-footer {
+        padding: tw-space(4) tw-space(6);
+        border-top: 1px dashed var(--color-panel-border);
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: tw-space(4);
+    }
 }
 
 .app-panel-toolbar {

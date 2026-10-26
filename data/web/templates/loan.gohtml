@@ -47,7 +47,7 @@
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-6">
+    <main class="app-main">
 
         <!-- Metrics Overview Grid -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -86,9 +86,9 @@
         </section>
 
         <!-- Active Media Table & Control Panel -->
-        <section class="rounded-2xl app-panel border shadow-2xl overflow-hidden flex flex-col flex-1">
+        <section class="app-panel flex-1">
             <!-- Action Toolbar -->
-            <div class="p-4 sm:p-5 border-b app-panel-toolbar flex flex-wrap items-center justify-between gap-3">
+            <div class="app-panel-toolbar">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Aufliegende Medien auf Reader</h2>

@@ -47,90 +47,92 @@
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col space-y-8">
+    <main class="app-main">
 
         <!-- Form & Controls Panel for Encoding -->
-        <section class="rounded-2xl app-panel border shadow-2xl p-6 sm:p-8 lg:p-9 flex flex-col gap-8">
-            <div class="flex items-center justify-between border-b pb-5 app-panel-toolbar -mx-6 sm:-mx-8 lg:-mx-9 -mt-6 sm:-mt-8 lg:-mt-9 px-6 sm:px-8 lg:px-9 pt-6 rounded-t-2xl">
-                <div class="flex items-center space-x-3.5">
-                    <div class="w-11 h-11 rounded-xl bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
-                        <img src="{{.StaticPath}}/img/tag.svg" class="w-6 h-6" alt="Kodieren" />
+        <section class="app-panel">
+            <div class="app-panel-toolbar">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
+                        <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5" alt="Kodieren" />
                     </div>
                     <div>
-                        <h2 class="text-lg font-bold app-panel-title">Transponder beschreiben (ISO 28560-2)</h2>
-                        <p class="text-sm app-meta-text">Geben Sie Barcode und Metadaten ein, um RFID-Etiketten zu programmieren.</p>
+                        <h2 class="text-base font-semibold app-panel-title">Transponder beschreiben (ISO 28560-2)</h2>
+                        <p class="text-xs app-meta-text">Geben Sie Barcode und Metadaten ein, um RFID-Etiketten zu programmieren.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Encoding Input Grid -->
-            <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                <!-- Barcode / ItemID Input -->
-                <div class="md:col-span-5 flex flex-col gap-2">
-                    <label for="encode-item-id" class="text-sm font-semibold app-metric-label flex items-center justify-between">
-                        <span>Barcode / ItemID <span class="text-red-500">*</span></span>
-                        <span class="text-xs font-normal app-text-dim">Erforderlich</span>
-                    </label>
-                    <div class="relative flex items-center">
-                        <input id="encode-item-id" type="text" placeholder="Barcode scannen oder eingeben..." autofocus
-                               class="w-full app-input h-12 text-base rounded-xl pl-11 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono transition-all"
-                               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                        <img src="{{.StaticPath}}/img/search.svg" class="w-5 h-5 app-text-dim absolute left-3.5 pointer-events-none opacity-60" alt="Barcode" />
+            <div class="app-panel-body">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <!-- Barcode / ItemID Input -->
+                    <div class="md:col-span-5 flex flex-col gap-1.5">
+                        <label for="encode-item-id" class="text-xs font-semibold app-metric-label flex items-center justify-between">
+                            <span>Barcode / ItemID <span class="text-rose-500">*</span></span>
+                            <span class="text-xs font-normal app-text-dim">Erforderlich</span>
+                        </label>
+                        <div class="relative flex items-center">
+                            <input id="encode-item-id" type="text" placeholder="Barcode scannen oder eingeben..." autofocus
+                                   class="app-input has-leading-icon w-full font-mono"
+                                   autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+                            <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none opacity-60" alt="Barcode" />
+                        </div>
                     </div>
-                </div>
 
-                <!-- ISIL Identifier Input -->
-                <div class="md:col-span-3 flex flex-col gap-2">
-                    <label for="encode-isil" class="text-sm font-semibold app-metric-label flex items-center justify-between">
-                        <span>Bibliothek / ISIL</span>
-                        <span class="text-xs font-normal app-text-dim">Format: Land-ISIL</span>
-                    </label>
-                    <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
-                           class="w-full app-input h-12 text-base rounded-xl px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono transition-all">
-                </div>
+                    <!-- ISIL Identifier Input -->
+                    <div class="md:col-span-3 flex flex-col gap-1.5">
+                        <label for="encode-isil" class="text-xs font-semibold app-metric-label flex items-center justify-between">
+                            <span>Bibliothek / ISIL</span>
+                            <span class="text-xs font-normal app-text-dim">Format: Land-ISIL</span>
+                        </label>
+                        <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
+                               class="app-input w-full font-mono">
+                    </div>
 
-                <!-- AFI Security Switch (Segmented 2-Way Control) -->
-                <div class="md:col-span-4 flex flex-col gap-2">
-                    <label class="text-sm font-semibold app-metric-label flex items-center justify-between">
-                        <span>AFI Sicherheitsstatus</span>
-                        <span class="text-xs font-normal app-text-dim">Sicherheitsflag</span>
-                    </label>
-                    <div class="app-afi-segmented-control flex items-center p-1 rounded-xl h-12" role="radiogroup" aria-label="AFI Sicherheitsstatus">
-                        <button type="button" id="encode-afi-btn-unsecure"
-                                class="app-afi-segment flex-1 flex items-center justify-center gap-2 h-full px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer {{if ne .DefaultAFI "07"}}app-afi-active-unsecure{{end}}"
-                                data-afi="C2" role="radio" aria-checked="{{if ne .DefaultAFI "07"}}true{{else}}false{{end}}">
-                            <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-4 h-4 shrink-0" alt="Ungesichert" />
-                            <span>Ungesichert (C2)</span>
-                        </button>
-                        <button type="button" id="encode-afi-btn-secure"
-                                class="app-afi-segment flex-1 flex items-center justify-center gap-2 h-full px-3 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer {{if eq .DefaultAFI "07"}}app-afi-active-secure{{end}}"
-                                data-afi="07" role="radio" aria-checked="{{if eq .DefaultAFI "07"}}true{{else}}false{{end}}">
-                            <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-4 h-4 shrink-0" alt="Gesichert" />
-                            <span>Gesichert (07)</span>
-                        </button>
-                        <input type="hidden" id="encode-afi-input" value="{{.DefaultAFI}}">
+                    <!-- AFI Security Switch (Segmented 2-Way Control) -->
+                    <div class="md:col-span-4 flex flex-col gap-1.5">
+                        <label class="text-xs font-semibold app-metric-label flex items-center justify-between">
+                            <span>AFI Sicherheitsstatus</span>
+                            <span class="text-xs font-normal app-text-dim">Sicherheitsflag</span>
+                        </label>
+                        <div class="app-afi-segmented-control flex items-center p-1 rounded-lg h-9" role="radiogroup" aria-label="AFI Sicherheitsstatus">
+                            <button type="button" id="encode-afi-btn-unsecure"
+                                    class="app-afi-segment flex-1 flex items-center justify-center gap-1.5 h-full px-2.5 rounded text-xs font-semibold cursor-pointer {{if ne .DefaultAFI "07"}}app-afi-active-unsecure{{end}}"
+                                    data-afi="C2" role="radio" aria-checked="{{if ne .DefaultAFI "07"}}true{{else}}false{{end}}">
+                                <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0" alt="Ungesichert" />
+                                <span>Ungesichert (C2)</span>
+                            </button>
+                            <button type="button" id="encode-afi-btn-secure"
+                                    class="app-afi-segment flex-1 flex items-center justify-center gap-1.5 h-full px-2.5 rounded text-xs font-semibold cursor-pointer {{if eq .DefaultAFI "07"}}app-afi-active-secure{{end}}"
+                                    data-afi="07" role="radio" aria-checked="{{if eq .DefaultAFI "07"}}true{{else}}false{{end}}">
+                                <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0" alt="Gesichert" />
+                                <span>Gesichert (07)</span>
+                            </button>
+                            <input type="hidden" id="encode-afi-input" value="{{.DefaultAFI}}">
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Parts Selection & Start Action Bar -->
-            <div class="flex flex-wrap items-center justify-between gap-6 pt-6 border-t border-dashed">
+            <div class="app-panel-footer">
                 <!-- Multi-part selector -->
                 <div class="flex items-center flex-wrap gap-3">
-                    <span class="text-sm font-semibold app-metric-label mr-1">Teile (Multi-Part):</span>
+                    <span class="text-xs font-semibold app-metric-label mr-1">Teile (Multi-Part):</span>
                     <input type="hidden" id="encode-parts-input" value="{{.DefaultParts}}">
                     
-                    <div class="inline-flex rounded-xl p-1 app-card border gap-1.5" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
-                        <button type="button" class="encode-part-btn h-11 min-w-[48px] px-4 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer {{if eq .DefaultParts 1}}app-part-active bg-blue-600 text-white shadow-md{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="1">1</button>
-                        <button type="button" class="encode-part-btn h-11 min-w-[48px] px-4 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer {{if eq .DefaultParts 2}}app-part-active bg-blue-600 text-white shadow-md{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="2">2</button>
-                        <button type="button" class="encode-part-btn h-11 min-w-[48px] px-4 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer {{if eq .DefaultParts 3}}app-part-active bg-blue-600 text-white shadow-md{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="3">3</button>
-                        <button type="button" class="encode-part-btn h-11 min-w-[48px] px-4 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer {{if eq .DefaultParts 4}}app-part-active bg-blue-600 text-white shadow-md{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="4">4</button>
-                        <button type="button" class="encode-part-btn h-11 min-w-[48px] px-4 py-2 text-sm font-bold rounded-lg transition-all cursor-pointer {{if eq .DefaultParts 5}}app-part-active bg-blue-600 text-white shadow-md{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="5">5</button>
+                    <div class="inline-flex rounded-lg p-0.5 app-card border gap-1" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
+                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 1}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="1">1</button>
+                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 2}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="2">2</button>
+                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 3}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="3">3</button>
+                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 4}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="4">4</button>
+                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 5}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="5">5</button>
                     </div>
 
                     <!-- Dropdown for 6 to 12 parts -->
                     <div class="relative inline-flex items-center">
-                        <select id="encode-parts-select" class="app-input h-11 text-sm font-semibold rounded-xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
+                        <select id="encode-parts-select" class="app-input h-8 text-xs font-semibold rounded-lg px-2.5 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
                             <option value="" disabled {{if le .DefaultParts 5}}selected{{end}}>6 - 12 Teile...</option>
                             <option value="6" {{if eq .DefaultParts 6}}selected{{end}}>6 Teile</option>
                             <option value="7" {{if eq .DefaultParts 7}}selected{{end}}>7 Teile</option>
@@ -145,18 +147,18 @@
 
                 <!-- Start Action Button -->
                 <button id="btn-encode-start" type="button" disabled
-                        class="h-12 px-8 text-base font-bold rounded-xl transition-all inline-flex items-center gap-2.5 cursor-pointer shadow-lg disabled:opacity-40 disabled:cursor-not-allowed bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white hover:from-blue-500 hover:to-purple-500 hover:shadow-indigo-500/25 focus:outline-none focus:ring-2 focus:ring-indigo-500 transform active:scale-[0.98]"
+                        class="app-btn font-bold px-5 py-2"
                         title="Kodierung für die aufgelegten Medien starten">
-                    <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5 shrink-0" alt="Start" />
+                    <img src="{{.StaticPath}}/img/tag.svg" alt="Start" />
                     <span>Kodierung starten</span>
                 </button>
             </div>
         </section>
 
         <!-- Active Media Table & Control Panel -->
-        <section class="rounded-2xl app-panel border shadow-2xl overflow-hidden flex flex-col flex-1">
+        <section class="app-panel flex-1">
             <!-- Action Toolbar -->
-            <div class="p-4 sm:p-5 border-b app-panel-toolbar flex flex-wrap items-center justify-between gap-3">
+            <div class="app-panel-toolbar">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Aktuell aufliegende Medien auf Reader</h2>
@@ -224,7 +226,7 @@
             </div>
 
             <div class="flex items-center justify-center gap-3">
-                <button id="btn-encode-modal-stop" type="button" class="px-4 py-2 text-xs font-semibold rounded-xl bg-red-600 hover:bg-red-500 text-white transition-all shadow cursor-pointer">
+                <button id="btn-encode-modal-stop" type="button" class="app-btn bg-rose-600 hover:bg-rose-500 text-white font-semibold">
                     Kodierung stoppen / Abbrechen
                 </button>
             </div>
@@ -245,13 +247,13 @@
             </p>
 
             <div class="flex items-center justify-center flex-wrap gap-2.5 pt-2">
-                <button id="btn-overwrite-confirm" type="button" class="px-4 py-2 text-xs font-bold rounded-xl bg-amber-600 hover:bg-amber-500 text-white transition-all shadow cursor-pointer">
+                <button id="btn-overwrite-confirm" type="button" class="app-btn bg-amber-600 hover:bg-amber-500 text-white font-bold">
                     Überschreiben
                 </button>
                 <button id="btn-overwrite-skip" type="button" class="app-btn" title="Diesen Transponder überspringen">
                     Überspringen
                 </button>
-                <button id="btn-overwrite-cancel" type="button" class="px-4 py-2 text-xs font-medium rounded-xl bg-red-600/80 hover:bg-red-600 text-white transition-all cursor-pointer">
+                <button id="btn-overwrite-cancel" type="button" class="app-btn bg-rose-600/80 hover:bg-rose-600 text-white">
                     Abbrechen
                 </button>
             </div>
