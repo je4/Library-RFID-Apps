@@ -14,12 +14,9 @@ $skin-nord-light: (
     "border-subtle": #d8dee9,
     "border-main": #c2c8d2,
 
-    // Cards & Containers
+    // Cards & Panels
     "card-bg": #ffffff,
     "card-border": #d8dee9,
-    "card-shadow": (0 8px 24px -4px rgba(46, 52, 64, 0.08), 0 2px 6px -1px rgba(46, 52, 64, 0.04)),
-
-    // Panel
     "panel-bg": #ffffff,
     "panel-border": #d8dee9,
     "panel-toolbar-bg": #eceff4,
@@ -29,20 +26,10 @@ $skin-nord-light: (
     "table-header-bg": #eceff4,
     "table-header-text": #434c5e,
     "table-header-border": #d8dee9,
-    "table-row-border": #e5e9f0,
-    "table-row-hover": #e5e9f0,
-    "table-empty-text": #4c566a,
 
-    // Controls & Inputs
-    "input-bg": #ffffff,
-    "input-border": #d8dee9,
-    "input-text": #2e3440,
-    "input-placeholder": #9099a8,
-    "btn-bg": #ffffff,
-    "btn-border": #d8dee9,
+    // Controls
     "btn-text": #2e3440,
     "btn-hover-bg": #e5e9f0,
-    "btn-hover-text": #2e3440,
 
     // Status & Metric Card Variants
     "metric-total-bg": #e5e9f0,
@@ -58,27 +45,17 @@ $skin-nord-light: (
     "metric-uptime-border": #a3be8c,
     "metric-uptime-text": #4c566a,
 
-    // Header Badges & Pill Tags
+    // Header Badges
     "badge-status-bg": #e5e9f0,
     "badge-status-border": #88c0d0,
     "badge-status-text": #5e81ac,
-    "badge-count-bg": #e5e9f0,
-    "badge-count-border": #88c0d0,
-    "badge-count-text": #5e81ac,
 
     // Flash Scan
     "scan-flash-bg": rgba(136, 192, 208, 0.20),
     "scan-flash-shadow": rgba(136, 192, 208, 0.35),
 
-    // Action Card / Functional Button
-    "action-card-bg": linear-gradient(135deg, #434c5e 0%, #4c566a 55%, #5e81ac 100%),
-    "action-card-border": rgba(216, 222, 233, 0.40),
-    "action-card-shadow": (0 10px 25px -5px rgba(67, 76, 94, 0.35), 0 8px 10px -6px rgba(67, 76, 94, 0.2)),
-    "action-card-hover-shadow": (0 18px 32px -6px rgba(67, 76, 94, 0.45), 0 8px 12px -4px rgba(67, 76, 94, 0.25)),
-    "action-card-icon-bg": rgba(255, 255, 255, 0.15),
-    "action-card-icon-border": rgba(255, 255, 255, 0.25),
-    "action-card-subtitle": rgba(236, 239, 244, 0.85),
-    "action-card-title": #ffffff
+    // Action Card Background
+    "action-card-bg": linear-gradient(135deg, #434c5e 0%, #4c566a 55%, #5e81ac 100%)
 );
 
 $skin-nord-dark: (
@@ -92,12 +69,9 @@ $skin-nord-dark: (
     "border-subtle": rgba(67, 76, 94, 0.8),
     "border-main": rgba(76, 86, 106, 0.8),
 
-    // Cards & Containers
+    // Cards & Panels
     "card-bg": #2e3440,
     "card-border": #4c566a,
-    "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.4)),
-
-    // Panel
     "panel-bg": #242933,
     "panel-border": #4c566a,
     "panel-toolbar-bg": #2e3440,
@@ -107,20 +81,10 @@ $skin-nord-dark: (
     "table-header-bg": #2e3440,
     "table-header-text": #d8dee9,
     "table-header-border": #434c5e,
-    "table-row-border": #3b4252,
-    "table-row-hover": #3b4252,
-    "table-empty-text": #d8dee9,
 
-    // Controls & Inputs
-    "input-bg": #242933,
-    "input-border": #4c566a,
-    "input-text": #eceff4,
-    "input-placeholder": #d8dee9,
-    "btn-bg": #2e3440,
-    "btn-border": #4c566a,
+    // Controls
     "btn-text": #eceff4,
     "btn-hover-bg": #3b4252,
-    "btn-hover-text": #ffffff,
 
     // Status & Metric Card Variants
     "metric-total-bg": #2e3440,
@@ -136,27 +100,17 @@ $skin-nord-dark: (
     "metric-uptime-border": #a3be8c,
     "metric-uptime-text": #a3be8c,
 
-    // Header Badges & Pill Tags
+    // Header Badges
     "badge-status-bg": #2e3440,
     "badge-status-border": #88c0d0,
     "badge-status-text": #88c0d0,
-    "badge-count-bg": rgba(46, 52, 64, 0.8),
-    "badge-count-border": rgba(136, 192, 208, 0.8),
-    "badge-count-text": #88c0d0,
 
     // Flash Scan
     "scan-flash-bg": rgba(136, 192, 208, 0.35),
     "scan-flash-shadow": rgba(136, 192, 208, 0.5),
 
-    // Action Card / Functional Button
-    "action-card-bg": linear-gradient(135deg, #2e3440 0%, #3b4252 55%, #434c5e 100%),
-    "action-card-border": rgba(136, 192, 208, 0.30),
-    "action-card-shadow": (0 10px 28px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(136, 192, 208, 0.15)),
-    "action-card-hover-shadow": (0 18px 36px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px 0 rgba(136, 192, 208, 0.25)),
-    "action-card-icon-bg": rgba(255, 255, 255, 0.10),
-    "action-card-icon-border": rgba(255, 255, 255, 0.20),
-    "action-card-subtitle": rgba(216, 222, 233, 0.85),
-    "action-card-title": #eceff4
+    // Action Card Background
+    "action-card-bg": linear-gradient(135deg, #2e3440 0%, #3b4252 55%, #434c5e 100%)
 );
 
 @include apply-skin("nord", $skin-nord-light, $skin-nord-dark);

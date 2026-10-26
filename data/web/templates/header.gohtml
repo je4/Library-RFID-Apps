@@ -51,23 +51,23 @@
 
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
-        <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost app-btn" title="Zurück zur Channel-Auswahl">
-            <img src="{{.StaticPath}}/img/arrow-left.svg" alt="Channels" />
+        <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur Channel-Auswahl">
+            <img src="{{.StaticPath}}/img/arrow-left.svg" class="w-3.5 h-3.5 shrink-0" alt="Channels" />
             <span>Channels</span>
         </a>
 
         {{if or .IsLoan .IsEncode}}
         <!-- Back to Desk Button (Relative to Channel) -->
-        <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost app-btn" title="Zurück zur RFID Desk Gesamtübersicht">
-            <img src="{{.StaticPath}}/img/home.svg" alt="Desk" />
+        <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur RFID Desk Gesamtübersicht">
+            <img src="{{.StaticPath}}/img/home.svg" class="w-3.5 h-3.5 shrink-0" alt="Desk" />
             <span>Desk</span>
         </a>
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
-        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost app-btn" title="Signalton einschalten" aria-pressed="false">
-            <img src="{{.StaticPath}}/img/volume-off.svg" class="sound-icon-off" alt="Ton Aus" />
-            <img src="{{.StaticPath}}/img/volume-high.svg" class="sound-icon-on hidden" alt="Ton An" />
+        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Signalton einschalten" aria-pressed="false">
+            <img src="{{.StaticPath}}/img/volume-off.svg" class="w-3.5 h-3.5 shrink-0 sound-icon-off" alt="Ton Aus" />
+            <img src="{{.StaticPath}}/img/volume-high.svg" class="w-3.5 h-3.5 shrink-0 sound-icon-on hidden" alt="Ton An" />
             <span>Ton</span>
             <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block"></span>
         </button>

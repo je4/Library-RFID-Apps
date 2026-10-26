@@ -14,12 +14,9 @@ $skin-default-light: (
     "border-subtle": #e2e8f0,
     "border-main": #cbd5e1,
 
-    // Cards & Containers
+    // Cards & Panels
     "card-bg": #ffffff,
     "card-border": #e2e8f0,
-    "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04)),
-
-    // Panel
     "panel-bg": #ffffff,
     "panel-border": #e2e8f0,
     "panel-toolbar-bg": #f8fafc,
@@ -29,20 +26,10 @@ $skin-default-light: (
     "table-header-bg": #f8fafc,
     "table-header-text": #475569,
     "table-header-border": #e2e8f0,
-    "table-row-border": #f1f5f9,
-    "table-row-hover": #f1f5f9,
-    "table-empty-text": #64748b,
 
-    // Controls & Inputs
-    "input-bg": #ffffff,
-    "input-border": #cbd5e1,
-    "input-text": #0f172a,
-    "input-placeholder": #94a3b8,
-    "btn-bg": #ffffff,
-    "btn-border": #cbd5e1,
+    // Controls
     "btn-text": #334155,
     "btn-hover-bg": #f1f5f9,
-    "btn-hover-text": #0f172a,
 
     // Status & Metric Card Variants
     "metric-total-bg": #eff6ff,
@@ -58,47 +45,21 @@ $skin-default-light: (
     "metric-uptime-border": #a7f3d0,
     "metric-uptime-text": #059669,
 
-    // Header Badges & Pill Tags
+    // Header Badges
     "badge-status-bg": #eff6ff,
     "badge-status-border": #bfdbfe,
     "badge-status-text": #1d4ed8,
-    "badge-count-bg": #eff6ff,
-    "badge-count-border": #bfdbfe,
-    "badge-count-text": #1d4ed8,
 
     // Tags & Indicators
     "tag-uid-bg": #f1f5f9,
     "tag-uid-border": #cbd5e1,
     "tag-uid-text": #1e293b,
     "tag-uid-hover-border": #94a3b8,
-    "tag-reader-bg": #ecfeff,
-    "tag-reader-border": #a5f3fc,
-    "tag-reader-text": #0891b2,
     "tag-item-id": inherit,
-    "tag-country-bg": #e2e8f0,
-    "tag-country-text": #334155,
     "tag-isil-text": #334155,
     "tag-single-bg": #f1f5f9,
     "tag-single-border": #cbd5e1,
     "tag-single-text": #475569,
-    "tag-multipart-bg": #fffbeb,
-    "tag-multipart-border": #fde68a,
-    "tag-multipart-text": #b45309,
-    "tag-crc-ok-bg": #ecfdf5,
-    "tag-crc-ok-border": #a7f3d0,
-    "tag-crc-ok-text": #047857,
-    "tag-crc-err-bg": #fff1f2,
-    "tag-crc-err-border": #fecdd3,
-    "tag-crc-err-text": #be123c,
-    "tag-afi-bg": #eef2ff,
-    "tag-afi-border": #c7d2fe,
-    "tag-afi-text": #4338ca,
-    "tag-afi-secured-bg": #ecfdf5,
-    "tag-afi-secured-border": #a7f3d0,
-    "tag-afi-secured-text": #047857,
-    "tag-afi-unsecured-bg": #fffbeb,
-    "tag-afi-unsecured-border": #fde68a,
-    "tag-afi-unsecured-text": #b45309,
 
     // SSE Connection Status
     "sse-connected-bg": #ecfdf5,
@@ -119,15 +80,8 @@ $skin-default-light: (
     "scan-flash-bg": rgba(59, 130, 246, 0.15),
     "scan-flash-shadow": rgba(59, 130, 246, 0.25),
 
-    // Action Card / Functional Button
-    "action-card-bg": linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%),
-    "action-card-border": rgba(255, 255, 255, 0.25),
-    "action-card-shadow": (0 10px 25px -5px rgba(30, 41, 59, 0.35), 0 8px 10px -6px rgba(30, 41, 59, 0.2)),
-    "action-card-hover-shadow": (0 18px 32px -6px rgba(30, 41, 59, 0.45), 0 8px 12px -4px rgba(30, 41, 59, 0.25)),
-    "action-card-icon-bg": rgba(255, 255, 255, 0.15),
-    "action-card-icon-border": rgba(255, 255, 255, 0.25),
-    "action-card-subtitle": rgba(226, 232, 240, 0.85),
-    "action-card-title": #ffffff
+    // Action Card Background
+    "action-card-bg": linear-gradient(135deg, #1e293b 0%, #334155 55%, #475569 100%)
 );
 
 $skin-default-dark: (
@@ -141,12 +95,9 @@ $skin-default-dark: (
     "border-subtle": rgba(30, 41, 59, 0.8),
     "border-main": rgba(51, 65, 85, 0.8),
 
-    // Cards & Containers
+    // Cards & Panels
     "card-bg": #1e293b,
     "card-border": #334155,
-    "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.35)),
-
-    // Panel
     "panel-bg": #0f172a,
     "panel-border": #1e293b,
     "panel-toolbar-bg": #1e293b,
@@ -156,20 +107,10 @@ $skin-default-dark: (
     "table-header-bg": #1e293b,
     "table-header-text": #94a3b8,
     "table-header-border": #334155,
-    "table-row-border": #334155,
-    "table-row-hover": #334155,
-    "table-empty-text": #94a3b8,
 
-    // Controls & Inputs
-    "input-bg": #0f172a,
-    "input-border": #334155,
-    "input-text": #ffffff,
-    "input-placeholder": #64748b,
-    "btn-bg": #1e293b,
-    "btn-border": #334155,
+    // Controls
     "btn-text": #cbd5e1,
     "btn-hover-bg": #334155,
-    "btn-hover-text": #ffffff,
 
     // Status & Metric Card Variants
     "metric-total-bg": #1e293b,
@@ -185,47 +126,21 @@ $skin-default-dark: (
     "metric-uptime-border": #10b981,
     "metric-uptime-text": #34d399,
 
-    // Header Badges & Pill Tags
+    // Header Badges
     "badge-status-bg": #172554,
     "badge-status-border": #1e40af,
     "badge-status-text": #93c5fd,
-    "badge-count-bg": rgba(30, 58, 138, 0.8),
-    "badge-count-border": rgba(29, 78, 216, 0.8),
-    "badge-count-text": #93c5fd,
 
     // Tags & Indicators
     "tag-uid-bg": rgba(17, 24, 39, 0.8),
     "tag-uid-border": #1f2937,
     "tag-uid-text": #d1d5db,
     "tag-uid-hover-border": #374151,
-    "tag-reader-bg": rgba(8, 51, 68, 0.8),
-    "tag-reader-border": rgba(21, 94, 117, 0.6),
-    "tag-reader-text": #67e8f9,
     "tag-item-id": inherit,
-    "tag-country-bg": #1f2937,
-    "tag-country-text": #d1d5db,
     "tag-isil-text": #d1d5db,
     "tag-single-bg": rgba(31, 41, 55, 0.8),
     "tag-single-border": rgba(55, 65, 81, 0.6),
     "tag-single-text": #9ca3af,
-    "tag-multipart-bg": rgba(69, 26, 3, 0.8),
-    "tag-multipart-border": rgba(146, 64, 14, 0.7),
-    "tag-multipart-text": #fcd34d,
-    "tag-crc-ok-bg": rgba(2, 44, 34, 0.7),
-    "tag-crc-ok-border": rgba(6, 95, 70, 0.7),
-    "tag-crc-ok-text": #6ee7b7,
-    "tag-crc-err-bg": rgba(76, 5, 25, 0.7),
-    "tag-crc-err-border": rgba(159, 18, 57, 0.7),
-    "tag-crc-err-text": #fda4af,
-    "tag-afi-bg": rgba(30, 27, 75, 0.8),
-    "tag-afi-border": rgba(49, 46, 129, 0.6),
-    "tag-afi-text": #a5b4fc,
-    "tag-afi-secured-bg": rgba(2, 44, 34, 0.7),
-    "tag-afi-secured-border": rgba(6, 95, 70, 0.7),
-    "tag-afi-secured-text": #6ee7b7,
-    "tag-afi-unsecured-bg": rgba(69, 26, 3, 0.7),
-    "tag-afi-unsecured-border": rgba(146, 64, 14, 0.7),
-    "tag-afi-unsecured-text": #fcd34d,
 
     // SSE Connection Status
     "sse-connected-bg": rgba(2, 44, 34, 0.6),
@@ -246,15 +161,8 @@ $skin-default-dark: (
     "scan-flash-bg": rgba(59, 130, 246, 0.35),
     "scan-flash-shadow": rgba(59, 130, 246, 0.5),
 
-    // Action Card / Functional Button
-    "action-card-bg": linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #334155 100%),
-    "action-card-border": rgba(148, 163, 184, 0.25),
-    "action-card-shadow": (0 10px 28px -5px rgba(0, 0, 0, 0.5), inset 0 1px 1px 0 rgba(255, 255, 255, 0.15)),
-    "action-card-hover-shadow": (0 18px 36px -6px rgba(0, 0, 0, 0.65), inset 0 1px 1px 0 rgba(255, 255, 255, 0.25)),
-    "action-card-icon-bg": rgba(255, 255, 255, 0.10),
-    "action-card-icon-border": rgba(255, 255, 255, 0.20),
-    "action-card-subtitle": rgba(203, 213, 225, 0.85),
-    "action-card-title": #f8fafc
+    // Action Card Background
+    "action-card-bg": linear-gradient(135deg, #0f172a 0%, #1e293b 55%, #334155 100%)
 );
 
 // Register default skin as fallback for all custom themes

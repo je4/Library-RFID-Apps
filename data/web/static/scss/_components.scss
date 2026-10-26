@@ -1,5 +1,5 @@
 // ==========================================================================
-// Component Styles: Buttons, Cards, Badges, Inputs & Toolbars
+// Component Styles: Badges, Inputs, Stat Boxes & Layout Panels
 // ==========================================================================
 
 // ==========================================================================
@@ -8,16 +8,6 @@
 // Rechnet Tailwind-Spacing-Faktoren dynamisch anhand der CSS-Variable --spacing um
 @function tw-space($factor) {
     @return calc(var(--spacing, 0.25rem) * #{$factor});
-}
-
-// Mixin für Border-Radius Tokens (--radius-*)
-@mixin tw-radius($size: md) {
-    border-radius: var(--radius-#{$size}, 0.375rem);
-}
-
-// Mixin für Box-Shadow Tokens (--shadow-*)
-@mixin tw-shadow($size: md) {
-    box-shadow: var(--shadow-#{$size});
 }
 
 // Mixin für Backdrop-Blur Filter (--blur-*)
@@ -33,107 +23,9 @@
     transition-timing-function: var(--default-transition-timing-function, cubic-bezier(0.4, 0, 0.2, 1));
 }
 
-// Mixin für Flex-Ausrichtung & Gap (Tailwind: inline-flex items-center justify-center gap-*)
-@mixin app-btn-layout($gap: tw-space(1.5)) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: $gap;
-    white-space: nowrap;
-    text-decoration: none;
-    user-select: none;
-    cursor: pointer;
-}
-
-// Mixin für Button-Größen & Typografie (Tailwind: px-* py-* text-* font-* rounded-*)
-@mixin app-btn-size($padding-y: tw-space(1.5), $padding-x: tw-space(3), $font-size: 0.75rem, $radius: 0.375rem, $font-weight: 600) {
-    padding: $padding-y $padding-x;
-    font-size: $font-size;
-    font-weight: $font-weight;
-    line-height: 1rem;
-    border-radius: $radius;
-}
-
-// Mixin für barrierefreien Tastatur-Fokus (Tailwind: focus-visible:ring-2 focus-visible:ring-blue-500)
-@mixin app-btn-focus-ring($ring-color: #3b82f6, $ring-width: 2px) {
-    &:focus-visible,
-    &:focus {
-        outline: none;
-        box-shadow: 0 0 0 $ring-width rgba(59, 130, 246, 0.45);
-        border-color: $ring-color;
-    }
-}
-
-// Placeholder Selector für gemeinsamen Basis-Code (@extend %app-btn-base)
-%app-btn-base {
-    @include app-btn-layout(tw-space(1.5));
-    @include app-btn-size(tw-space(1.5), tw-space(3), 0.75rem, 0.375rem, 600);
-    @include app-btn-focus-ring(#3b82f6, 2px);
-
-    background-color: var(--color-btn-bg);
-    color: var(--color-btn-text);
-    border: 1px solid var(--color-btn-border);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
-
-    &:hover {
-        background-color: var(--color-btn-hover-bg);
-        color: var(--color-btn-hover-text);
-        border-color: #3b82f6;
-    }
-
-    &:active {
-        transform: scale(0.98);
-    }
-
-    &.active {
-        background-color: var(--color-metric-total-bg);
-        border-color: var(--color-metric-total-border);
-        color: var(--color-metric-total-text);
-    }
-
-    &.is-busy,
-    &[disabled],
-    &.disabled {
-        opacity: 0.55 !important;
-        pointer-events: none !important;
-        cursor: not-allowed !important;
-        transform: none !important;
-    }
-
-    img,
-    svg {
-        width: 1rem;
-        height: 1rem;
-        flex-shrink: 0;
-        display: block;
-
-        &.hidden,
-        &[hidden] {
-            display: none !important;
-        }
-    }
-}
-
 // ==========================================================================
-// Interactive Button Classes
+// Interactive Controls & State Modifiers
 // ==========================================================================
-.app-btn {
-    @extend %app-btn-base;
-
-    // Kompakte Variante für Tabellenzeilen
-    &.app-btn-sm {
-        @include app-btn-size(tw-space(1), tw-space(2), 0.6875rem, 0.25rem, 500);
-        gap: tw-space(1);
-
-        img,
-        svg {
-            width: 0.875rem;
-            height: 0.875rem;
-        }
-    }
-}
 
 // Sound Toggle Switch
 #sound-toggle {
@@ -182,53 +74,8 @@
 }
 
 // ==========================================================================
-// Badges, Status Pills & Dots
+// Badges & Status Indicators
 // ==========================================================================
-@mixin app-badge-layout($gap: tw-space(1)) {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: $gap;
-    white-space: nowrap;
-    user-select: none;
-    line-height: 1;
-}
-
-@mixin app-badge-size($padding-y: tw-space(0.5), $padding-x: tw-space(2), $font-size: 0.75rem, $radius: var(--radius-full, 9999px), $font-weight: 600) {
-    padding: $padding-y $padding-x;
-    font-size: $font-size;
-    font-weight: $font-weight;
-    border-radius: $radius;
-}
-
-%app-badge-base {
-    @include app-badge-layout(tw-space(1));
-    @include app-badge-size(tw-space(0.5), tw-space(2), 0.75rem, var(--radius-full, 9999px), 600);
-    border: 1px solid transparent;
-}
-
-.app-badge,
-.app-count-badge {
-    @extend %app-badge-base;
-    background-color: var(--color-badge-count-bg);
-    color: var(--color-badge-count-text);
-    border-color: var(--color-badge-count-border);
-
-    &.app-badge-sm,
-    &.app-flyout-badge {
-        @include app-badge-size(tw-space(0.5), tw-space(1.5), 0.625rem, var(--radius-sm, 0.25rem), 500);
-        font-family: var(--font-mono, monospace);
-    }
-}
-
-.app-flyout-badge {
-    @extend %app-badge-base;
-    @include app-badge-size(tw-space(0.5), tw-space(1.5), 0.625rem, var(--radius-sm, 0.25rem), 500);
-    font-family: var(--font-mono, monospace);
-    background-color: var(--color-badge-count-bg);
-    color: var(--color-badge-count-text);
-    border-color: var(--color-badge-count-border);
-}
 
 // Status Dots (z. B. CRC OK/Fehler, Verbindungsstatus)
 .app-status-dot {
@@ -260,8 +107,6 @@
 
 // SSE Connection Status Badge
 .app-sse-badge {
-    @include app-badge-layout(tw-space(1.5));
-    @include app-badge-size(tw-space(1), tw-space(2.5), 0.75rem, var(--radius-full, 9999px), 500);
     @include tw-blur(md);
     background-color: var(--color-sse-connecting-bg);
     border: 1px solid var(--color-sse-connecting-border);
@@ -305,49 +150,11 @@
 }
 
 // ==========================================================================
-// Form Inputs & Search Fields
+// Form Input Helpers
 // ==========================================================================
-@mixin app-input-layout {
-    display: block;
-    width: 100%;
-    outline: none;
-    @include tw-blur(md);
-    @include tw-transition((background-color, border-color, box-shadow, color));
-}
-
-@mixin app-input-size($padding-y: tw-space(1.5), $padding-x: tw-space(3), $font-size: 0.75rem, $radius: var(--radius-lg, 0.5rem), $height: auto) {
-    padding: $padding-y $padding-x;
-    font-size: $font-size;
-    border-radius: $radius;
-    @if $height != auto {
-        height: $height;
-    }
-}
-
 .app-input {
-    @include app-input-layout;
-    @include app-input-size(tw-space(1.5), tw-space(3), 0.75rem, var(--radius-lg, 0.5rem));
-
-    background-color: var(--color-input-bg);
-    border: 1px solid var(--color-input-border);
-    color: var(--color-input-text);
-
-    &::placeholder {
-        color: var(--color-input-placeholder);
-    }
-
-    &:focus-visible,
-    &:focus {
-        border-color: #3b82f6;
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
-    }
-
     &.has-leading-icon {
         padding-left: tw-space(8);
-    }
-
-    &.app-input-lg {
-        @include app-input-size(tw-space(2.5), tw-space(4), 1rem, var(--radius-xl, 0.75rem), tw-space(12));
     }
 }
 
@@ -370,14 +177,6 @@
         flex-shrink: 0;
         display: block;
     }
-}
-
-.app-card {
-    background-color: var(--color-card-bg);
-    border: 1px solid var(--color-card-border);
-    box-shadow: var(--color-card-shadow);
-    border-radius: var(--radius-xl, 0.75rem);
-    @include tw-transition((background-color, border-color, transform, box-shadow));
 }
 
 .app-metric-label {
@@ -441,10 +240,10 @@
     flex: 1 1 0%;
     display: flex;
     flex-direction: column;
-    gap: tw-space(6); // Einheitlicher 1.5rem Abstand zwischen allen Sections
+    gap: tw-space(6);
 }
 
-// Zentrales Panel
+// Zentrales Panel mit Glasmorphismus
 .app-panel {
     background-color: var(--color-panel-bg);
     border: 1px solid var(--color-panel-border);
@@ -493,18 +292,6 @@
 
 .app-panel-title {
     color: var(--color-text-main);
-}
-
-.app-clear-btn {
-    background-color: var(--color-btn-bg);
-    color: var(--color-btn-text);
-    border: 1px solid var(--color-btn-border);
-
-    &:hover {
-        background-color: var(--color-tag-crc-err-bg);
-        color: var(--color-tag-crc-err-text);
-        border-color: var(--color-tag-crc-err-border);
-    }
 }
 
 // Action Status Notification Banners

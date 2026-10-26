@@ -87,10 +87,10 @@ export function showClearedNotification() {
     const badge = document.getElementById('field-status-badge');
     if (badge) {
         badge.textContent = 'Lesefeld frei';
-        badge.className = 'text-xs font-normal px-2 py-0.5 rounded app-badge-status-cleared transition-all';
+        badge.className = 'badge badge-sm badge-outline app-badge-status-cleared transition-all';
         setTimeout(() => {
             badge.textContent = 'Bereit';
-            badge.className = 'text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all';
+            badge.className = 'badge badge-sm badge-outline app-badge-status transition-all';
         }, 3000);
     }
 }
