@@ -924,7 +924,7 @@
 }
 
 #sound-toggle .sound-icon-off {
-  display: block;
+  display: inline-block;
 }
 #sound-toggle .sound-icon-on {
   display: none !important;
@@ -943,7 +943,7 @@
   display: none !important;
 }
 #sound-toggle.active .sound-icon-on {
-  display: block !important;
+  display: inline-block !important;
 }
 #sound-toggle.active .sound-toggle-indicator {
   background-color: #10b981;
@@ -1197,6 +1197,288 @@
   background-color: rgba(244, 63, 94, 0.2) !important;
   border-color: rgba(251, 113, 133, 0.35) !important;
   color: #fda4af !important;
+}
+
+.app-icon {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  vertical-align: middle;
+  background-color: currentColor;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+.app-icon.icon-xs {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+.app-icon.icon-sm {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+.app-icon.icon-md {
+  width: 1rem;
+  height: 1rem;
+}
+.app-icon.icon-lg {
+  width: 1.25rem;
+  height: 1.25rem;
+}
+.app-icon.icon-xl {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.app-icon.icon-alert-circle {
+  mask-image: url("../img/icons/alert-circle.svg");
+  -webkit-mask-image: url("../img/icons/alert-circle.svg");
+}
+.app-icon.icon-arrow-left {
+  mask-image: url("../img/icons/arrow-left.svg");
+  -webkit-mask-image: url("../img/icons/arrow-left.svg");
+}
+.app-icon.icon-arrow-right {
+  mask-image: url("../img/icons/arrow-right.svg");
+  -webkit-mask-image: url("../img/icons/arrow-right.svg");
+}
+.app-icon.icon-bolt {
+  mask-image: url("../img/icons/bolt.svg");
+  -webkit-mask-image: url("../img/icons/bolt.svg");
+}
+.app-icon.icon-book {
+  mask-image: url("../img/icons/book.svg");
+  -webkit-mask-image: url("../img/icons/book.svg");
+}
+.app-icon.icon-book-open {
+  mask-image: url("../img/icons/book-open.svg");
+  -webkit-mask-image: url("../img/icons/book-open.svg");
+}
+.app-icon.icon-channel {
+  mask-image: url("../img/icons/channel.svg");
+  -webkit-mask-image: url("../img/icons/channel.svg");
+}
+.app-icon.icon-check {
+  mask-image: url("../img/icons/check.svg");
+  -webkit-mask-image: url("../img/icons/check.svg");
+}
+.app-icon.icon-check-circle {
+  mask-image: url("../img/icons/check-circle.svg");
+  -webkit-mask-image: url("../img/icons/check-circle.svg");
+}
+.app-icon.icon-chip {
+  mask-image: url("../img/icons/chip.svg");
+  -webkit-mask-image: url("../img/icons/chip.svg");
+}
+.app-icon.icon-clock {
+  mask-image: url("../img/icons/clock.svg");
+  -webkit-mask-image: url("../img/icons/clock.svg");
+}
+.app-icon.icon-copy {
+  mask-image: url("../img/icons/copy.svg");
+  -webkit-mask-image: url("../img/icons/copy.svg");
+}
+.app-icon.icon-empty-media {
+  mask-image: url("../img/icons/empty-media.svg");
+  -webkit-mask-image: url("../img/icons/empty-media.svg");
+}
+.app-icon.icon-empty-tags {
+  mask-image: url("../img/icons/empty-tags.svg");
+  -webkit-mask-image: url("../img/icons/empty-tags.svg");
+}
+.app-icon.icon-external-link {
+  mask-image: url("../img/icons/external-link.svg");
+  -webkit-mask-image: url("../img/icons/external-link.svg");
+}
+.app-icon.icon-home {
+  mask-image: url("../img/icons/home.svg");
+  -webkit-mask-image: url("../img/icons/home.svg");
+}
+.app-icon.icon-info-circle {
+  mask-image: url("../img/icons/info-circle.svg");
+  -webkit-mask-image: url("../img/icons/info-circle.svg");
+}
+.app-icon.icon-lock-closed {
+  mask-image: url("../img/icons/lock-closed.svg");
+  -webkit-mask-image: url("../img/icons/lock-closed.svg");
+}
+.app-icon.icon-lock-open {
+  mask-image: url("../img/icons/lock-open.svg");
+  -webkit-mask-image: url("../img/icons/lock-open.svg");
+}
+.app-icon.icon-palette {
+  mask-image: url("../img/icons/palette.svg");
+  -webkit-mask-image: url("../img/icons/palette.svg");
+}
+.app-icon.icon-search {
+  mask-image: url("../img/icons/search.svg");
+  -webkit-mask-image: url("../img/icons/search.svg");
+}
+.app-icon.icon-tag {
+  mask-image: url("../img/icons/tag.svg");
+  -webkit-mask-image: url("../img/icons/tag.svg");
+}
+.app-icon.icon-trash {
+  mask-image: url("../img/icons/trash.svg");
+  -webkit-mask-image: url("../img/icons/trash.svg");
+}
+.app-icon.icon-volume-high {
+  mask-image: url("../img/icons/volume-high.svg");
+  -webkit-mask-image: url("../img/icons/volume-high.svg");
+}
+.app-icon.icon-volume-off {
+  mask-image: url("../img/icons/volume-off.svg");
+  -webkit-mask-image: url("../img/icons/volume-off.svg");
+}
+.app-icon.icon-x-mark {
+  mask-image: url("../img/icons/x-mark.svg");
+  -webkit-mask-image: url("../img/icons/x-mark.svg");
+}
+
+.btn .app-icon,
+.app-btn .app-icon,
+.badge .app-icon,
+.app-badge .app-icon {
+  width: 1rem;
+  height: 1rem;
+  max-width: 1rem;
+  max-height: 1rem;
+  flex-shrink: 0;
+}
+.btn .app-icon.hidden, .btn .app-icon[hidden],
+.app-btn .app-icon.hidden,
+.app-btn .app-icon[hidden],
+.badge .app-icon.hidden,
+.badge .app-icon[hidden],
+.app-badge .app-icon.hidden,
+.app-badge .app-icon[hidden] {
+  display: none !important;
+}
+.btn.btn-xs .app-icon,
+.app-btn.btn-xs .app-icon,
+.badge.btn-xs .app-icon,
+.app-badge.btn-xs .app-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  max-width: 0.75rem;
+  max-height: 0.75rem;
+}
+.btn.btn-sm .app-icon, .btn.app-btn-sm .app-icon,
+.app-btn.btn-sm .app-icon,
+.app-btn.app-btn-sm .app-icon,
+.badge.btn-sm .app-icon,
+.badge.app-btn-sm .app-icon,
+.app-badge.btn-sm .app-icon,
+.app-badge.app-btn-sm .app-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  max-width: 0.875rem;
+  max-height: 0.875rem;
+}
+.btn.btn-lg .app-icon,
+.app-btn.btn-lg .app-icon,
+.badge.btn-lg .app-icon,
+.app-badge.btn-lg .app-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  max-width: 1.25rem;
+  max-height: 1.25rem;
+}
+
+.btn-primary .app-icon,
+.btn-secondary .app-icon,
+.btn-accent .app-icon,
+.btn-neutral .app-icon,
+.btn-error .app-icon,
+.btn-success:not(.btn-outline) .app-icon,
+.btn-info:not(.btn-outline) .app-icon,
+.btn-warning .app-icon {
+  background-color: currentColor;
+}
+.btn-primary img,
+.btn-primary svg:not(.app-icon),
+.btn-secondary img,
+.btn-secondary svg:not(.app-icon),
+.btn-accent img,
+.btn-accent svg:not(.app-icon),
+.btn-neutral img,
+.btn-neutral svg:not(.app-icon),
+.btn-error img,
+.btn-error svg:not(.app-icon),
+.btn-success:not(.btn-outline) img,
+.btn-success:not(.btn-outline) svg:not(.app-icon),
+.btn-info:not(.btn-outline) img,
+.btn-info:not(.btn-outline) svg:not(.app-icon),
+.btn-warning img,
+.btn-warning svg:not(.app-icon) {
+  filter: brightness(0) invert(1);
+}
+
+.btn-outline:hover img,
+.btn-outline:hover svg:not(.app-icon), .btn-outline.btn-active img,
+.btn-outline.btn-active svg:not(.app-icon) {
+  filter: brightness(0) invert(1);
+}
+
+.btn-ghost img,
+.btn-link img,
+.app-copy-btn img {
+  filter: brightness(0) saturate(100%) invert(18%) sepia(16%) saturate(1450%) hue-rotate(182deg) brightness(95%) contrast(92%);
+  opacity: 0.85;
+  transition: opacity 0.15s ease, filter 0.15s ease;
+}
+.btn-ghost:hover img,
+.btn-link:hover img,
+.app-copy-btn:hover img {
+  opacity: 1;
+  filter: brightness(0) saturate(100%) invert(10%) sepia(20%) saturate(1800%) hue-rotate(182deg) brightness(90%) contrast(100%);
+}
+
+[data-theme=dark] .btn-ghost img,
+[data-theme=dark] .btn-link img,
+[data-theme=dark] .app-copy-btn img,
+[data-theme=synthwave] .btn-ghost img,
+[data-theme=synthwave] .btn-link img,
+[data-theme=synthwave] .app-copy-btn img,
+[data-theme=nord] .btn-ghost img,
+[data-theme=nord] .btn-link img,
+[data-theme=nord] .app-copy-btn img,
+[data-skin=dark] .btn-ghost img,
+[data-skin=dark] .btn-link img,
+[data-skin=dark] .app-copy-btn img,
+[data-skin=nord] .btn-ghost img,
+[data-skin=nord] .btn-link img,
+[data-skin=nord] .app-copy-btn img,
+html.dark .btn-ghost img,
+html.dark .btn-link img,
+html.dark .app-copy-btn img {
+  filter: brightness(0) invert(0.95);
+  opacity: 0.9;
+}
+[data-theme=dark] .btn-ghost:hover img,
+[data-theme=dark] .btn-link:hover img,
+[data-theme=dark] .app-copy-btn:hover img,
+[data-theme=synthwave] .btn-ghost:hover img,
+[data-theme=synthwave] .btn-link:hover img,
+[data-theme=synthwave] .app-copy-btn:hover img,
+[data-theme=nord] .btn-ghost:hover img,
+[data-theme=nord] .btn-link:hover img,
+[data-theme=nord] .app-copy-btn:hover img,
+[data-skin=dark] .btn-ghost:hover img,
+[data-skin=dark] .btn-link:hover img,
+[data-skin=dark] .app-copy-btn:hover img,
+[data-skin=nord] .btn-ghost:hover img,
+[data-skin=nord] .btn-link:hover img,
+[data-skin=nord] .app-copy-btn:hover img,
+html.dark .btn-ghost:hover img,
+html.dark .btn-link:hover img,
+html.dark .app-copy-btn:hover img {
+  filter: brightness(0) invert(1);
+  opacity: 1;
 }
 
 .app-body {

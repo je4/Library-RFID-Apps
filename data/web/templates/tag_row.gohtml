@@ -7,7 +7,7 @@
             <div class="inline-flex items-center space-x-1.5 flex-nowrap">
                 <span class="text-sm font-semibold tracking-wide app-tag-item-id">{{.ItemID}}</span>
                 <button type="button" class="copy-itemid-btn app-copy-btn btn btn-ghost btn-xs btn-square" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
-                    <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 flex-shrink-0" width="14" height="14" alt="Kopieren" />
+                    <span class="app-icon icon-copy w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></span>
                 </button>
             </div>
             {{else}}
@@ -21,7 +21,7 @@
         <div class="app-uid-box flex items-center gap-1.5">
             <span class="whitespace-nowrap">{{.UID}}</span>
             <button type="button" class="copy-uid-btn app-copy-btn btn btn-ghost btn-xs btn-square" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
-                <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 flex-shrink-0" width="14" height="14" alt="Kopieren" />
+                <span class="app-icon icon-copy w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></span>
             </button>
         </div>
     </td>
@@ -52,7 +52,7 @@
                 {{if .ISILEntry}}
                 <div class="app-isil-info-wrapper relative inline-flex items-center">
                     <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Bibliotheksdetails anzeigen (Mouseover)">
-                        <img src="{{.StaticPath}}/img/info-circle.svg" class="w-3.5 h-3.5 flex-shrink-0" alt="Info" />
+                        <img src="{{.StaticPath}}/img/icons/info-circle.svg" class="w-3.5 h-3.5 flex-shrink-0" alt="Info" />
                     </span>
 
                     <!-- Detailed Library Flyout Template -->
@@ -130,7 +130,7 @@
                                     <span class="app-flyout-label w-12 flex-shrink-0 mt-0.5">Web:</span>
                                     <a href="{{.ISILEntry.Webseite}}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-all inline-flex items-center gap-1">
                                         <span>{{.ISILEntry.Webseite}}</span>
-                                        <img src="{{.StaticPath}}/img/external-link.svg" class="w-3 h-3 flex-shrink-0" alt="Web" />
+                                        <img src="{{.StaticPath}}/img/icons/external-link.svg" class="w-3 h-3 flex-shrink-0" alt="Web" />
                                     </a>
                                 </div>
                                 {{end}}
@@ -185,12 +185,12 @@
     <td class="py-3.5 px-4 text-xs font-mono">
         {{if .CRCOk}}
         <span class="badge badge-sm badge-success gap-1 text-[11px] font-mono">
-            <img src="{{.StaticPath}}/img/check.svg" class="w-3.5 h-3.5" alt="OK" />
+            <img src="{{.StaticPath}}/img/icons/check.svg" class="w-3.5 h-3.5" alt="OK" />
             <span>OK (Gültig)</span>
         </span>
         {{else}}
         <span class="badge badge-sm badge-error gap-1 text-[11px] font-mono">
-            <img src="{{.StaticPath}}/img/x-mark.svg" class="w-3.5 h-3.5" alt="Fehler" />
+            <img src="{{.StaticPath}}/img/icons/x-mark.svg" class="w-3.5 h-3.5" alt="Fehler" />
             <span>Fehler</span>
         </span>
         {{end}}
@@ -200,12 +200,12 @@
     <td class="py-3.5 px-4 text-xs font-mono">
         {{if .AFISecured}}
         <span class="badge badge-sm badge-info gap-1 text-[11px] font-mono" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
-            <img src="{{.StaticPath}}/img/lock-closed.svg" class="w-3.5 h-3.5" alt="Gesichert" />
+            <img src="{{.StaticPath}}/img/icons/lock-closed.svg" class="w-3.5 h-3.5" alt="Gesichert" />
             <span>Gesichert (07)</span>
         </span>
         {{else if .AFIUnsecured}}
         <span class="badge badge-sm badge-success gap-1 text-[11px] font-mono" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
-            <img src="{{.StaticPath}}/img/lock-open.svg" class="w-3.5 h-3.5" alt="Entsichert" />
+            <img src="{{.StaticPath}}/img/icons/lock-open.svg" class="w-3.5 h-3.5" alt="Entsichert" />
             <span>Entsichert (C2)</span>
         </span>
         {{else if .AFI}}

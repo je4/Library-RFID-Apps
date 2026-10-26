@@ -85,6 +85,13 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for bubblegum_background.jpg, got %d", recBubblegumBgImg.Code)
 	}
 
+	reqIcon := httptest.NewRequest(http.MethodGet, "/static/img/icons/bolt.svg", nil)
+	recIcon := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recIcon, reqIcon)
+	if recIcon.Code != http.StatusOK {
+		t.Errorf("expected 200 for /static/img/icons/bolt.svg, got %d", recIcon.Code)
+	}
+
 	reqHTMX := httptest.NewRequest(http.MethodGet, "/static/js/htmx-4.0.js", nil)
 	recHTMX := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recHTMX, reqHTMX)
@@ -1528,11 +1535,11 @@ func TestController_StaticPathRendering(t *testing.T) {
 	if !strings.Contains(bodyIndex, `href="static/css/tailwind.min.css"`) {
 		t.Errorf("expected index to use 'static/css/tailwind.min.css', got: %s", bodyIndex)
 	}
-	if !strings.Contains(bodyIndex, `src="static/img/bolt-white.svg"`) {
-		t.Errorf("expected index to use 'static/img/bolt-white.svg', got: %s", bodyIndex)
+	if !strings.Contains(bodyIndex, `src="static/img/icons/bolt.svg"`) {
+		t.Errorf("expected index to use 'static/img/icons/bolt.svg', got: %s", bodyIndex)
 	}
-	if !strings.Contains(bodyIndex, `src="static/img/channel.svg"`) {
-		t.Errorf("expected index channel card to use 'static/img/channel.svg', got: %s", bodyIndex)
+	if !strings.Contains(bodyIndex, `href="static/scss/desk.css"`) {
+		t.Errorf("expected index to use 'static/scss/desk.css', got: %s", bodyIndex)
 	}
 
 	// 2. Channel Desk should render StaticPath as "../static"
@@ -1546,11 +1553,11 @@ func TestController_StaticPathRendering(t *testing.T) {
 	if !strings.Contains(bodyDesk, `href="../static/css/tailwind.min.css"`) {
 		t.Errorf("expected desk to use '../static/css/tailwind.min.css', got: %s", bodyDesk)
 	}
-	if !strings.Contains(bodyDesk, `src="../static/img/bolt-white.svg"`) {
-		t.Errorf("expected desk to use '../static/img/bolt-white.svg', got: %s", bodyDesk)
+	if !strings.Contains(bodyDesk, `src="../static/img/icons/bolt.svg"`) {
+		t.Errorf("expected desk to use '../static/img/icons/bolt.svg', got: %s", bodyDesk)
 	}
-	if !strings.Contains(bodyDesk, `src="../static/img/tag.svg"`) {
-		t.Errorf("expected desk to use '../static/img/tag.svg', got: %s", bodyDesk)
+	if !strings.Contains(bodyDesk, `href="../static/scss/desk.css"`) {
+		t.Errorf("expected desk to use '../static/scss/desk.css', got: %s", bodyDesk)
 	}
 
 	// 3. Channel Loan should render StaticPath as "../static"
@@ -1564,11 +1571,11 @@ func TestController_StaticPathRendering(t *testing.T) {
 	if !strings.Contains(bodyLoan, `href="../static/css/tailwind.min.css"`) {
 		t.Errorf("expected loan to use '../static/css/tailwind.min.css', got: %s", bodyLoan)
 	}
-	if !strings.Contains(bodyLoan, `src="../static/img/book-open-white.svg"`) {
-		t.Errorf("expected loan to use '../static/img/book-open-white.svg', got: %s", bodyLoan)
+	if !strings.Contains(bodyLoan, `src="../static/img/icons/book-open.svg"`) {
+		t.Errorf("expected loan to use '../static/img/icons/book-open.svg', got: %s", bodyLoan)
 	}
-	if !strings.Contains(bodyLoan, `src="../static/img/book-green.svg"`) {
-		t.Errorf("expected loan to use '../static/img/book-green.svg', got: %s", bodyLoan)
+	if !strings.Contains(bodyLoan, `href="../static/scss/desk.css"`) {
+		t.Errorf("expected loan to use '../static/scss/desk.css', got: %s", bodyLoan)
 	}
 
 	// 4. Tag Row fragment rendering

@@ -1,0 +1,165 @@
+// ==========================================================================
+// SCSS Icon System: CSS-Masked SVG Icons & High-Contrast Adaptive Symbols
+// ==========================================================================
+
+// Base Icon Definition: Automatically inherits font/text color (currentColor)
+.app-icon {
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    vertical-align: middle;
+    background-color: currentColor;
+    mask-size: contain;
+    mask-repeat: no-repeat;
+    mask-position: center;
+    -webkit-mask-size: contain;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center;
+    flex-shrink: 0;
+    line-height: 1;
+
+    // Sizing Modifiers
+    &.icon-xs { width: 0.75rem; height: 0.75rem; }
+    &.icon-sm { width: 0.875rem; height: 0.875rem; }
+    &.icon-md { width: 1rem; height: 1rem; }
+    &.icon-lg { width: 1.25rem; height: 1.25rem; }
+    &.icon-xl { width: 1.5rem; height: 1.5rem; }
+
+    // Icon Masks
+    &.icon-alert-circle  { mask-image: url('../img/icons/alert-circle.svg'); -webkit-mask-image: url('../img/icons/alert-circle.svg'); }
+    &.icon-arrow-left    { mask-image: url('../img/icons/arrow-left.svg'); -webkit-mask-image: url('../img/icons/arrow-left.svg'); }
+    &.icon-arrow-right   { mask-image: url('../img/icons/arrow-right.svg'); -webkit-mask-image: url('../img/icons/arrow-right.svg'); }
+    &.icon-bolt          { mask-image: url('../img/icons/bolt.svg'); -webkit-mask-image: url('../img/icons/bolt.svg'); }
+    &.icon-book          { mask-image: url('../img/icons/book.svg'); -webkit-mask-image: url('../img/icons/book.svg'); }
+    &.icon-book-open     { mask-image: url('../img/icons/book-open.svg'); -webkit-mask-image: url('../img/icons/book-open.svg'); }
+    &.icon-channel       { mask-image: url('../img/icons/channel.svg'); -webkit-mask-image: url('../img/icons/channel.svg'); }
+    &.icon-check         { mask-image: url('../img/icons/check.svg'); -webkit-mask-image: url('../img/icons/check.svg'); }
+    &.icon-check-circle  { mask-image: url('../img/icons/check-circle.svg'); -webkit-mask-image: url('../img/icons/check-circle.svg'); }
+    &.icon-chip          { mask-image: url('../img/icons/chip.svg'); -webkit-mask-image: url('../img/icons/chip.svg'); }
+    &.icon-clock         { mask-image: url('../img/icons/clock.svg'); -webkit-mask-image: url('../img/icons/clock.svg'); }
+    &.icon-copy          { mask-image: url('../img/icons/copy.svg'); -webkit-mask-image: url('../img/icons/copy.svg'); }
+    &.icon-empty-media   { mask-image: url('../img/icons/empty-media.svg'); -webkit-mask-image: url('../img/icons/empty-media.svg'); }
+    &.icon-empty-tags    { mask-image: url('../img/icons/empty-tags.svg'); -webkit-mask-image: url('../img/icons/empty-tags.svg'); }
+    &.icon-external-link { mask-image: url('../img/icons/external-link.svg'); -webkit-mask-image: url('../img/icons/external-link.svg'); }
+    &.icon-home          { mask-image: url('../img/icons/home.svg'); -webkit-mask-image: url('../img/icons/home.svg'); }
+    &.icon-info-circle   { mask-image: url('../img/icons/info-circle.svg'); -webkit-mask-image: url('../img/icons/info-circle.svg'); }
+    &.icon-lock-closed   { mask-image: url('../img/icons/lock-closed.svg'); -webkit-mask-image: url('../img/icons/lock-closed.svg'); }
+    &.icon-lock-open     { mask-image: url('../img/icons/lock-open.svg'); -webkit-mask-image: url('../img/icons/lock-open.svg'); }
+    &.icon-palette       { mask-image: url('../img/icons/palette.svg'); -webkit-mask-image: url('../img/icons/palette.svg'); }
+    &.icon-search        { mask-image: url('../img/icons/search.svg'); -webkit-mask-image: url('../img/icons/search.svg'); }
+    &.icon-tag           { mask-image: url('../img/icons/tag.svg'); -webkit-mask-image: url('../img/icons/tag.svg'); }
+    &.icon-trash         { mask-image: url('../img/icons/trash.svg'); -webkit-mask-image: url('../img/icons/trash.svg'); }
+    &.icon-volume-high   { mask-image: url('../img/icons/volume-high.svg'); -webkit-mask-image: url('../img/icons/volume-high.svg'); }
+    &.icon-volume-off    { mask-image: url('../img/icons/volume-off.svg'); -webkit-mask-image: url('../img/icons/volume-off.svg'); }
+    &.icon-x-mark        { mask-image: url('../img/icons/x-mark.svg'); -webkit-mask-image: url('../img/icons/x-mark.svg'); }
+}
+
+// Button & Badge Icon Guards: Auto-size child icons
+.btn,
+.app-btn,
+.badge,
+.app-badge {
+    .app-icon {
+        width: 1rem;
+        height: 1rem;
+        max-width: 1rem;
+        max-height: 1rem;
+        flex-shrink: 0;
+
+        &.hidden,
+        &[hidden] {
+            display: none !important;
+        }
+    }
+
+    &.btn-xs .app-icon {
+        width: 0.75rem;
+        height: 0.75rem;
+        max-width: 0.75rem;
+        max-height: 0.75rem;
+    }
+
+    &.btn-sm,
+    &.app-btn-sm {
+        .app-icon {
+            width: 0.875rem;
+            height: 0.875rem;
+            max-width: 0.875rem;
+            max-height: 0.875rem;
+        }
+    }
+
+    &.btn-lg .app-icon {
+        width: 1.25rem;
+        height: 1.25rem;
+        max-width: 1.25rem;
+        max-height: 1.25rem;
+    }
+}
+
+// Solid Colored Buttons: Ensure child img/svg/icons render with crisp contrast
+.btn-primary,
+.btn-secondary,
+.btn-accent,
+.btn-neutral,
+.btn-error,
+.btn-success:not(.btn-outline),
+.btn-info:not(.btn-outline),
+.btn-warning {
+    .app-icon {
+        background-color: currentColor;
+    }
+    img,
+    svg:not(.app-icon) {
+        filter: brightness(0) invert(1);
+    }
+}
+
+// Outline Buttons Hover Behavior
+.btn-outline {
+    &:hover,
+    &.btn-active {
+        img,
+        svg:not(.app-icon) {
+            filter: brightness(0) invert(1);
+        }
+    }
+}
+
+// Ghost & App Action Buttons for Light Mode (High-contrast slate)
+.btn-ghost,
+.btn-link,
+.app-copy-btn {
+    img {
+        filter: brightness(0) saturate(100%) invert(18%) sepia(16%) saturate(1450%) hue-rotate(182deg) brightness(95%) contrast(92%);
+        opacity: 0.85;
+        transition: opacity 0.15s ease, filter 0.15s ease;
+    }
+
+    &:hover img {
+        opacity: 1;
+        filter: brightness(0) saturate(100%) invert(10%) sepia(20%) saturate(1800%) hue-rotate(182deg) brightness(90%) contrast(100%);
+    }
+}
+
+// Ghost & App Action Buttons for Dark Mode & Dark Themes (High-contrast bright white/slate)
+[data-theme="dark"],
+[data-theme="synthwave"],
+[data-theme="nord"],
+[data-skin="dark"],
+[data-skin="nord"],
+html.dark {
+    .btn-ghost,
+    .btn-link,
+    .app-copy-btn {
+        img {
+            filter: brightness(0) invert(0.95);
+            opacity: 0.9;
+        }
+
+        &:hover img {
+            filter: brightness(0) invert(1);
+            opacity: 1;
+        }
+    }
+}

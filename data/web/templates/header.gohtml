@@ -3,7 +3,7 @@
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{if .IsLoan}}from-emerald-600 via-teal-600 to-cyan-500 shadow-emerald-500/20{{else if .IsEncode}}from-indigo-600 via-purple-600 to-pink-500 shadow-purple-500/20{{else}}from-blue-600 via-indigo-600 to-cyan-500 shadow-blue-500/20{{end}} flex items-center justify-center shadow-lg">
-            <img src="{{.StaticPath}}/img/{{if .IsLoan}}book-open-white.svg{{else if .IsEncode}}tag.svg{{else}}bolt-white.svg{{end}}" class="w-6 h-6" alt="{{if .IsLoan}}Ausleihe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}" />
+            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else}}bolt.svg{{end}}" class="w-6 h-6" alt="{{if .IsLoan}}Ausleihe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}" />
         </div>
 
         <div>
@@ -37,9 +37,7 @@
         <div class="relative inline-flex items-center">
             <!-- label for="skin-select" class="sr-only">Farbschema auswählen</label -->
             <div class="join app-btn btn btn-sm btn-ghost gap-1 px-2">
-                <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
-                </svg>
+                <span class="app-icon icon-palette w-4 h-4 opacity-75 shrink-0" aria-hidden="true"></span>
                 <select id="skin-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Farbschema auswählen">
                     <option value="default" {{if or (not .Skin) (eq .Skin "default")}}selected{{end}}>Slate (Standard)</option>
                     <option value="emerald" {{if eq .Skin "emerald"}}selected{{end}}>Emerald</option>
@@ -52,22 +50,22 @@
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
         <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur Channel-Auswahl">
-            <img src="{{.StaticPath}}/img/arrow-left.svg" class="w-3.5 h-3.5 shrink-0" alt="Channels" />
+            <span class="app-icon icon-arrow-left w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
             <span>Channels</span>
         </a>
 
         {{if or .IsLoan .IsEncode}}
         <!-- Back to Desk Button (Relative to Channel) -->
         <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur RFID Desk Gesamtübersicht">
-            <img src="{{.StaticPath}}/img/home.svg" class="w-3.5 h-3.5 shrink-0" alt="Desk" />
+            <span class="app-icon icon-home w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
             <span>Desk</span>
         </a>
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
         <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Signalton einschalten" aria-pressed="false">
-            <img src="{{.StaticPath}}/img/volume-off.svg" class="w-3.5 h-3.5 shrink-0 sound-icon-off" alt="Ton Aus" />
-            <img src="{{.StaticPath}}/img/volume-high.svg" class="w-3.5 h-3.5 shrink-0 sound-icon-on hidden" alt="Ton An" />
+            <span class="app-icon icon-volume-off w-3.5 h-3.5 shrink-0 sound-icon-off" aria-hidden="true"></span>
+            <span class="app-icon icon-volume-high w-3.5 h-3.5 shrink-0 sound-icon-on hidden" aria-hidden="true"></span>
             <span>Ton</span>
             <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block"></span>
         </button>

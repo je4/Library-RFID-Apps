@@ -66,13 +66,7 @@
                 <div class="card-body p-4 sm:p-5 flex flex-col justify-between">
                     <div class="flex items-center justify-between w-full mb-3">
                         <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                <path d="M9 7h6"></path>
-                                <path d="M9 11h6"></path>
-                                <path d="M9 15h4"></path>
-                            </svg>
+                            <span class="app-icon icon-book w-7 h-7" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div>
@@ -87,10 +81,7 @@
                 <div class="card-body p-4 sm:p-5 flex flex-col justify-between">
                     <div class="flex items-center justify-between w-full mb-3">
                         <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
-                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                            </svg>
+                            <span class="app-icon icon-tag w-7 h-7" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div>
@@ -108,7 +99,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-blue flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5" alt="Tags" />
+                            <span class="app-icon icon-tag w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Gelesene RFID-Tags</div>
@@ -121,7 +112,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                            <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Channel</div>
@@ -134,7 +125,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
+                            <span class="app-icon icon-chip w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Standard Reader</div>
@@ -147,7 +138,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/clock.svg" class="w-5 h-5" alt="Laufzeit" />
+                            <span class="app-icon icon-clock w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Laufzeit</div>
@@ -171,12 +162,12 @@
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
                         <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="input input-sm input-bordered app-input has-leading-icon w-48 sm:w-64 font-mono">
-                        <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none" width="16" height="16" alt="Suche" />
+                        <span class="app-icon icon-search w-4 h-4 text-base-content/50 absolute left-2.5 pointer-events-none" aria-hidden="true"></span>
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
-                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Transponder-Liste leeren">
-                        <img src="{{.StaticPath}}/img/trash.svg" class="w-3.5 h-3.5 shrink-0" alt="Leeren" />
+                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost text-error hover:bg-error hover:text-error-content app-btn flex items-center gap-1.5" title="Transponder-Liste leeren">
+                        <span class="app-icon icon-trash w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span>Leeren</span>
                     </button>
                 </div>

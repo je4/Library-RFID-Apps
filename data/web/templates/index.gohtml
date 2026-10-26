@@ -74,7 +74,7 @@
                     <a href="{{.}}/" class="card card-bordered card-compact transition-all duration-200 app-channel-card group" title="Channel {{.}} öffnen">
                         <div class="channel-card-left">
                             <div class="channel-card-icon">
-                                <img src="{{$.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                                <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
                             </div>
                             <div class="channel-card-info">
                                 <span class="badge badge-xs badge-ghost channel-card-badge">Channel</span>
@@ -82,7 +82,7 @@
                             </div>
                         </div>
                         <div class="channel-card-arrow">
-                            <img src="{{$.StaticPath}}/img/arrow-right.svg" class="w-5 h-5" alt="Öffnen" />
+                            <span class="app-icon icon-arrow-right w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </a>
                     {{else}}

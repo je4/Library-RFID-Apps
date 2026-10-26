@@ -66,7 +66,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/book-green.svg" class="w-5 h-5" alt="Medien" />
+                            <span class="app-icon icon-book-open w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Aufliegende Medien</div>
@@ -79,7 +79,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
+                            <span class="app-icon icon-chip w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Konfigurierter Reader</div>
@@ -92,7 +92,7 @@
                 <div class="stat p-4">
                     <div class="stat-figure">
                         <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
-                            <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                            <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div class="stat-title text-xs font-semibold app-metric-label">Channel</div>
@@ -116,19 +116,19 @@
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
                     <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
-                        <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 shrink-0" alt="Kopieren" />
+                        <span class="app-icon icon-copy w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
                     <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-success app-btn flex items-center gap-1.5" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
-                        <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0" alt="Entsichern" />
+                        <span class="app-icon icon-lock-open w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
                     <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info app-btn flex items-center gap-1.5" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
-                        <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0" alt="Sichern" />
+                        <span class="app-icon icon-lock-closed w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span>Sichern</span>
                     </button>
                 </div>

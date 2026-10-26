@@ -2,7 +2,7 @@
     <tr id="loan-action-error-row" class="app-loan-banner-error">
         <td colspan="8" class="p-2">
             <div class="alert alert-error text-xs p-3 shadow-sm rounded-lg flex items-start gap-2">
-                <img src="{{.StaticPath}}/img/alert-circle.svg" class="w-4 h-4 flex-shrink-0 mt-0.5" alt="Fehler" />
+                <span class="app-icon icon-alert-circle w-4 h-4 flex-shrink-0 mt-0.5" aria-hidden="true"></span>
                 <div class="flex-1">
                     <div><strong>Fehler beim Setzen der AFI:</strong> {{.ErrorMessage}}</div>
                     {{if .FailedItems}}
@@ -21,7 +21,7 @@
     <tr id="loan-action-success-row" class="app-loan-banner-success">
         <td colspan="8" class="p-2">
             <div class="alert alert-success text-xs p-3 shadow-sm rounded-lg flex items-center gap-2">
-                <img src="{{.StaticPath}}/img/check-circle.svg" class="w-4 h-4 flex-shrink-0" alt="Erfolg" />
+                <span class="app-icon icon-check-circle w-4 h-4 flex-shrink-0" aria-hidden="true"></span>
                 <span>{{.SuccessMessage}}</span>
             </div>
         </td>
@@ -35,7 +35,7 @@
     <tr id="no-active-tags-row">
         <td colspan="8" class="py-12 text-center">
             <div class="flex flex-col items-center justify-center space-y-2">
-                <img src="{{.StaticPath}}/img/empty-media.svg" class="w-10 h-10 app-empty-icon animate-pulse" alt="Keine Medien" />
+                <img src="{{.StaticPath}}/img/icons/empty-media.svg" class="w-10 h-10 app-empty-icon animate-pulse" alt="Keine Medien" />
                 <p class="text-sm font-medium app-empty-title">Keine aktiven Medien auf dem Lesefeld</p>
                 <p class="text-xs app-empty-desc">Legen Sie ein oder mehrere Medien auf das Lesegerät {{if .DefaultReader}}<strong>{{.DefaultReader}}</strong>{{end}}, um Ausleihe oder Rückgabe auszuführen.</p>
             </div>

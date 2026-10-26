@@ -30,7 +30,7 @@
 // Sound Toggle Switch
 #sound-toggle {
     .sound-icon-off {
-        display: block;
+        display: inline-block;
     }
     .sound-icon-on {
         display: none !important;
@@ -51,7 +51,7 @@
             display: none !important;
         }
         .sound-icon-on {
-            display: block !important;
+            display: inline-block !important;
         }
 
         .sound-toggle-indicator {

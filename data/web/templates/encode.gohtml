@@ -64,7 +64,7 @@
             <div class="app-panel-toolbar">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-lg bg-indigo-500/15 border border-indigo-500/30 flex items-center justify-center text-indigo-400 shrink-0">
-                        <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5" alt="Kodieren" />
+                        <span class="app-icon icon-tag w-5 h-5 text-indigo-400" aria-hidden="true"></span>
                     </div>
                     <div>
                         <h2 class="text-base font-semibold app-panel-title">Transponder beschreiben (ISO 28560-2)</h2>
@@ -86,7 +86,7 @@
                             <input id="encode-item-id" type="text" placeholder="Barcode scannen oder eingeben..." autofocus
                                    class="input input-bordered w-full font-mono pl-9 app-input has-leading-icon"
                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-3 pointer-events-none opacity-60" alt="Barcode" />
+                            <span class="app-icon icon-search w-4 h-4 text-base-content/50 absolute left-3 pointer-events-none" aria-hidden="true"></span>
                         </div>
                     </div>
 
@@ -144,7 +144,7 @@
                 <button id="btn-encode-start" type="button" disabled
                         class="btn btn-primary app-btn font-bold px-5 flex items-center gap-2"
                         title="Kodierung für die aufgelegten Medien starten">
-                    <img src="{{.StaticPath}}/img/tag.svg" class="w-4 h-4 shrink-0" alt="Start" />
+                    <span class="app-icon icon-tag w-4 h-4 shrink-0" aria-hidden="true"></span>
                     <span>Kodierung starten</span>
                 </button>
             </div>
@@ -232,7 +232,7 @@
     <dialog id="encode-overwrite-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="overwrite-modal-title">
         <div class="modal-box text-center max-w-md app-afi-modal-dialog">
             <div class="w-12 h-12 rounded-full bg-warning/20 text-warning flex items-center justify-center mx-auto mb-4">
-                <img src="{{.StaticPath}}/img/alert-circle.svg" class="w-6 h-6" alt="Warnung" />
+                <span class="app-icon icon-alert-circle w-6 h-6 text-warning" aria-hidden="true"></span>
             </div>
             <h3 id="overwrite-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">Bereits kodierter Transponder erkannt</h3>
             <p class="text-sm opacity-80 mb-4 app-afi-modal-desc" id="overwrite-modal-desc">
