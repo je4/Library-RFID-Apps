@@ -183,11 +183,9 @@ export function initThemeSelector() {
     const applyCloseBtn = document.getElementById('theme-apply-close-btn');
     const resetBtn = document.getElementById('theme-reset-btn');
     const modeButtons = document.querySelectorAll('.theme-mode-btn');
-    const searchInput = document.getElementById('theme-search-input');
     const gridContainer = document.getElementById('theme-grid');
 
     let currentMode = getStoredMode();
-    let searchQuery = '';
 
     // Synchronize initial theme & indicators
     applyTheme(currentMode);
@@ -218,24 +216,16 @@ export function initThemeSelector() {
         // Only themes matching the active mode (light or dark)
         const modeMatchedThemes = THEMES.filter(t => t.type === effectiveType);
 
-        const filtered = modeMatchedThemes.filter(t => {
-            const matchesSearch = !searchQuery || 
-                t.name.toLowerCase().includes(searchQuery) || 
-                t.id.toLowerCase().includes(searchQuery) || 
-                t.desc.toLowerCase().includes(searchQuery);
-            return matchesSearch;
-        });
-
         if (countVisibleEl) {
-            countVisibleEl.textContent = filtered.length;
+            countVisibleEl.textContent = modeMatchedThemes.length;
         }
 
-        if (filtered.length === 0) {
+        if (modeMatchedThemes.length === 0) {
             gridContainer.innerHTML = `<div class="col-span-full py-6 text-center text-xs app-meta-text">Keine passenden Themes gefunden.</div>`;
             return;
         }
 
-        filtered.forEach(t => {
+        modeMatchedThemes.forEach(t => {
             const isSelected = (t.id === currentActiveTheme);
             const card = document.createElement('div');
             card.className = `theme-card flex flex-col justify-between ${isSelected ? 'is-active' : ''}`;

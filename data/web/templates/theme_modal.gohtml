@@ -1,9 +1,9 @@
 <!-- DaisyUI Theme & Mode Selector Modal Dialog -->
 <dialog id="theme-modal-dialog" class="modal modal-bottom sm:modal-middle" aria-labelledby="theme-modal-title" role="dialog" aria-modal="true">
-    <div class="modal-box max-w-4xl max-h-[92vh] flex flex-col p-4 sm:p-6 overflow-hidden app-panel">
+    <div class="modal-box max-w-4xl max-h-[92vh] flex flex-col p-4 sm:p-5 gap-3 overflow-hidden app-panel">
         
         <!-- Modal Header -->
-        <div class="flex items-center justify-between pb-3 border-b border-base-content/10 shrink-0">
+        <div class="flex items-center justify-between shrink-0">
             <div class="flex items-center space-x-3">
                 <div class="w-10 h-10 rounded-xl bg-primary/15 border border-primary/25 text-primary flex items-center justify-center shrink-0 shadow-sm">
                     <span class="app-icon icon-palette w-5 h-5 text-primary" aria-hidden="true"></span>
@@ -22,56 +22,44 @@
             </button>
         </div>
 
-        <!-- Mode & Filter Toolbar -->
-        <div class="flex flex-wrap items-center justify-between gap-3 py-3 border-b border-base-content/10 shrink-0">
-            <!-- Mode Radios -->
-            <div class="flex items-center gap-2">
-                <span class="text-xs font-semibold uppercase tracking-wider app-metric-label">Modus:</span>
-                <div class="join" id="theme-mode-radios" role="radiogroup" aria-label="Anzeigemodus auswählen">
-                    <button type="button" data-mode="auto" id="theme-mode-btn-auto" class="btn btn-xs sm:btn-sm join-item theme-mode-btn btn-primary app-btn flex items-center gap-1.5" role="radio" aria-checked="true" title="Folgt den Systemeinstellungen des Betriebssystems">
-                        <span class="app-icon icon-sun-moon w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span>Auto</span>
-                    </button>
-                    <button type="button" data-mode="lightmode" id="theme-mode-btn-light" class="btn btn-xs sm:btn-sm join-item theme-mode-btn btn-ghost app-btn flex items-center gap-1.5" role="radio" aria-checked="false" title="Immer helles Farbschema erzwingen">
-                        <span class="app-icon icon-sun-moon w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span>Hell</span>
-                    </button>
-                    <button type="button" data-mode="darkmode" id="theme-mode-btn-dark" class="btn btn-xs sm:btn-sm join-item theme-mode-btn btn-ghost app-btn flex items-center gap-1.5" role="radio" aria-checked="false" title="Immer dunkles Farbschema erzwingen">
-                        <span class="app-icon icon-sun-moon w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span>Dunkel</span>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Active Mode Summary & Search -->
-            <div class="flex items-center gap-2">
-                <span id="theme-mode-summary-badge" class="badge badge-sm badge-outline font-mono text-[11px] gap-1 py-2.5">
-                    <span id="theme-mode-summary-text">Helle Themes</span>: <strong id="theme-count-visible">20</strong>
-                </span>
-                <div class="relative flex items-center">
-                    <input type="text" id="theme-search-input" placeholder="Theme suchen..." class="input input-xs input-bordered w-28 sm:w-36 font-mono app-input pl-6" />
-                    <span class="app-icon icon-search w-3 h-3 text-base-content/50 absolute left-2 pointer-events-none" aria-hidden="true"></span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Scrollable Content: Live-Test Preview & Themes Grid -->
-        <div class="flex-1 overflow-y-auto space-y-4 py-3 pr-1 transponder-stream-scroll">
-            
-            <!-- Interactive Live-Test Preview Component (DaisyUI Components Sample) -->
-            <div id="theme-live-preview-box" class="card card-bordered bg-base-100/90 shadow-sm p-3.5 sm:p-4 border-base-300 transition-all">
-                <div class="flex items-center justify-between mb-3 border-b border-base-content/10 pb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="badge badge-sm badge-primary font-mono text-[10px]">LIVE TEST</span>
-                        <span class="text-xs font-bold text-base-content">
-                            Aktives Theme: <strong id="live-preview-theme-title" class="text-primary font-mono text-sm">Corporate</strong>
-                        </span>
+        <!-- Section: Modus & Live-Test Preview (Fixed, non-scrolling) -->
+        <div class="card card-bordered bg-base-100/80 border-base-300/60 shadow-sm p-3 sm:p-3.5 shrink-0 space-y-2.5">
+            <!-- Mode & Status Header Row -->
+            <div class="flex flex-wrap items-center justify-between gap-2.5">
+                <!-- Mode Radios -->
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider app-metric-label">Modus:</span>
+                    <div class="join" id="theme-mode-radios" role="radiogroup" aria-label="Anzeigemodus auswählen">
+                        <button type="button" data-mode="auto" id="theme-mode-btn-auto" class="btn btn-xs sm:btn-sm join-item theme-mode-btn btn-primary app-btn flex items-center gap-1.5" role="radio" aria-checked="true" title="Folgt den Systemeinstellungen des Betriebssystems">
+                            <span class="app-icon icon-sun-moon w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
+                            <span>Auto</span>
+                        </button>
+                        <button type="button" data-mode="lightmode" id="theme-mode-btn-light" class="btn btn-xs sm:btn-sm join-item theme-mode-btn btn-ghost app-btn flex items-center gap-1.5" role="radio" aria-checked="false" title="Immer helles Farbschema erzwingen">
+                            <span class="app-icon icon-sun-moon w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
+                            <span>Hell</span>
+                        </button>
+                        <button type="button" data-mode="darkmode" id="theme-mode-btn-dark" class="btn btn-xs sm:btn-sm join-item theme-mode-btn btn-ghost app-btn flex items-center gap-1.5" role="radio" aria-checked="false" title="Immer dunkles Farbschema erzwingen">
+                            <span class="app-icon icon-sun-moon w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
+                            <span>Dunkel</span>
+                        </button>
                     </div>
-                    <span class="text-[11px] app-meta-text hidden sm:inline">Interaktive Vorschau &amp; Klicktest</span>
                 </div>
-                
+
+                <!-- Active Mode & Theme Title -->
+                <div class="flex items-center gap-2">
+                    <span id="theme-mode-summary-badge" class="badge badge-sm badge-outline font-mono text-[11px] gap-1 py-2.5">
+                        <span id="theme-mode-summary-text">Helle Themes</span>: <strong id="theme-count-visible">14</strong>
+                    </span>
+                    <span class="badge badge-sm badge-primary font-mono text-[11px] py-2.5">
+                        Theme: <strong id="live-preview-theme-title" class="ml-1 font-bold">Corporate</strong>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Live-Test Preview Components -->
+            <div id="theme-live-preview-box" class="bg-base-200/50 rounded-xl p-2.5 sm:p-3 border border-base-300/40 space-y-2">
                 <!-- Buttons Row -->
-                <div class="flex flex-wrap items-center gap-1.5 mb-2.5">
+                <div class="flex flex-wrap items-center gap-1.5">
                     <button type="button" class="btn btn-xs sm:btn-sm btn-primary">Primary</button>
                     <button type="button" class="btn btn-xs sm:btn-sm btn-secondary">Secondary</button>
                     <button type="button" class="btn btn-xs sm:btn-sm btn-accent">Accent</button>
@@ -81,7 +69,7 @@
                 </div>
 
                 <!-- Badges Row -->
-                <div class="flex flex-wrap items-center gap-1.5 mb-3">
+                <div class="flex flex-wrap items-center gap-1.5">
                     <span class="badge badge-primary badge-sm">Primary</span>
                     <span class="badge badge-secondary badge-sm">Secondary</span>
                     <span class="badge badge-accent badge-sm">Accent</span>
@@ -93,7 +81,7 @@
                 </div>
 
                 <!-- Form Controls Row -->
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5 items-center bg-base-200/60 p-2.5 rounded-lg border border-base-content/10">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center bg-base-100/70 p-2 rounded-lg border border-base-300/40">
                     <div class="flex items-center gap-2">
                         <input type="text" class="input input-xs input-bordered w-full font-mono text-[11px] app-input" value="ITEM-987654 (Live-Test)" readonly />
                     </div>
@@ -113,23 +101,26 @@
                     </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Themes Grid Section -->
-            <div>
-                <div class="flex items-center justify-between mb-2">
-                    <h4 class="text-xs font-bold uppercase tracking-wider app-meta-text">Verfügbare DaisyUI Themes</h4>
-                    <span class="text-[11px] app-meta-text">Klicken zum sofortigen Testen &amp; Auswählen</span>
+        <!-- Section: Themes Grid (Scrollable) -->
+        <div class="card card-bordered bg-base-100/60 border-base-300/60 shadow-sm p-3 sm:p-3.5 flex-1 min-h-0 flex flex-col overflow-hidden">
+            <div class="flex items-center justify-between pb-2 shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold uppercase tracking-wider app-metric-label">Verfügbare DaisyUI Themes</span>
                 </div>
-                
+                <span class="text-[11px] app-meta-text">Klicken zum sofortigen Testen &amp; Auswählen</span>
+            </div>
+            
+            <div class="flex-1 overflow-y-auto pr-1 transponder-stream-scroll">
                 <div id="theme-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                     <!-- Populated dynamically by theme-selector.js -->
                 </div>
             </div>
-
         </div>
 
         <!-- Modal Footer -->
-        <div class="modal-action flex items-center justify-between pt-3 border-t border-base-content/10 mt-3 shrink-0">
+        <div class="flex items-center justify-between pt-1 shrink-0">
             <button type="button" id="theme-reset-btn" class="btn btn-sm btn-ghost app-btn text-xs text-base-content/70 hover:text-base-content" title="Auf Standard-Design (Corporate / Dark) zurücksetzen">
                 Standard wiederherstellen
             </button>
