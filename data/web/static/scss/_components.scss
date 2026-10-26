@@ -377,7 +377,6 @@
     border: 1px solid var(--color-card-border);
     box-shadow: var(--color-card-shadow);
     border-radius: var(--radius-xl, 0.75rem);
-    @include tw-blur(lg);
     @include tw-transition((background-color, border-color, transform, box-shadow));
 }
 
@@ -445,7 +444,7 @@
     gap: tw-space(6); // Einheitlicher 1.5rem Abstand zwischen allen Sections
 }
 
-// Zentrales Panel mit Glassmorphism
+// Zentrales Panel
 .app-panel {
     background-color: var(--color-panel-bg);
     border: 1px solid var(--color-panel-border);
@@ -454,7 +453,6 @@
     overflow: hidden;
     display: flex;
     flex-direction: column;
-    @include tw-blur(xl);
 
     // Toolbar / Header des Panels
     .app-panel-toolbar {
@@ -466,7 +464,6 @@
         align-items: center;
         justify-content: space-between;
         gap: tw-space(3);
-        @include tw-blur(md);
     }
 
     // Standardisierter Inhaltsbereich für Formulare und Detailansichten
@@ -492,7 +489,6 @@
 .app-panel-toolbar {
     background-color: var(--color-panel-toolbar-bg);
     border-bottom: 1px solid var(--color-panel-toolbar-border);
-    @include tw-blur(md);
 }
 
 .app-panel-title {
@@ -503,7 +499,6 @@
     background-color: var(--color-btn-bg);
     color: var(--color-btn-text);
     border: 1px solid var(--color-btn-border);
-    @include tw-blur(md);
 
     &:hover {
         background-color: var(--color-tag-crc-err-bg);

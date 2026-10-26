@@ -29,57 +29,57 @@ $skin-template-light: (
     "border-main": #cbd5e1,                                                         // Standard container borders
 
     // ----------------------------------------------------------------------
-    // 2. Cards, Containers & Panels (Glassmorphism)
+    // 2. Cards, Containers & Panels (Opaque)
     // ----------------------------------------------------------------------
-    "card-bg": rgba(255, 255, 255, 0.85),                                           // Metric & stat card background
-    "card-border": rgba(226, 232, 240, 0.85),                                       // Metric card border
+    "card-bg": #ffffff,                                                             // Metric & stat card background
+    "card-border": #e2e8f0,                                                         // Metric card border
     "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -1px rgba(0, 0, 0, 0.04)), // Card elevation shadow
 
-    "panel-bg": rgba(255, 255, 255, 0.88),                                          // Main data panel / table card background
-    "panel-border": rgba(226, 232, 240, 0.85),                                      // Main data panel border
-    "panel-toolbar-bg": rgba(248, 250, 252, 0.80),                                  // Panel header toolbar background
-    "panel-toolbar-border": rgba(226, 232, 240, 0.85),                              // Toolbar bottom divider
+    "panel-bg": #ffffff,                                                            // Main data panel / table card background
+    "panel-border": #e2e8f0,                                                        // Main data panel border
+    "panel-toolbar-bg": #f8fafc,                                                    // Panel header toolbar background
+    "panel-toolbar-border": #e2e8f0,                                                // Toolbar bottom divider
 
     // ----------------------------------------------------------------------
     // 3. Tables & Lists
     // ----------------------------------------------------------------------
-    "table-header-bg": rgba(248, 250, 252, 0.90),                                   // Sticky table header background
+    "table-header-bg": #f8fafc,                                                     // Sticky table header background
     "table-header-text": #475569,                                                   // Header column label color
     "table-header-border": #e2e8f0,                                                 // Header row border
     "table-row-border": #f1f5f9,                                                    // Data row separator line
-    "table-row-hover": rgba(241, 245, 249, 0.85),                                   // Row hover background
+    "table-row-hover": #f1f5f9,                                                     // Row hover background
     "table-empty-text": #64748b,                                                    // Empty state / placeholder message
 
     // ----------------------------------------------------------------------
     // 4. Interactive Controls: Buttons & Inputs
     // ----------------------------------------------------------------------
-    "input-bg": rgba(255, 255, 255, 0.85),                                          // Filter and text input background
+    "input-bg": #ffffff,                                                            // Filter and text input background
     "input-border": #cbd5e1,                                                        // Input border color
     "input-text": #0f172a,                                                          // Input typed text color
     "input-placeholder": #94a3b8,                                                   // Input placeholder text color
 
-    "btn-bg": rgba(255, 255, 255, 0.85),                                            // Button background
+    "btn-bg": #ffffff,                                                              // Button background
     "btn-border": #cbd5e1,                                                          // Button border
     "btn-text": #334155,                                                            // Button label color
-    "btn-hover-bg": rgba(241, 245, 249, 0.95),                                      // Button hover background
+    "btn-hover-bg": #f1f5f9,                                                        // Button hover background
     "btn-hover-text": #0f172a,                                                      // Button hover text color
 
     // ----------------------------------------------------------------------
     // 5. Metric & Stat Card Accents
     // ----------------------------------------------------------------------
-    "metric-total-bg": rgba(239, 246, 255, 0.85),
+    "metric-total-bg": #eff6ff,
     "metric-total-border": #bfdbfe,
     "metric-total-text": #2563eb,
 
-    "metric-channel-bg": rgba(238, 242, 255, 0.85),
+    "metric-channel-bg": #eef2ff,
     "metric-channel-border": #c7d2fe,
     "metric-channel-text": #4f46e5,
 
-    "metric-reader-bg": rgba(236, 254, 255, 0.85),
+    "metric-reader-bg": #ecfeff,
     "metric-reader-border": #a5f3fc,
     "metric-reader-text": #0891b2,
 
-    "metric-uptime-bg": rgba(236, 253, 245, 0.85),
+    "metric-uptime-bg": #ecfdf5,
     "metric-uptime-border": #a7f3d0,
     "metric-uptime-text": #059669,
 
@@ -186,58 +186,58 @@ $skin-template-dark: (
     "border-main": rgba(51, 65, 85, 0.8),
 
     // ----------------------------------------------------------------------
-    // 2. Cards, Containers & Panels (Glassmorphism)
+    // 2. Cards, Containers & Panels (Opaque)
     // ----------------------------------------------------------------------
-    "card-bg": rgba(15, 23, 42, 0.78),
-    "card-border": rgba(30, 41, 59, 0.8),
+    "card-bg": #1e293b,
+    "card-border": #334155,
     "card-shadow": (0 8px 24px -4px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.35)),
 
-    "panel-bg": linear-gradient(to bottom, rgba(17, 24, 39, 0.82), rgba(3, 7, 18, 0.88)),
-    "panel-border": rgba(31, 41, 55, 0.85),
-    "panel-toolbar-bg": rgba(17, 24, 39, 0.50),
-    "panel-toolbar-border": rgba(31, 41, 55, 0.8),
+    "panel-bg": #0f172a,
+    "panel-border": #1e293b,
+    "panel-toolbar-bg": #1e293b,
+    "panel-toolbar-border": #334155,
 
     // ----------------------------------------------------------------------
     // 3. Tables & Lists
     // ----------------------------------------------------------------------
-    "table-header-bg": rgba(3, 7, 18, 0.90),
+    "table-header-bg": #1e293b,
     "table-header-text": #94a3b8,
-    "table-header-border": #1f2937,
-    "table-row-border": rgba(31, 41, 55, 0.6),
-    "table-row-hover": rgba(15, 23, 42, 0.6),
+    "table-header-border": #334155,
+    "table-row-border": #334155,
+    "table-row-hover": #334155,
     "table-empty-text": #94a3b8,
 
     // ----------------------------------------------------------------------
     // 4. Interactive Controls: Buttons & Inputs
     // ----------------------------------------------------------------------
-    "input-bg": rgba(3, 7, 18, 0.75),
-    "input-border": rgba(55, 65, 81, 0.8),
+    "input-bg": #0f172a,
+    "input-border": #334155,
     "input-text": #ffffff,
-    "input-placeholder": #6b7280,
+    "input-placeholder": #64748b,
 
-    "btn-bg": rgba(17, 24, 39, 0.80),
-    "btn-border": #374151,
-    "btn-text": #d1d5db,
-    "btn-hover-bg": rgba(31, 41, 55, 0.90),
+    "btn-bg": #1e293b,
+    "btn-border": #334155,
+    "btn-text": #cbd5e1,
+    "btn-hover-bg": #334155,
     "btn-hover-text": #ffffff,
 
     // ----------------------------------------------------------------------
     // 5. Metric & Stat Card Accents
     // ----------------------------------------------------------------------
-    "metric-total-bg": rgba(23, 37, 84, 0.75),
-    "metric-total-border": rgba(30, 58, 138, 0.6),
+    "metric-total-bg": #1e293b,
+    "metric-total-border": #3b82f6,
     "metric-total-text": #60a5fa,
 
-    "metric-channel-bg": rgba(30, 27, 75, 0.75),
-    "metric-channel-border": rgba(49, 46, 129, 0.6),
+    "metric-channel-bg": #1e293b,
+    "metric-channel-border": #6366f1,
     "metric-channel-text": #a5b4fc,
 
-    "metric-reader-bg": rgba(8, 51, 68, 0.75),
-    "metric-reader-border": rgba(21, 94, 117, 0.6),
+    "metric-reader-bg": #1e293b,
+    "metric-reader-border": #06b6d4,
     "metric-reader-text": #67e8f9,
 
-    "metric-uptime-bg": rgba(2, 44, 34, 0.75),
-    "metric-uptime-border": rgba(4, 120, 87, 0.6),
+    "metric-uptime-bg": #1e293b,
+    "metric-uptime-border": #10b981,
     "metric-uptime-text": #34d399,
 
     // ----------------------------------------------------------------------

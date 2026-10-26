@@ -67,7 +67,7 @@
             <div class="app-panel-body">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                     <!-- Barcode / ItemID Input -->
-                    <div class="md:col-span-5 flex flex-col gap-1.5">
+                    <div class="md:col-span-6 flex flex-col gap-1.5">
                         <label for="encode-item-id" class="text-xs font-semibold app-metric-label flex items-center justify-between">
                             <span>Barcode / ItemID <span class="text-rose-500">*</span></span>
                             <span class="text-xs font-normal app-text-dim">Erforderlich</span>
@@ -80,35 +80,20 @@
                         </div>
                     </div>
 
-                    <!-- ISIL Identifier Input -->
-                    <div class="md:col-span-3 flex flex-col gap-1.5">
+                    <!-- ISIL Identifier & AFI Checkbox Row -->
+                    <div class="md:col-span-6 flex flex-col gap-1.5">
                         <label for="encode-isil" class="text-xs font-semibold app-metric-label flex items-center justify-between">
                             <span>Bibliothek / ISIL</span>
                             <span class="text-xs font-normal app-text-dim">Format: Land-ISIL</span>
                         </label>
-                        <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
-                               class="app-input w-full font-mono">
-                    </div>
-
-                    <!-- AFI Security Switch (Segmented 2-Way Control) -->
-                    <div class="md:col-span-4 flex flex-col gap-1.5">
-                        <label class="text-xs font-semibold app-metric-label flex items-center justify-between">
-                            <span>AFI Sicherheitsstatus</span>
-                            <span class="text-xs font-normal app-text-dim">Sicherheitsflag</span>
-                        </label>
-                        <div class="app-afi-segmented-control flex items-center p-1 rounded-lg h-9" role="radiogroup" aria-label="AFI Sicherheitsstatus">
-                            <button type="button" id="encode-afi-btn-unsecure"
-                                    class="app-afi-segment flex-1 flex items-center justify-center gap-1.5 h-full px-2.5 rounded text-xs font-semibold cursor-pointer {{if ne .DefaultAFI "07"}}app-afi-active-unsecure{{end}}"
-                                    data-afi="C2" role="radio" aria-checked="{{if ne .DefaultAFI "07"}}true{{else}}false{{end}}">
-                                <img src="{{.StaticPath}}/img/lock-open-emerald.svg" class="w-3.5 h-3.5 shrink-0" alt="Ungesichert" />
-                                <span>Ungesichert (C2)</span>
-                            </button>
-                            <button type="button" id="encode-afi-btn-secure"
-                                    class="app-afi-segment flex-1 flex items-center justify-center gap-1.5 h-full px-2.5 rounded text-xs font-semibold cursor-pointer {{if eq .DefaultAFI "07"}}app-afi-active-secure{{end}}"
-                                    data-afi="07" role="radio" aria-checked="{{if eq .DefaultAFI "07"}}true{{else}}false{{end}}">
-                                <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-3.5 h-3.5 shrink-0" alt="Gesichert" />
-                                <span>Gesichert (07)</span>
-                            </button>
+                        <div class="flex items-center gap-3">
+                            <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
+                                   class="app-input flex-1 font-mono">
+                            <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-semibold app-metric-label whitespace-nowrap h-9 px-2">
+                                <input type="checkbox" id="encode-afi-checkbox" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 cursor-pointer"
+                                       {{if eq .DefaultAFI "07"}}checked{{end}}>
+                                <span>AFI gesichert (07)</span>
+                            </label>
                             <input type="hidden" id="encode-afi-input" value="{{.DefaultAFI}}">
                         </div>
                     </div>
@@ -122,12 +107,12 @@
                     <span class="text-xs font-semibold app-metric-label mr-1">Teile (Multi-Part):</span>
                     <input type="hidden" id="encode-parts-input" value="{{.DefaultParts}}">
                     
-                    <div class="inline-flex rounded-lg p-0.5 app-card border gap-1" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
-                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 1}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="1">1</button>
-                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 2}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="2">2</button>
-                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 3}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="3">3</button>
-                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 4}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="4">4</button>
-                        <button type="button" class="encode-part-btn h-8 min-w-[36px] px-2.5 text-xs font-bold rounded cursor-pointer {{if eq .DefaultParts 5}}app-part-active bg-blue-600 text-white shadow-sm{{else}}app-btn text-muted hover:text-white{{end}}" data-parts="5">5</button>
+                    <div class="inline-flex items-center gap-1.5" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
+                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 1}}app-part-active{{end}}" data-parts="1" role="radio" aria-checked="{{if eq .DefaultParts 1}}true{{else}}false{{end}}">1</button>
+                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 2}}app-part-active{{end}}" data-parts="2" role="radio" aria-checked="{{if eq .DefaultParts 2}}true{{else}}false{{end}}">2</button>
+                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 3}}app-part-active{{end}}" data-parts="3" role="radio" aria-checked="{{if eq .DefaultParts 3}}true{{else}}false{{end}}">3</button>
+                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 4}}app-part-active{{end}}" data-parts="4" role="radio" aria-checked="{{if eq .DefaultParts 4}}true{{else}}false{{end}}">4</button>
+                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 5}}app-part-active{{end}}" data-parts="5" role="radio" aria-checked="{{if eq .DefaultParts 5}}true{{else}}false{{end}}">5</button>
                     </div>
 
                     <!-- Dropdown for 6 to 12 parts -->

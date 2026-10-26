@@ -57,10 +57,10 @@ export function updatePartsSelection(partsCount, isManual = true) {
         const pillVal = parseInt(pill.getAttribute('data-parts'), 10);
         if (pillVal === count) {
             pill.classList.add('app-part-active');
-            pill.classList.remove('text-muted');
+            pill.setAttribute('aria-checked', 'true');
         } else {
             pill.classList.remove('app-part-active');
-            pill.classList.add('text-muted');
+            pill.setAttribute('aria-checked', 'false');
         }
     });
 
@@ -76,13 +76,18 @@ export function updatePartsSelection(partsCount, isManual = true) {
 
 export function setAFIStatus(afiValue) {
     const afiInput = getElement('encode-afi-input');
+    const afiCheckbox = getElement('encode-afi-checkbox');
     const unsecureBtn = getElement('encode-afi-btn-unsecure');
     const secureBtn = getElement('encode-afi-btn-secure');
 
-    const normalized = (afiValue === '07' || afiValue === 'secure' || afiValue === 'gesichert') ? '07' : 'C2';
+    const normalized = (afiValue === '07' || afiValue === 'secure' || afiValue === 'gesichert' || afiValue === true) ? '07' : 'C2';
 
     if (afiInput) {
         afiInput.value = normalized;
+    }
+
+    if (afiCheckbox) {
+        afiCheckbox.checked = (normalized === '07');
     }
 
     if (unsecureBtn) {
@@ -317,7 +322,12 @@ export function startEncoding() {
     }
 
     currentISIL = isilInput ? isilInput.value.trim() : '';
-    currentAFI = afiInput ? (afiInput.value.trim() || '07') : '07';
+    const afiCheckbox = getElement('encode-afi-checkbox');
+    if (afiCheckbox) {
+        currentAFI = afiCheckbox.checked ? '07' : 'C2';
+    } else {
+        currentAFI = afiInput ? (afiInput.value.trim() || '07') : '07';
+    }
     totalParts = partsInput ? (parseInt(partsInput.value, 10) || 1) : 1;
     currentPartNo = 1;
     encodedUIDs.clear();
@@ -342,6 +352,7 @@ export function initEncodeController() {
     const partsSelect = getElement('encode-parts-select');
     const unsecureBtn = getElement('encode-afi-btn-unsecure');
     const secureBtn = getElement('encode-afi-btn-secure');
+    const afiCheckbox = getElement('encode-afi-checkbox');
     const afiInput = getElement('encode-afi-input');
     const stopModalBtn = getElement('btn-encode-modal-stop');
     const confirmOverwriteBtn = getElement('btn-overwrite-confirm');
@@ -351,7 +362,14 @@ export function initEncodeController() {
     // Only run on pages that have the encode form
     if (!itemInput && !startBtn) return;
 
-    // AFI Segmented Control event listeners
+    // AFI Checkbox event listener
+    if (afiCheckbox) {
+        afiCheckbox.addEventListener('change', () => {
+            setAFIStatus(afiCheckbox.checked ? '07' : 'C2');
+        });
+    }
+
+    // AFI Segmented Control event listeners (if present)
     if (unsecureBtn) {
         unsecureBtn.addEventListener('click', () => {
             setAFIStatus('C2');
@@ -376,7 +394,9 @@ export function initEncodeController() {
         });
     }
 
-    if (afiInput && afiInput.value) {
+    if (afiCheckbox) {
+        setAFIStatus(afiCheckbox.checked ? '07' : 'C2');
+    } else if (afiInput && afiInput.value) {
         setAFIStatus(afiInput.value);
     }
 
