@@ -72,23 +72,29 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("expected EventGetDeviceMetadata, got %s", metaReq.Event)
 	}
 
+	metaReqReader := rfidapps.NewDeviceMetadataRequestForReader("gate-01")
+	if metaReqReader.GetReaderID() != "gate-01" {
+		t.Errorf("expected GetReaderID() = 'gate-01', got %s", metaReqReader.GetReaderID())
+	}
+
 	cfg := rfidapps.DefaultWSBrokerConfig()
 	if cfg.ClientName != "" {
 		t.Errorf("unexpected ClientName in default config: %s", cfg.ClientName)
 	}
 
-	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid:tag_read","uid":"E004","itemId":"TEST-1"}`))
+	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid:tag_read","uid":"E004","itemId":"TEST-1","reader_id":"gate-01"}`))
 	if err != nil {
 		t.Fatalf("ParseRFIDPayload failed: %v", err)
 	}
 
 	tag, ok := payload.(*rfidapps.TagReadEvent)
-	if !ok || tag.ItemID != "TEST-1" {
+	if !ok || tag.ItemID != "TEST-1" || tag.GetReaderID() != "gate-01" {
 		t.Errorf("unexpected parsed object: %+v", payload)
 	}
 
 	// Verify options exist
 	_ = rfidapps.WithDefaultTarget("station-1")
+	_ = rfidapps.WithDefaultReaderID("gate-01")
 	_ = rfidapps.WithDefaultTimeout(5 * time.Second)
 	_ = rfidapps.WithChannels("all", "intern")
 	_ = rfidapps.WithClientName("app-1")
@@ -102,7 +108,7 @@ func TestRootPackageExports(t *testing.T) {
 	}
 	defer client.Close()
 
-	rfidClient, err := rfidapps.New(client, rfidapps.WithDefaultTarget("station-1"))
+	rfidClient, err := rfidapps.New(client, rfidapps.WithDefaultTarget("station-1"), rfidapps.WithDefaultReaderID("gate-01"))
 	if err != nil {
 		t.Fatalf("failed to create rfid client: %v", err)
 	}
@@ -112,12 +118,23 @@ func TestRootPackageExports(t *testing.T) {
 		t.Error("BrokerClient() should not be nil")
 	}
 
+	scopedClient := rfidClient.ForReader("gate-02")
+	if scopedClient.DefaultReaderID() != "gate-02" {
+		t.Errorf("scopedClient.DefaultReaderID() = %q, want 'gate-02'", scopedClient.DefaultReaderID())
+	}
+
 	_ = rfidClient.OnTagRead(func(tag *rfidapps.TagReadEvent, rawEvt *wsbrokerclient.Event) {})
+	_ = rfidClient.OnTagReadForReader("gate-01", func(tag *rfidapps.TagReadEvent, rawEvt *wsbrokerclient.Event) {})
 	_ = rfidClient.OnTagsCleared(func(cleared *rfidapps.TagsClearedEvent, rawEvt *wsbrokerclient.Event) {})
+	_ = rfidClient.OnTagsClearedForReader("gate-01", func(cleared *rfidapps.TagsClearedEvent, rawEvt *wsbrokerclient.Event) {})
 	_ = rfidClient.OnDeviceMetadata(func(meta *rfidapps.DeviceMetadataResponse, rawEvt *wsbrokerclient.Event) {})
+	_ = rfidClient.OnDeviceMetadataForReader("gate-01", func(meta *rfidapps.DeviceMetadataResponse, rawEvt *wsbrokerclient.Event) {})
 	_ = rfidClient.OnWriteTagResponse(func(resp *rfidapps.WriteTagResponse, rawEvt *wsbrokerclient.Event) {})
+	_ = rfidClient.OnWriteTagResponseForReader("gate-01", func(resp *rfidapps.WriteTagResponse, rawEvt *wsbrokerclient.Event) {})
 	_ = rfidClient.OnWriteAFIResponse(func(resp *rfidapps.WriteAFIResponse, rawEvt *wsbrokerclient.Event) {})
+	_ = rfidClient.OnWriteAFIResponseForReader("gate-01", func(resp *rfidapps.WriteAFIResponse, rawEvt *wsbrokerclient.Event) {})
 	_ = rfidClient.OnAnyRFIDEvent(func(rfidEvt any, rawEvt *wsbrokerclient.Event) {})
+	_ = rfidClient.OnAnyRFIDEventForReader("gate-01", func(rfidEvt any, rawEvt *wsbrokerclient.Event) {})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -126,4 +143,10 @@ func TestRootPackageExports(t *testing.T) {
 		t.Fatalf("SubscribeTags failed: %v", err)
 	}
 	unsub()
+
+	_, unsubReader, err := rfidClient.SubscribeTagsForReader(ctx, "all", "gate-01")
+	if err != nil {
+		t.Fatalf("SubscribeTagsForReader failed: %v", err)
+	}
+	unsubReader()
 }
