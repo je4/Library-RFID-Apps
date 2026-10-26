@@ -27,8 +27,9 @@ export function showEncodeNotification(message, type = 'info', autoHideMs = 6000
     if (!actionNotification || !actionNotificationText) return;
 
     actionNotificationText.textContent = message;
-    actionNotification.className = 'px-4 py-2.5 text-xs font-medium border-b transition-all flex items-center justify-between ' +
-        (type === 'error' ? 'app-notification-error' : (type === 'success' ? 'app-notification-success' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'));
+    const alertClass = type === 'error' ? 'alert-error' : (type === 'success' ? 'alert-success' : 'alert-info');
+    actionNotification.className = `alert ${alertClass} text-xs p-3 shadow-sm rounded-lg flex items-center justify-between ` +
+        (type === 'error' ? 'app-notification-error' : (type === 'success' ? 'app-notification-success' : ''));
     actionNotification.classList.remove('hidden');
 
     if (autoHideMs > 0) {
@@ -56,10 +57,12 @@ export function updatePartsSelection(partsCount, isManual = true) {
     partPills.forEach((pill) => {
         const pillVal = parseInt(pill.getAttribute('data-parts'), 10);
         if (pillVal === count) {
-            pill.classList.add('app-part-active');
+            pill.classList.add('app-part-active', 'btn-primary');
+            pill.classList.remove('btn-ghost');
             pill.setAttribute('aria-checked', 'true');
         } else {
-            pill.classList.remove('app-part-active');
+            pill.classList.remove('app-part-active', 'btn-primary');
+            pill.classList.add('btn-ghost');
             pill.setAttribute('aria-checked', 'false');
         }
     });
@@ -146,14 +149,20 @@ function showProgressModal(title, message, stepBadge, statusText) {
     if (badgeEl && stepBadge) badgeEl.textContent = stepBadge;
     if (statusEl && statusText) statusEl.textContent = statusText;
 
-    modal.classList.add('active');
+    if (typeof modal.showModal === 'function' && !modal.open) {
+        try { modal.showModal(); } catch (_) { modal.setAttribute('open', ''); }
+    }
+    modal.classList.add('active', 'modal-open');
     modal.setAttribute('aria-hidden', 'false');
 }
 
 function hideProgressModal() {
     const modal = getElement('encode-modal-overlay');
     if (modal) {
-        modal.classList.remove('active');
+        if (typeof modal.close === 'function' && modal.open) {
+            try { modal.close(); } catch (_) { modal.removeAttribute('open'); }
+        }
+        modal.classList.remove('active', 'modal-open');
         modal.setAttribute('aria-hidden', 'true');
     }
 }
@@ -171,14 +180,20 @@ function showOverwriteModal(uid, oldItemID) {
     if (uidEl) uidEl.textContent = uid;
     if (oldItemEl) oldItemEl.textContent = oldItemID;
 
-    modal.classList.add('active');
+    if (typeof modal.showModal === 'function' && !modal.open) {
+        try { modal.showModal(); } catch (_) { modal.setAttribute('open', ''); }
+    }
+    modal.classList.add('active', 'modal-open');
     modal.setAttribute('aria-hidden', 'false');
 }
 
 function hideOverwriteModal() {
     const modal = getElement('encode-overwrite-overlay');
     if (modal) {
-        modal.classList.remove('active');
+        if (typeof modal.close === 'function' && modal.open) {
+            try { modal.close(); } catch (_) { modal.removeAttribute('open'); }
+        }
+        modal.classList.remove('active', 'modal-open');
         modal.setAttribute('aria-hidden', 'true');
     }
     pendingTagUID = null;

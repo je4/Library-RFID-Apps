@@ -6,7 +6,7 @@
             {{if .ItemID}}
             <div class="inline-flex items-center space-x-1.5 flex-nowrap">
                 <span class="text-sm font-semibold tracking-wide app-tag-item-id">{{.ItemID}}</span>
-                <button type="button" class="copy-itemid-btn app-copy-btn" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
+                <button type="button" class="copy-itemid-btn app-copy-btn btn btn-ghost btn-xs btn-square" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
                     <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 flex-shrink-0" width="14" height="14" alt="Kopieren" />
                 </button>
             </div>
@@ -18,9 +18,9 @@
 
     <!-- UID with Copy Button -->
     <td class="py-3.5 px-4 font-mono text-xs whitespace-nowrap">
-        <div class="app-uid-box">
+        <div class="app-uid-box flex items-center gap-1.5">
             <span class="whitespace-nowrap">{{.UID}}</span>
-            <button type="button" class="copy-uid-btn app-copy-btn" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
+            <button type="button" class="copy-uid-btn app-copy-btn btn btn-ghost btn-xs btn-square" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
                 <img src="{{.StaticPath}}/img/copy.svg" class="w-3.5 h-3.5 flex-shrink-0" width="14" height="14" alt="Kopieren" />
             </button>
         </div>
@@ -184,12 +184,12 @@
     <!-- CRC Check Status -->
     <td class="py-3.5 px-4 text-xs font-mono">
         {{if .CRCOk}}
-        <span class="inline-flex items-center space-x-1">
+        <span class="badge badge-sm badge-success gap-1 text-[11px] font-mono">
             <img src="{{.StaticPath}}/img/check.svg" class="w-3.5 h-3.5" alt="OK" />
             <span>OK (Gültig)</span>
         </span>
         {{else}}
-        <span class="inline-flex items-center space-x-1">
+        <span class="badge badge-sm badge-error gap-1 text-[11px] font-mono">
             <img src="{{.StaticPath}}/img/x-mark.svg" class="w-3.5 h-3.5" alt="Fehler" />
             <span>Fehler</span>
         </span>
@@ -199,17 +199,17 @@
     <!-- AFI / Usage -->
     <td class="py-3.5 px-4 text-xs font-mono">
         {{if .AFISecured}}
-        <span class="inline-flex items-center space-x-1" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
+        <span class="badge badge-sm badge-info gap-1 text-[11px] font-mono" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
             <img src="{{.StaticPath}}/img/lock-closed.svg" class="w-3.5 h-3.5" alt="Gesichert" />
             <span>Gesichert (07)</span>
         </span>
         {{else if .AFIUnsecured}}
-        <span class="inline-flex items-center space-x-1" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
+        <span class="badge badge-sm badge-success gap-1 text-[11px] font-mono" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
             <img src="{{.StaticPath}}/img/lock-open.svg" class="w-3.5 h-3.5" alt="Entsichert" />
             <span>Entsichert (C2)</span>
         </span>
         {{else if .AFI}}
-        <span>AFI: {{.AFI}}</span>
+        <span class="badge badge-sm badge-ghost font-mono">AFI: {{.AFI}}</span>
         {{else}}
         <span class="app-text-dim">-</span>
         {{end}}

@@ -8,6 +8,12 @@
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script>
         (function() {
+            var themeMap = {
+                'default':   { light: 'corporate', dark: 'dark' },
+                'emerald':   { light: 'emerald',   dark: 'emerald' },
+                'nord':      { light: 'nord',      dark: 'nord' },
+                'bubblegum': { light: 'cupcake',   dark: 'synthwave' }
+            };
             function getSavedSkin() {
                 var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
                 if (match) return decodeURIComponent(match[1]);
@@ -29,6 +35,9 @@
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                 }
+                var currentSkin = document.documentElement.getAttribute('data-skin') || 'default';
+                var mapping = themeMap[currentSkin] || themeMap['default'];
+                document.documentElement.setAttribute('data-theme', isDark ? mapping.dark : mapping.light);
             }
             syncTheme();
             if (window.matchMedia) {
@@ -36,8 +45,9 @@
             }
         })();
     </script>
-    <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
+    <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->
     <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/daisyui.min.css">
     <script src="{{.StaticPath}}/js/htmx-4.0.js"></script>
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
@@ -52,37 +62,41 @@
         <!-- Top Navigation / Action Bar -->
         <nav class="flex items-center flex-wrap gap-4" aria-label="Aktionsleiste">
             <!-- Ausleihe & Rückgabe (Loan) Action Card -->
-            <a href="loan" id="nav-loan-btn" class="app-loan-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg flex-1 min-w-[220px]" title="Zur Ausleihe und Rückgabe wechseln">
-                <div class="flex items-center justify-between w-full mb-3">
-                    <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                            <path d="M9 7h6"></path>
-                            <path d="M9 11h6"></path>
-                            <path d="M9 15h4"></path>
-                        </svg>
+            <a href="loan" id="nav-loan-btn" class="card card-bordered bg-base-100 hover:shadow-lg transition-all duration-300 app-loan-action-card group flex-1 min-w-[220px]" title="Zur Ausleihe und Rückgabe wechseln">
+                <div class="card-body p-4 sm:p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between w-full mb-3">
+                        <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                <path d="M9 7h6"></path>
+                                <path d="M9 11h6"></path>
+                                <path d="M9 15h4"></path>
+                            </svg>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
-                    <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Ausleihe &amp; Rückgabe</span>
+                    <div>
+                        <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
+                        <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Ausleihe &amp; Rückgabe</span>
+                    </div>
                 </div>
             </a>
 
             <!-- Medium kodieren (Encode) Action Card -->
-            <a href="encode" id="nav-encode-btn" class="app-encode-action-card group flex flex-col justify-between p-4 sm:p-5 rounded-2xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-white/40 shadow-lg flex-1 min-w-[220px]" title="Zu Medium kodieren wechseln">
-                <div class="flex items-center justify-between w-full mb-3">
-                    <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
-                        <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
-                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
-                        </svg>
+            <a href="encode" id="nav-encode-btn" class="card card-bordered bg-base-100 hover:shadow-lg transition-all duration-300 app-encode-action-card group flex-1 min-w-[220px]" title="Zu Medium kodieren wechseln">
+                <div class="card-body p-4 sm:p-5 flex flex-col justify-between">
+                    <div class="flex items-center justify-between w-full mb-3">
+                        <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
+                            <svg class="w-7 h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                                <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            </svg>
+                        </div>
                     </div>
-                </div>
-                <div>
-                    <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
-                    <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Medium kodieren</span>
+                    <div>
+                        <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
+                        <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Medium kodieren</span>
+                    </div>
                 </div>
             </a>
         </nav>
@@ -90,46 +104,54 @@
         <!-- Metrics Overview Grid -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Total Tags Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Gelesene RFID-Tags</div>
-                    <div id="stats-total-tags" class="text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-blue flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5" alt="Tags" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-blue flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/tag.svg" class="w-5 h-5" alt="Tags" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Gelesene RFID-Tags</div>
+                    <div id="stats-total-tags" class="stat-value text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
                 </div>
             </div>
 
             <!-- Target Reader / Channel Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Channel</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[160px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Channel</div>
+                    <div class="stat-value text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[160px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
             </div>
 
             <!-- Target Reader Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Standard Reader</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[160px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Standard Reader</div>
+                    <div class="stat-value text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[160px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
                 </div>
             </div>
 
             <!-- Uptime Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Laufzeit</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-emerald mt-1">{{.Uptime}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/clock.svg" class="w-5 h-5" alt="Laufzeit" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/clock.svg" class="w-5 h-5" alt="Laufzeit" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Laufzeit</div>
+                    <div class="stat-value text-sm font-semibold font-mono app-metric-val-emerald mt-1">{{.Uptime}}</div>
                 </div>
             </div>
         </section>
@@ -141,19 +163,19 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Live NFC / RFID Transponder Stream</h2>
-                        <span id="tag-count-badge" class="app-count-badge">{{len .Tags}}</span>
+                        <span id="tag-count-badge" class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Tags}}</span>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-2.5">
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
-                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="app-input has-leading-icon w-48 sm:w-64 font-mono">
+                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="input input-sm input-bordered app-input has-leading-icon w-48 sm:w-64 font-mono">
                         <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none" width="16" height="16" alt="Suche" />
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
-                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="app-btn" title="Transponder-Liste leeren">
+                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost app-btn" title="Transponder-Liste leeren">
                         <img src="{{.StaticPath}}/img/trash.svg" alt="Leeren" />
                         <span>Leeren</span>
                     </button>
@@ -162,7 +184,7 @@
 
             <!-- Tags Table with SSE Connection -->
             <div class="transponder-stream-scroll flex-1">
-                <table class="w-full text-left border-collapse">
+                <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>

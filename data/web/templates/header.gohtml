@@ -1,5 +1,5 @@
 <!-- Header Bar with Navigation -->
-<header class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 app-header gap-4">
+<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 app-header gap-4 p-0 min-h-0">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-gradient-to-tr {{if .IsLoan}}from-emerald-600 via-teal-600 to-cyan-500 shadow-emerald-500/20{{else if .IsEncode}}from-indigo-600 via-purple-600 to-pink-500 shadow-purple-500/20{{else}}from-blue-600 via-indigo-600 to-cyan-500 shadow-blue-500/20{{end}} flex items-center justify-center shadow-lg">
@@ -11,9 +11,9 @@
             <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
                 {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}
                 {{if .Channel}}
-                <span id="field-status-badge" class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Bereit</span>
+                <span id="field-status-badge" class="badge badge-sm badge-outline app-badge-status transition-all">Bereit</span>
                 {{else}}
-                <span class="text-xs font-normal px-2 py-0.5 rounded app-badge-status transition-all">Channel-Auswahl</span>
+                <span class="badge badge-sm badge-outline app-badge-status transition-all">Channel-Auswahl</span>
                 {{end}}
             </h1>
 
@@ -36,8 +36,8 @@
         <!-- Skin / Theme Selector Dropdown -->
         <div class="relative inline-flex items-center">
             <!-- label for="skin-select" class="sr-only">Farbschema auswählen</label -->
-            <div class="app-btn">
-                <svg class="opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <div class="join app-btn btn btn-sm btn-ghost gap-1 px-2">
+                <svg class="w-4 h-4 opacity-75" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"></path>
                 </svg>
                 <select id="skin-select" class="bg-transparent border-none text-xs font-semibold focus:outline-none cursor-pointer pr-1" aria-label="Farbschema auswählen">
@@ -51,21 +51,21 @@
 
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
-        <a href="../" id="nav-channels-btn" class="app-btn" title="Zurück zur Channel-Auswahl">
+        <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost app-btn" title="Zurück zur Channel-Auswahl">
             <img src="{{.StaticPath}}/img/arrow-left.svg" alt="Channels" />
             <span>Channels</span>
         </a>
 
         {{if or .IsLoan .IsEncode}}
         <!-- Back to Desk Button (Relative to Channel) -->
-        <a href="." id="nav-desk-btn" class="app-btn" title="Zurück zur RFID Desk Gesamtübersicht">
+        <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost app-btn" title="Zurück zur RFID Desk Gesamtübersicht">
             <img src="{{.StaticPath}}/img/home.svg" alt="Desk" />
             <span>Desk</span>
         </a>
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
-        <button id="sound-toggle" type="button" class="app-btn" title="Signalton einschalten" aria-pressed="false">
+        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost app-btn" title="Signalton einschalten" aria-pressed="false">
             <img src="{{.StaticPath}}/img/volume-off.svg" class="sound-icon-off" alt="Ton Aus" />
             <img src="{{.StaticPath}}/img/volume-high.svg" class="sound-icon-on hidden" alt="Ton An" />
             <span>Ton</span>
@@ -73,7 +73,7 @@
         </button>
 
         <!-- SSE Status Badge -->
-        <div id="sse-status-container" class="flex items-center space-x-2 px-3 py-1.5 rounded text-xs app-sse-badge">
+        <div id="sse-status-container" class="badge badge-sm gap-2 px-3 py-2.5 app-sse-badge">
             <span id="sse-status-dot" class="w-2 h-2 rounded-full"></span>
             <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
         </div>

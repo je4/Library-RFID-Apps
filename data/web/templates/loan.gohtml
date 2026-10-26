@@ -8,6 +8,12 @@
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script>
         (function() {
+            var themeMap = {
+                'default':   { light: 'corporate', dark: 'dark' },
+                'emerald':   { light: 'emerald',   dark: 'emerald' },
+                'nord':      { light: 'nord',      dark: 'nord' },
+                'bubblegum': { light: 'cupcake',   dark: 'synthwave' }
+            };
             function getSavedSkin() {
                 var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
                 if (match) return decodeURIComponent(match[1]);
@@ -29,6 +35,9 @@
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                 }
+                var currentSkin = document.documentElement.getAttribute('data-skin') || 'default';
+                var mapping = themeMap[currentSkin] || themeMap['default'];
+                document.documentElement.setAttribute('data-theme', isDark ? mapping.dark : mapping.light);
             }
             syncTheme();
             if (window.matchMedia) {
@@ -36,8 +45,9 @@
             }
         })();
     </script>
-    <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
+    <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->
     <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/daisyui.min.css">
     <script src="{{.StaticPath}}/js/htmx-4.0.js"></script>
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
@@ -52,35 +62,41 @@
         <!-- Metrics Overview Grid -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Active Media on Pad Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Aufliegende Medien</div>
-                    <div id="stats-active-tags" class="text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/book-green.svg" class="w-5 h-5" alt="Medien" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-emerald flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/book-green.svg" class="w-5 h-5" alt="Medien" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Aufliegende Medien</div>
+                    <div id="stats-active-tags" class="stat-value text-2xl font-bold font-mono app-metric-val mt-1">{{len .Tags}}</div>
                 </div>
             </div>
 
             <!-- Configured Reader Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Konfigurierter Reader</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[180px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-cyan flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/chip.svg" class="w-5 h-5" alt="Reader" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Konfigurierter Reader</div>
+                    <div class="stat-value text-sm font-semibold font-mono app-metric-val-cyan mt-1 truncate max-w-[180px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
                 </div>
             </div>
 
             <!-- Channel Card -->
-            <div class="p-4 rounded-xl app-card flex items-center justify-between">
-                <div>
-                    <div class="text-xs font-medium app-metric-label">Channel</div>
-                    <div class="text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[180px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
-                </div>
-                <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
-                    <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+                <div class="stat p-4">
+                    <div class="stat-figure">
+                        <div class="w-10 h-10 rounded-lg app-icon-box-indigo flex items-center justify-center">
+                            <img src="{{.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
+                        </div>
+                    </div>
+                    <div class="stat-title text-xs font-semibold app-metric-label">Channel</div>
+                    <div class="stat-value text-sm font-semibold font-mono app-metric-val-indigo mt-1 truncate max-w-[180px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
             </div>
         </section>
@@ -92,26 +108,26 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Aufliegende Medien auf Reader</h2>
-                        <span id="loan-tag-count-badge" class="app-count-badge">{{len .Tags}}</span>
+                        <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Tags}}</span>
                     </div>
                 </div>
 
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="app-btn" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost app-btn" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
                         <img src="{{.StaticPath}}/img/copy.svg" alt="Kopieren" />
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="app-btn" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-success app-btn" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
                         <img src="{{.StaticPath}}/img/lock-open-emerald.svg" alt="Entsichern" />
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="app-btn" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info app-btn" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
                         <img src="{{.StaticPath}}/img/lock-blue.svg" alt="Sichern" />
                         <span>Sichern</span>
                     </button>
@@ -125,7 +141,7 @@
 
             <!-- Active Tags Table with SSE Connection -->
             <div class="transponder-stream-scroll flex-1">
-                <table class="w-full text-left border-collapse">
+                <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
@@ -150,27 +166,29 @@
     {{template "footer.gohtml" .}}
 
     <!-- AFI Writing Modal Dialog / Waiting Overlay -->
-    <div id="afi-modal-overlay" class="app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="afi-modal-title">
-        <div class="app-afi-modal-dialog">
-            <div class="app-afi-spinner-container">
-                <div class="app-afi-spinner-ring"></div>
-                <div class="app-afi-spinner-icon" id="afi-modal-icon">
-                    <img src="{{.StaticPath}}/img/lock-blue.svg" class="w-6 h-6" alt="AFI" />
-                </div>
+    <dialog id="afi-modal-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="afi-modal-title">
+        <div class="modal-box text-center max-w-md app-afi-modal-dialog">
+            <div class="mx-auto mb-4 flex items-center justify-center app-afi-spinner-container">
+                <span class="loading loading-spinner loading-lg text-primary app-afi-spinner-ring"></span>
             </div>
-            <h3 id="afi-modal-title" class="app-afi-modal-title">AFI wird geschrieben...</h3>
-            <p id="afi-modal-message" class="app-afi-modal-desc">
+            <h3 id="afi-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">AFI wird geschrieben...</h3>
+            <p id="afi-modal-message" class="text-sm opacity-80 mb-4 app-afi-modal-desc">
                 Bitte warten Sie, bis der Sicherheitsstatus auf dem Lesefeld aktualisiert wurde. Bitte keine Medien vom Lesegerät entfernen.
             </p>
-            <div class="app-afi-modal-badge">
-                <span class="w-2 h-2 rounded-full bg-blue-500 animate-ping"></span>
-                <span id="afi-modal-status-text">RFID-Kommunikation aktiv...</span>
+            <div class="flex items-center justify-center gap-2 mb-3 app-afi-modal-badge">
+                <span class="badge badge-info badge-outline gap-1 text-xs">
+                    <span class="w-2 h-2 rounded-full bg-info animate-ping"></span>
+                    <span id="afi-modal-status-text">RFID-Kommunikation aktiv...</span>
+                </span>
             </div>
-            <div id="afi-modal-timeout-hint" class="app-afi-modal-hint">
+            <div id="afi-modal-timeout-hint" class="text-xs opacity-60 app-afi-modal-hint">
                 Timeout-Schutz aktiv (10s)
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 
     <!-- Interactive script for audio, counters, copy-all and actions (Relative Path) -->
     <script type="module" src="{{.StaticPath}}/js/desk.js"></script>

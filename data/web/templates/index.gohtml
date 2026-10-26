@@ -8,6 +8,12 @@
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script>
         (function() {
+            var themeMap = {
+                'default':   { light: 'corporate', dark: 'dark' },
+                'emerald':   { light: 'emerald',   dark: 'emerald' },
+                'nord':      { light: 'nord',      dark: 'nord' },
+                'bubblegum': { light: 'cupcake',   dark: 'synthwave' }
+            };
             function getSavedSkin() {
                 var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
                 if (match) return decodeURIComponent(match[1]);
@@ -29,6 +35,9 @@
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                 }
+                var currentSkin = document.documentElement.getAttribute('data-skin') || 'default';
+                var mapping = themeMap[currentSkin] || themeMap['default'];
+                document.documentElement.setAttribute('data-theme', isDark ? mapping.dark : mapping.light);
             }
             syncTheme();
             if (window.matchMedia) {
@@ -36,8 +45,9 @@
             }
         })();
     </script>
-    <!-- Tailwind CSS & Desk Styles (Relative Paths) -->
+    <!-- Tailwind CSS, DaisyUI & Desk Styles (Relative Paths) -->
     <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/daisyui.min.css">
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
 <body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8">
@@ -52,7 +62,7 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Verfügbare Channels</h2>
-                        <span class="app-count-badge">{{len .Channels}}</span>
+                        <span class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Channels}}</span>
                     </div>
                 </div>
                 <p class="text-xs app-meta-text">Wählen Sie einen Channel aus, um die Desk- und Ausleihansicht zu öffnen</p>
@@ -61,13 +71,13 @@
             <div class="p-5 sm:p-6 lg:p-8">
                 <div class="channel-selection-grid" id="channel-selection-list">
                     {{range .Channels}}
-                    <a href="{{.}}/" class="app-channel-card group" title="Channel {{.}} öffnen">
+                    <a href="{{.}}/" class="card card-bordered card-compact transition-all duration-200 app-channel-card group" title="Channel {{.}} öffnen">
                         <div class="channel-card-left">
                             <div class="channel-card-icon">
                                 <img src="{{$.StaticPath}}/img/channel.svg" class="w-5 h-5" alt="Channel" />
                             </div>
                             <div class="channel-card-info">
-                                <span class="channel-card-badge">Channel</span>
+                                <span class="badge badge-xs badge-ghost channel-card-badge">Channel</span>
                                 <span class="channel-card-name">{{.}}</span>
                             </div>
                         </div>

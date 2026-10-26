@@ -44,6 +44,16 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected 200 for tailwind CSS, got %d", recStatic.Code)
 	}
 
+	reqDaisy := httptest.NewRequest(http.MethodGet, "/static/css/daisyui.min.css", nil)
+	recDaisy := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDaisy, reqDaisy)
+	if recDaisy.Code != http.StatusOK {
+		t.Errorf("expected 200 for daisyui CSS, got %d", recDaisy.Code)
+	}
+	if !strings.Contains(recDaisy.Body.String(), ".btn") || !strings.Contains(recDaisy.Body.String(), "data-theme") {
+		t.Errorf("expected daisyui.min.css to contain component rules and data-theme definitions, got %s", recDaisy.Body.String())
+	}
+
 	reqDeskCSS := httptest.NewRequest(http.MethodGet, "/static/scss/desk.css", nil)
 	recDeskCSS := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recDeskCSS, reqDeskCSS)

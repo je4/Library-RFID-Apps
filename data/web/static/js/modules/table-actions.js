@@ -73,10 +73,10 @@ export function initTableActions() {
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(clipboardText).then(() => {
                     if (copyLabel) copyLabel.textContent = `Kopiert (${itemIds.length})`;
-                    copyAllBtn.classList.add('copied');
+                    copyAllBtn.classList.add('copied', 'btn-success');
                     setTimeout(() => {
                         if (copyLabel) copyLabel.textContent = originalLabel;
-                        copyAllBtn.classList.remove('copied');
+                        copyAllBtn.classList.remove('copied', 'btn-success');
                     }, 2000);
                 }).catch((err) => {
                     console.error('Clipboard copy failed:', err);
@@ -93,9 +93,11 @@ export function initTableActions() {
             if (textToCopy && navigator.clipboard) {
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     const originalHtml = btn.innerHTML;
-                    btn.innerHTML = '<span class="text-emerald-400 text-xs">Kopiert!</span>';
+                    btn.classList.add('btn-active');
+                    btn.innerHTML = '<span class="text-success text-xs font-bold">Kopiert!</span>';
                     setTimeout(() => {
                         btn.innerHTML = originalHtml;
+                        btn.classList.remove('btn-active');
                     }, 1500);
                 });
             }

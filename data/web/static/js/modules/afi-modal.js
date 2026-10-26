@@ -17,8 +17,9 @@ export function showAfiNotification(message, type = 'info', autoHideMs = 6000) {
     const actionNotificationText = document.getElementById('action-notification-text');
     if (!actionNotification || !actionNotificationText) return;
     actionNotificationText.textContent = message;
-    actionNotification.className = 'px-4 py-2.5 text-xs font-medium border-b transition-all flex items-center justify-between ' +
-        (type === 'error' ? 'app-notification-error' : (type === 'success' ? 'app-notification-success' : 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800'));
+    const alertClass = type === 'error' ? 'alert-error' : (type === 'success' ? 'alert-success' : 'alert-info');
+    actionNotification.className = `alert ${alertClass} text-xs p-3 shadow-sm rounded-lg flex items-center justify-between ` +
+        (type === 'error' ? 'app-notification-error' : (type === 'success' ? 'app-notification-success' : ''));
     actionNotification.classList.remove('hidden');
 
     if (autoHideMs > 0) {
@@ -59,8 +60,11 @@ export function showAfiModal(title, desc, status) {
         hintEl.textContent = `Timeout-Schutz aktiv (${secondsRemaining}s)`;
     }
 
+    if (typeof overlay.showModal === 'function' && !overlay.open) {
+        try { overlay.showModal(); } catch (_) { overlay.setAttribute('open', ''); }
+    }
     overlay.setAttribute('aria-hidden', 'false');
-    overlay.classList.add('active');
+    overlay.classList.add('active', 'modal-open');
     setAfiButtonsDisabled(true);
 
     // Clear existing timers
@@ -102,7 +106,10 @@ export function hideAfiModal() {
     }
     const overlay = getAfiModalOverlay();
     if (overlay) {
-        overlay.classList.remove('active');
+        if (typeof overlay.close === 'function' && overlay.open) {
+            try { overlay.close(); } catch (_) { overlay.removeAttribute('open'); }
+        }
+        overlay.classList.remove('active', 'modal-open');
         overlay.setAttribute('aria-hidden', 'true');
     }
     setAfiButtonsDisabled(false);

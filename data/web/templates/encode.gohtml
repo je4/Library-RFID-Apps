@@ -8,6 +8,12 @@
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script>
         (function() {
+            var themeMap = {
+                'default':   { light: 'corporate', dark: 'dark' },
+                'emerald':   { light: 'emerald',   dark: 'emerald' },
+                'nord':      { light: 'nord',      dark: 'nord' },
+                'bubblegum': { light: 'cupcake',   dark: 'synthwave' }
+            };
             function getSavedSkin() {
                 var match = document.cookie.match(/(?:^|;\s*)rfid_skin=([^;]+)/);
                 if (match) return decodeURIComponent(match[1]);
@@ -29,6 +35,9 @@
                     document.documentElement.classList.add('light');
                     document.documentElement.classList.remove('dark');
                 }
+                var currentSkin = document.documentElement.getAttribute('data-skin') || 'default';
+                var mapping = themeMap[currentSkin] || themeMap['default'];
+                document.documentElement.setAttribute('data-theme', isDark ? mapping.dark : mapping.light);
             }
             syncTheme();
             if (window.matchMedia) {
@@ -36,8 +45,9 @@
             }
         })();
     </script>
-    <!-- Tailwind CSS, HTMX 4 & SSE Extension (Relative Paths) -->
+    <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->
     <link rel="stylesheet" href="{{.StaticPath}}/css/tailwind.min.css">
+    <link rel="stylesheet" href="{{.StaticPath}}/css/daisyui.min.css">
     <script src="{{.StaticPath}}/js/htmx-4.0.js"></script>
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
@@ -74,9 +84,9 @@
                         </label>
                         <div class="relative flex items-center">
                             <input id="encode-item-id" type="text" placeholder="Barcode scannen oder eingeben..." autofocus
-                                   class="app-input has-leading-icon w-full font-mono"
+                                   class="input input-bordered w-full font-mono pl-9 app-input has-leading-icon"
                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-                            <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-2.5 pointer-events-none opacity-60" alt="Barcode" />
+                            <img src="{{.StaticPath}}/img/search.svg" class="w-4 h-4 app-text-dim absolute left-3 pointer-events-none opacity-60" alt="Barcode" />
                         </div>
                     </div>
 
@@ -88,9 +98,9 @@
                         </label>
                         <div class="flex items-center gap-3">
                             <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
-                                   class="app-input flex-1 font-mono">
+                                   class="input input-bordered flex-1 font-mono app-input">
                             <label class="inline-flex items-center gap-2 cursor-pointer select-none text-xs font-semibold app-metric-label whitespace-nowrap h-9 px-2">
-                                <input type="checkbox" id="encode-afi-checkbox" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 cursor-pointer"
+                                <input type="checkbox" id="encode-afi-checkbox" class="checkbox checkbox-primary cursor-pointer"
                                        {{if eq .DefaultAFI "07"}}checked{{end}}>
                                 <span>AFI gesichert (07)</span>
                             </label>
@@ -107,17 +117,17 @@
                     <span class="text-xs font-semibold app-metric-label mr-1">Teile (Multi-Part):</span>
                     <input type="hidden" id="encode-parts-input" value="{{.DefaultParts}}">
                     
-                    <div class="inline-flex items-center gap-1.5" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
-                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 1}}app-part-active{{end}}" data-parts="1" role="radio" aria-checked="{{if eq .DefaultParts 1}}true{{else}}false{{end}}">1</button>
-                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 2}}app-part-active{{end}}" data-parts="2" role="radio" aria-checked="{{if eq .DefaultParts 2}}true{{else}}false{{end}}">2</button>
-                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 3}}app-part-active{{end}}" data-parts="3" role="radio" aria-checked="{{if eq .DefaultParts 3}}true{{else}}false{{end}}">3</button>
-                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 4}}app-part-active{{end}}" data-parts="4" role="radio" aria-checked="{{if eq .DefaultParts 4}}true{{else}}false{{end}}">4</button>
-                        <button type="button" class="app-btn encode-part-btn {{if eq .DefaultParts 5}}app-part-active{{end}}" data-parts="5" role="radio" aria-checked="{{if eq .DefaultParts 5}}true{{else}}false{{end}}">5</button>
+                    <div class="join" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
+                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 1}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="1" role="radio" aria-checked="{{if eq .DefaultParts 1}}true{{else}}false{{end}}">1</button>
+                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 2}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="2" role="radio" aria-checked="{{if eq .DefaultParts 2}}true{{else}}false{{end}}">2</button>
+                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 3}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="3" role="radio" aria-checked="{{if eq .DefaultParts 3}}true{{else}}false{{end}}">3</button>
+                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 4}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="4" role="radio" aria-checked="{{if eq .DefaultParts 4}}true{{else}}false{{end}}">4</button>
+                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 5}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="5" role="radio" aria-checked="{{if eq .DefaultParts 5}}true{{else}}false{{end}}">5</button>
                     </div>
 
                     <!-- Dropdown for 6 to 12 parts -->
                     <div class="relative inline-flex items-center">
-                        <select id="encode-parts-select" class="app-input h-8 text-xs font-semibold rounded-lg px-2.5 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
+                        <select id="encode-parts-select" class="select select-sm select-bordered app-input h-8 text-xs font-semibold rounded-lg px-2.5 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
                             <option value="" disabled {{if le .DefaultParts 5}}selected{{end}}>6 - 12 Teile...</option>
                             <option value="6" {{if eq .DefaultParts 6}}selected{{end}}>6 Teile</option>
                             <option value="7" {{if eq .DefaultParts 7}}selected{{end}}>7 Teile</option>
@@ -132,7 +142,7 @@
 
                 <!-- Start Action Button -->
                 <button id="btn-encode-start" type="button" disabled
-                        class="app-btn font-bold px-5 py-2"
+                        class="btn btn-primary app-btn font-bold px-5"
                         title="Kodierung für die aufgelegten Medien starten">
                     <img src="{{.StaticPath}}/img/tag.svg" alt="Start" />
                     <span>Kodierung starten</span>
@@ -147,7 +157,7 @@
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold app-panel-title">Aktuell aufliegende Medien auf Reader</h2>
-                        <span id="loan-tag-count-badge" class="app-count-badge">{{len .Tags}}</span>
+                        <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Tags}}</span>
                     </div>
                 </div>
 
@@ -163,7 +173,7 @@
 
             <!-- Active Tags Table with SSE Connection -->
             <div class="transponder-stream-scroll flex-1">
-                <table class="w-full text-left border-collapse">
+                <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 shadow-sm">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
@@ -188,62 +198,65 @@
     {{template "footer.gohtml" .}}
 
     <!-- Encoding Progress & Waiting Modal Overlay -->
-    <div id="encode-modal-overlay" class="app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="encode-modal-title">
-        <div class="app-afi-modal-dialog max-w-md w-full p-6 text-center">
-            <div class="app-afi-spinner-container mx-auto mb-4">
-                <div class="app-afi-spinner-ring" id="encode-spinner-ring"></div>
-                <div class="app-afi-spinner-icon" id="encode-modal-icon">
-                    <img src="{{.StaticPath}}/img/tag.svg" class="w-6 h-6 animate-pulse" alt="Kodieren" />
-                </div>
+    <dialog id="encode-modal-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="encode-modal-title">
+        <div class="modal-box text-center max-w-md app-afi-modal-dialog">
+            <div class="mx-auto mb-4 flex items-center justify-center">
+                <span class="loading loading-spinner loading-lg text-primary" id="encode-spinner-ring"></span>
             </div>
-            <h3 id="encode-modal-title" class="app-afi-modal-title text-lg font-bold mb-2">Medium wird kodiert...</h3>
-            <p id="encode-modal-message" class="app-afi-modal-desc text-sm mb-4">
+            <h3 id="encode-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">Medium wird kodiert...</h3>
+            <p id="encode-modal-message" class="text-sm opacity-80 mb-4 app-afi-modal-desc">
                 Schreibe ISO 28560-2 Daten auf Transponder... Bitte Medium nicht entfernen.
             </p>
             
             <div class="flex items-center justify-center gap-2 mb-5">
-                <span id="encode-modal-step-badge" class="px-3 py-1 text-xs font-mono font-bold rounded-full bg-blue-500/15 border border-blue-500/30 text-blue-400">
+                <span id="encode-modal-step-badge" class="badge badge-primary badge-outline font-mono font-bold px-3 py-2.5">
                     Teil 1 von 1
                 </span>
-                <span id="encode-modal-status-text" class="text-xs app-meta-text">
+                <span id="encode-modal-status-text" class="text-xs opacity-75">
                     RFID-Schreibbefehl aktiv
                 </span>
             </div>
 
-            <div class="flex items-center justify-center gap-3">
-                <button id="btn-encode-modal-stop" type="button" class="app-btn bg-rose-600 hover:bg-rose-500 text-white font-semibold">
+            <div class="modal-action justify-center mt-2">
+                <button id="btn-encode-modal-stop" type="button" class="btn btn-error btn-sm font-semibold text-white app-btn">
                     Kodierung stoppen / Abbrechen
                 </button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 
     <!-- Overwrite Confirmation Modal Dialog -->
-    <div id="encode-overwrite-overlay" class="app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="overwrite-modal-title">
-        <div class="app-afi-modal-dialog max-w-md w-full p-6 text-center">
-            <div class="w-12 h-12 rounded-full bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-500 mx-auto mb-4">
+    <dialog id="encode-overwrite-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="overwrite-modal-title">
+        <div class="modal-box text-center max-w-md app-afi-modal-dialog">
+            <div class="w-12 h-12 rounded-full bg-warning/20 text-warning flex items-center justify-center mx-auto mb-4">
                 <img src="{{.StaticPath}}/img/alert-circle.svg" class="w-6 h-6" alt="Warnung" />
             </div>
-            <h3 id="overwrite-modal-title" class="app-afi-modal-title text-lg font-bold mb-2">Bereits kodierter Transponder erkannt</h3>
-            <p class="app-afi-modal-desc text-sm mb-4" id="overwrite-modal-desc">
-                Transponder <strong id="overwrite-uid" class="font-mono text-cyan-400">E004...</strong> enthält bereits den Barcode <strong id="overwrite-old-item" class="font-mono text-amber-400">31415...</strong>.
+            <h3 id="overwrite-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">Bereits kodierter Transponder erkannt</h3>
+            <p class="text-sm opacity-80 mb-4 app-afi-modal-desc" id="overwrite-modal-desc">
+                Transponder <strong id="overwrite-uid" class="font-mono text-primary">E004...</strong> enthält bereits den Barcode <strong id="overwrite-old-item" class="font-mono text-warning">31415...</strong>.
                 <br><br>
                 Möchten Sie diesen Transponder wirklich mit dem neuen Barcode überschreiben?
             </p>
 
-            <div class="flex items-center justify-center flex-wrap gap-2.5 pt-2">
-                <button id="btn-overwrite-confirm" type="button" class="app-btn bg-amber-600 hover:bg-amber-500 text-white font-bold">
+            <div class="modal-action justify-center flex-wrap gap-2.5 pt-2">
+                <button id="btn-overwrite-confirm" type="button" class="btn btn-warning btn-sm font-bold app-btn">
                     Überschreiben
                 </button>
-                <button id="btn-overwrite-skip" type="button" class="app-btn" title="Diesen Transponder überspringen">
+                <button id="btn-overwrite-skip" type="button" class="btn btn-ghost btn-sm app-btn" title="Diesen Transponder überspringen">
                     Überspringen
                 </button>
-                <button id="btn-overwrite-cancel" type="button" class="app-btn bg-rose-600/80 hover:bg-rose-600 text-white">
+                <button id="btn-overwrite-cancel" type="button" class="btn btn-error btn-sm text-white app-btn">
                     Abbrechen
                 </button>
             </div>
         </div>
-    </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
+        </form>
+    </dialog>
 
     <!-- Interactive script for audio, counters, encoding controller (Relative Path) -->
     <script type="module" src="{{.StaticPath}}/js/desk.js"></script>
