@@ -161,16 +161,18 @@ func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
 		item.EnrichISIL(h.isilList)
 	}
 
+	normUID := strings.ToUpper(strings.TrimSpace(item.UID))
+
 	// If tag already exists in active tags and has write status, preserve status on re-scan
 	for activeUID, existing := range h.activeTags {
-		if strings.EqualFold(activeUID, item.UID) || strings.EqualFold(existing.UID, item.UID) {
+		if strings.EqualFold(activeUID, normUID) || strings.EqualFold(existing.UID, normUID) {
 			if item.AFIWriteStatus == "" && existing.AFIWriteStatus != "" {
 				item.AFIWriteStatus = existing.AFIWriteStatus
 				item.AFIWriteError = existing.AFIWriteError
 				item.AFIWriteTime = existing.AFIWriteTime
 				item.AFIWritePending = existing.AFIWritePending
 			}
-			break
+			delete(h.activeTags, activeUID)
 		}
 	}
 
@@ -180,8 +182,8 @@ func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
 		h.tags = h.tags[:h.maxTags]
 	}
 
-	// Always update active tags table (accumulate media on reader pad)
-	h.activeTags[item.UID] = item
+	// Always update active tags table (accumulate media on reader pad) with normalized key
+	h.activeTags[normUID] = item
 
 	return item
 }
@@ -326,20 +328,20 @@ func (h *Hub) UpdateActiveAFI(afi string, uids ...string) {
 	uidMap := make(map[string]bool)
 	for _, u := range uids {
 		if strings.TrimSpace(u) != "" {
-			uidMap[strings.TrimSpace(u)] = true
+			uidMap[strings.ToUpper(strings.TrimSpace(u))] = true
 		}
 	}
 
 	// Update active tags
 	for uid, item := range h.activeTags {
-		if len(uidMap) == 0 || uidMap[uid] {
+		if len(uidMap) == 0 || uidMap[strings.ToUpper(uid)] || uidMap[strings.ToUpper(item.UID)] {
 			item.SetAFIWriteSuccess(afi)
 		}
 	}
 
 	// Also update recent history items for consistency
 	for _, item := range h.tags {
-		if len(uidMap) == 0 || uidMap[item.UID] {
+		if len(uidMap) == 0 || uidMap[strings.ToUpper(item.UID)] {
 			item.SetAFIWriteSuccess(afi)
 		}
 	}
@@ -401,10 +403,11 @@ func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr strin
 	if trimmedUID == "" {
 		return
 	}
+	normUID := strings.ToUpper(trimmedUID)
 
 	foundActive := false
 	for activeUID, item := range h.activeTags {
-		if strings.EqualFold(activeUID, trimmedUID) || strings.EqualFold(item.UID, trimmedUID) {
+		if strings.EqualFold(activeUID, normUID) || strings.EqualFold(item.UID, normUID) {
 			if success {
 				item.SetAFIWriteSuccess(afi)
 			} else {
@@ -414,7 +417,7 @@ func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr strin
 		}
 	}
 	if !foundActive {
-		if item, ok := h.activeTags[trimmedUID]; ok {
+		if item, ok := h.activeTags[normUID]; ok {
 			if success {
 				item.SetAFIWriteSuccess(afi)
 			} else {
@@ -424,7 +427,7 @@ func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr strin
 	}
 
 	for _, item := range h.tags {
-		if strings.EqualFold(item.UID, trimmedUID) {
+		if strings.EqualFold(item.UID, normUID) {
 			if success {
 				item.SetAFIWriteSuccess(afi)
 			} else {

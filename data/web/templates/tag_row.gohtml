@@ -1,4 +1,4 @@
-<tr id="tag-{{.ID}}" class="tag-row app-tag-row border-b transition-colors animate-scan-flash group">
+<tr id="tag-{{.ID}}" class="tag-row app-tag-row border-b transition-colors animate-scan-flash group {{if eq .AFIWriteStatus "error"}}bg-error/5 dark:bg-error/10 border-l-4 border-l-error{{end}}">
     <!-- Item ID -->
     <td class="py-3.5 px-4 font-mono font-medium whitespace-nowrap">
         <div class="flex items-center space-x-2">
@@ -197,22 +197,39 @@
     </td>
 
     <!-- AFI / Usage -->
-    <td class="py-3.5 px-4 text-xs font-mono">
-        {{if .AFISecured}}
-        <span class="inline-flex items-center gap-1.5 text-info font-medium" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
-            <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
-            <span>Gesichert (07)</span>
-        </span>
-        {{else if .AFIUnsecured}}
-        <span class="inline-flex items-center gap-1.5 text-success font-medium" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
-            <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
-            <span>Entsichert (C2)</span>
-        </span>
-        {{else if .AFI}}
-        <span class="font-mono">AFI: {{.AFI}}</span>
-        {{else}}
-        <span class="app-text-dim">-</span>
-        {{end}}
+    <td class="py-3.5 px-4 text-xs font-mono app-afi-status-cell">
+        <div class="flex flex-col space-y-1">
+            <div class="flex items-center space-x-1.5 flex-wrap gap-1">
+                {{if .AFISecured}}
+                <span class="inline-flex items-center gap-1.5 text-info font-medium" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
+                    <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
+                    <span>Gesichert (07)</span>
+                </span>
+                {{else if .AFIUnsecured}}
+                <span class="inline-flex items-center gap-1.5 text-success font-medium" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
+                    <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
+                    <span>Entsichert (C2)</span>
+                </span>
+                {{else if .AFI}}
+                <span class="font-mono">AFI: {{.AFI}}</span>
+                {{else}}
+                <span class="app-text-dim">-</span>
+                {{end}}
+
+                {{if eq .AFIWriteStatus "success"}}
+                <span class="badge badge-xs badge-success text-[10px]" title="AFI erfolgreich geschrieben">Erfolg</span>
+                {{else if eq .AFIWriteStatus "error"}}
+                <span class="badge badge-xs badge-error text-[10px]" title="{{if .AFIWriteError}}{{.AFIWriteError}}{{else}}Fehler beim AFI-Schreiben{{end}}">Fehler</span>
+                {{else if or (eq .AFIWriteStatus "pending") .AFIWritePending}}
+                <span class="badge badge-xs badge-warning text-[10px] animate-pulse">Schreiben...</span>
+                {{end}}
+            </div>
+            {{if and (eq .AFIWriteStatus "error") .AFIWriteError}}
+            <div class="text-[11px] text-error font-mono mt-0.5" title="{{.AFIWriteError}}">
+                {{.AFIWriteError}}
+            </div>
+            {{end}}
+        </div>
     </td>
 
     <!-- Timestamp -->

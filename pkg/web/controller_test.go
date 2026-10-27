@@ -985,6 +985,128 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 	}
 }
 
+func TestController_LoanAFIFailurePreservedOnContinuousRescans(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	failUID := "E00401080AFD252F"
+	failErrMsg := "Failed to write AFI byte 0xC2 (status: 149 (Iso error (149)), ISO Error: 0x0F (Unknown error))"
+
+	mockCli := &mockRFIDClient{
+		writeAFIHandler: func(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
+			return &rfidclient.WriteAFIResponse{
+				BaseRFIDPayload: rfidclient.BaseRFIDPayload{Event: rfidclient.EventWriteAFIResponse},
+				Status:          "partial",
+				UIDs:            req.UIDs,
+				SuccessfulUIDs:  []string{"E00401080AD4B4E7", "E004010843BC4D8B", "E004010843BC4D8C"},
+				FailedUIDs:      map[string]string{failUID: failErrMsg},
+				Results: []rfidclient.TagAFIResult{
+					{UID: "E00401080AD4B4E7", Status: "ok"},
+					{UID: "E004010843BC4D8B", Status: "ok"},
+					{UID: "E004010843BC4D8C", Status: "ok"},
+					{UID: failUID, Status: "error", Error: failErrMsg},
+				},
+				AFI: req.AFI,
+			}, nil
+		},
+	}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Initial tag scans
+	tags := []struct {
+		uid    string
+		itemID string
+		afi    string
+	}{
+		{"E00401080AD4B4E7", "FHNW000018121", "07"},
+		{"E004010843BC4D8B", "", "07"},
+		{"E004010843BC4D8C", "", "07"},
+		{failUID, "A1001141486", "07"},
+	}
+	for _, tg := range tags {
+		ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+			UID:             tg.uid,
+			ItemID:          tg.itemID,
+			AFI:             tg.afi,
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Channel: "rfid", Timestamp: time.Now().UnixMilli()},
+		})
+	}
+
+	// 2. Perform batch unsecure to C2
+	req := httptest.NewRequest(http.MethodPost, "/rfid/loan/afi/unsecure", nil)
+	rec := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("expected 200 from loan/afi/unsecure, got %d", rec.Code)
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, "1 von 4 Medien fehlgeschlagen") {
+		t.Errorf("expected error summary in response, got: %s", body)
+	}
+	if !strings.Contains(body, "A1001141486") || !strings.Contains(body, "Iso error (149)") {
+		t.Errorf("expected failed item details in response, got: %s", body)
+	}
+
+	// 3. Simulate 5 continuous scan cycles of the tags on reader
+	for cycle := 1; cycle <= 5; cycle++ {
+		// Re-scan tags in varying order
+		for i := len(tags) - 1; i >= 0; i-- {
+			tg := tags[i]
+			currentAFI := "C2"
+			if tg.uid == failUID {
+				currentAFI = "07"
+			}
+			ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+				UID:             tg.uid,
+				ItemID:          tg.itemID,
+				AFI:             currentAFI,
+				BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Channel: "rfid", Timestamp: time.Now().UnixMilli()},
+			})
+		}
+
+		// Verify loan table fragment still contains error row and failed status
+		reqFrag := httptest.NewRequest(http.MethodGet, "/rfid/loan/tags", nil)
+		recFrag := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(recFrag, reqFrag)
+		fragBody := recFrag.Body.String()
+
+		if !strings.Contains(fragBody, "1 von 4 Medien fehlgeschlagen") {
+			t.Errorf("cycle %d: expected error summary in loan tags fragment, got: %s", cycle, fragBody)
+		}
+		if !strings.Contains(fragBody, "A1001141486") || !strings.Contains(fragBody, "Iso error (149)") {
+			t.Errorf("cycle %d: expected failed item details in loan tags fragment, got: %s", cycle, fragBody)
+		}
+		if !strings.Contains(fragBody, `badge-error`) || !strings.Contains(fragBody, `Fehler`) {
+			t.Errorf("cycle %d: expected error badge on failed row, got: %s", cycle, fragBody)
+		}
+
+		// Also verify desk fragment renders the error badge and reason
+		reqDesk := httptest.NewRequest(http.MethodGet, "/rfid/", nil)
+		recDesk := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(recDesk, reqDesk)
+		deskBody := recDesk.Body.String()
+		if !strings.Contains(deskBody, "Fehler") || !strings.Contains(deskBody, "Iso error (149)") {
+			t.Errorf("cycle %d: expected desk view to display error badge & reason, got: %s", cycle, deskBody)
+		}
+	}
+}
+
 func TestBatchAFIWrite_OnlyDifferingTagsTargeted(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
