@@ -162,12 +162,15 @@ func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
 	}
 
 	// If tag already exists in active tags and has write status, preserve status on re-scan
-	if existing, ok := h.activeTags[item.UID]; ok {
-		if item.AFIWriteStatus == "" && existing.AFIWriteStatus != "" {
-			item.AFIWriteStatus = existing.AFIWriteStatus
-			item.AFIWriteError = existing.AFIWriteError
-			item.AFIWriteTime = existing.AFIWriteTime
-			item.AFIWritePending = existing.AFIWritePending
+	for activeUID, existing := range h.activeTags {
+		if strings.EqualFold(activeUID, item.UID) || strings.EqualFold(existing.UID, item.UID) {
+			if item.AFIWriteStatus == "" && existing.AFIWriteStatus != "" {
+				item.AFIWriteStatus = existing.AFIWriteStatus
+				item.AFIWriteError = existing.AFIWriteError
+				item.AFIWriteTime = existing.AFIWriteTime
+				item.AFIWritePending = existing.AFIWritePending
+			}
+			break
 		}
 	}
 
@@ -399,16 +402,29 @@ func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr strin
 		return
 	}
 
-	if item, ok := h.activeTags[trimmedUID]; ok {
-		if success {
-			item.SetAFIWriteSuccess(afi)
-		} else {
-			item.SetAFIWriteError(errStr)
+	foundActive := false
+	for activeUID, item := range h.activeTags {
+		if strings.EqualFold(activeUID, trimmedUID) || strings.EqualFold(item.UID, trimmedUID) {
+			if success {
+				item.SetAFIWriteSuccess(afi)
+			} else {
+				item.SetAFIWriteError(errStr)
+			}
+			foundActive = true
+		}
+	}
+	if !foundActive {
+		if item, ok := h.activeTags[trimmedUID]; ok {
+			if success {
+				item.SetAFIWriteSuccess(afi)
+			} else {
+				item.SetAFIWriteError(errStr)
+			}
 		}
 	}
 
 	for _, item := range h.tags {
-		if item.UID == trimmedUID {
+		if strings.EqualFold(item.UID, trimmedUID) {
 			if success {
 				item.SetAFIWriteSuccess(afi)
 			} else {
@@ -426,18 +442,18 @@ func (h *Hub) SetTagAFIPending(uids ...string) {
 	uidMap := make(map[string]bool)
 	for _, u := range uids {
 		if strings.TrimSpace(u) != "" {
-			uidMap[strings.TrimSpace(u)] = true
+			uidMap[strings.ToUpper(strings.TrimSpace(u))] = true
 		}
 	}
 
 	for uid, item := range h.activeTags {
-		if len(uidMap) == 0 || uidMap[uid] {
+		if len(uidMap) == 0 || uidMap[strings.ToUpper(uid)] || uidMap[strings.ToUpper(item.UID)] {
 			item.SetAFIWritePending()
 		}
 	}
 
 	for _, item := range h.tags {
-		if len(uidMap) == 0 || uidMap[item.UID] {
+		if len(uidMap) == 0 || uidMap[strings.ToUpper(item.UID)] {
 			item.SetAFIWritePending()
 		}
 	}
@@ -451,18 +467,18 @@ func (h *Hub) ClearActiveAFIWriteStatus(uids ...string) {
 	uidMap := make(map[string]bool)
 	for _, u := range uids {
 		if strings.TrimSpace(u) != "" {
-			uidMap[strings.TrimSpace(u)] = true
+			uidMap[strings.ToUpper(strings.TrimSpace(u))] = true
 		}
 	}
 
 	for uid, item := range h.activeTags {
-		if len(uidMap) == 0 || uidMap[uid] {
+		if len(uidMap) == 0 || uidMap[strings.ToUpper(uid)] || uidMap[strings.ToUpper(item.UID)] {
 			item.ClearAFIWriteStatus()
 		}
 	}
 
 	for _, item := range h.tags {
-		if len(uidMap) == 0 || uidMap[item.UID] {
+		if len(uidMap) == 0 || uidMap[strings.ToUpper(item.UID)] {
 			item.ClearAFIWriteStatus()
 		}
 	}

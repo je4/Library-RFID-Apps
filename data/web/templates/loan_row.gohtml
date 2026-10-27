@@ -1,4 +1,4 @@
-<tr id="loan-tag-{{.ID}}" class="tag-row app-tag-row border-b transition-colors animate-scan-flash group" data-itemid="{{.ItemID}}" data-uid="{{.UID}}">
+<tr id="loan-tag-{{.ID}}" class="tag-row app-tag-row border-b transition-colors animate-scan-flash group {{if eq .AFIWriteStatus "error"}}bg-error/5 dark:bg-error/10 border-l-4 border-l-error{{end}}" data-itemid="{{.ItemID}}" data-uid="{{.UID}}">
     <!-- Item ID -->
     <td class="py-3.5 px-4 font-mono font-medium whitespace-nowrap">
         <div class="flex items-center space-x-2">

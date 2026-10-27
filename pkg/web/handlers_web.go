@@ -99,6 +99,14 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		}
 	}
 
+	var errorMsg, successMsg string
+	if errorCount > 0 && successCount > 0 {
+		successMsg = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
+		errorMsg = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
+	} else if errorCount > 0 && successCount == 0 {
+		errorMsg = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
+	}
+
 	return desk.LoanData{
 		ClientName:        ctrl.cfg.ClientName,
 		WSBroker:          ctrl.cfg.WSBroker,
@@ -112,6 +120,8 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		WriteSuccessCount: successCount,
 		WriteErrorCount:   errorCount,
 		FailedItems:       failedItems,
+		ErrorMessage:      errorMsg,
+		SuccessMessage:    successMsg,
 		Skin:              "default",
 		StaticPath:        "../static",
 	}
