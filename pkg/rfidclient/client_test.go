@@ -29,6 +29,7 @@ type fakeBrokerClient struct {
 	msgHandlers  []client.EventHandler
 	lastSent     *event.Event
 	requestFunc  func(ctx context.Context, evt *event.Event) (*event.Event, error)
+	requestNFunc func(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error
 	attachedChan []string
 }
 
@@ -104,6 +105,53 @@ func (f *fakeBrokerClient) Request(ctx context.Context, evt *event.Event) (*even
 		return reqFunc(ctx, evt)
 	}
 	return nil, errors.New("no requestFunc configured on fake broker")
+}
+func (f *fakeBrokerClient) Request0(ctx context.Context, evt *event.Event) error {
+	f.mu.Lock()
+	f.lastSent = evt
+	f.mu.Unlock()
+	return f.Send(ctx, evt)
+}
+func (f *fakeBrokerClient) Request1(ctx context.Context, evt *event.Event) (*event.Event, error) {
+	return f.Request(ctx, evt)
+}
+func (f *fakeBrokerClient) RequestN(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error {
+	f.mu.Lock()
+	f.lastSent = evt
+	reqNFunc := f.requestNFunc
+	reqFunc := f.requestFunc
+	f.mu.Unlock()
+
+	if reqNFunc != nil {
+		return reqNFunc(ctx, evt, numResults, ch)
+	}
+
+	if numResults <= 0 {
+		if ch != nil {
+			close(ch)
+		}
+		return f.Send(ctx, evt)
+	}
+	if reqFunc != nil {
+		resp, err := reqFunc(ctx, evt)
+		if err != nil {
+			if ch != nil {
+				close(ch)
+			}
+			return err
+		}
+		if ch != nil {
+			if resp != nil {
+				ch <- resp
+			}
+			close(ch)
+		}
+		return nil
+	}
+	if ch != nil {
+		close(ch)
+	}
+	return f.Send(ctx, evt)
 }
 func (f *fakeBrokerClient) Attach(ctx context.Context, channels ...string) error {
 	f.mu.Lock()
@@ -1526,5 +1574,238 @@ func TestRFIDClient_WriteTag_TimeoutError(t *testing.T) {
 	}
 	if !strings.Contains(err.Error(), "daemon-01") || !strings.Contains(err.Error(), "gate-01") {
 		t.Errorf("expected target and reader in error message, got: %v", err)
+	}
+}
+
+func TestRFIDClient_GetDeviceMetadataMulti(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	fake.requestNFunc = func(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error {
+		resp1, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":    "rfid:device_metadata_response",
+			"readerId": "reader-1",
+			"device":   "Simulated Reader 1",
+		})
+		resp2, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":    "rfid:device_metadata_response",
+			"readerId": "reader-2",
+			"device":   "Simulated Reader 2",
+		})
+		ch <- resp1
+		ch <- resp2
+		close(ch)
+		return nil
+	}
+
+	rfid, err := New(fake)
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	res, err := rfid.GetDeviceMetadataMulti(context.Background(), "all", 2)
+	if err != nil {
+		t.Fatalf("GetDeviceMetadataMulti failed: %v", err)
+	}
+	if len(res) != 2 {
+		t.Fatalf("expected 2 responses, got %d", len(res))
+	}
+	if res[0].ReaderID != "reader-1" || res[1].ReaderID != "reader-2" {
+		t.Errorf("unexpected reader IDs: %s, %s", res[0].ReaderID, res[1].ReaderID)
+	}
+
+	// Test scoped view
+	scoped := rfid.ForReader("reader-1")
+	scopedRes, err := scoped.GetDeviceMetadataMulti(context.Background(), "all", 2)
+	if err != nil {
+		t.Fatalf("scoped.GetDeviceMetadataMulti failed: %v", err)
+	}
+	if len(scopedRes) != 2 {
+		t.Fatalf("expected 2 responses, got %d", len(scopedRes))
+	}
+}
+
+func TestRFIDClient_WriteTagBatchStream(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	fake.requestNFunc = func(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error {
+		resp1, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":   "rfid:write_tag_response",
+			"status":  "ok",
+			"uid":     "UID-1",
+			"itemId":  "ITEM-1",
+			"message": "written 1",
+		})
+		resp2, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":   "rfid:write_tag_response",
+			"status":  "ok",
+			"uid":     "UID-2",
+			"itemId":  "ITEM-2",
+			"message": "written 2",
+		})
+		ch <- resp1
+		ch <- resp2
+		close(ch)
+		return nil
+	}
+
+	rfid, err := New(fake)
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	tags := []TagWriteItem{
+		{UID: "UID-1", ItemID: "ITEM-1"},
+		{UID: "UID-2", ItemID: "ITEM-2"},
+	}
+	ch, err := rfid.WriteTagBatchStream(context.Background(), "daemon-01", tags, 2)
+	if err != nil {
+		t.Fatalf("WriteTagBatchStream failed: %v", err)
+	}
+
+	var results []*WriteTagResponse
+	for r := range ch {
+		results = append(results, r)
+	}
+	if len(results) != 2 {
+		t.Fatalf("expected 2 stream results, got %d", len(results))
+	}
+	if results[0].UID != "UID-1" || results[1].UID != "UID-2" {
+		t.Errorf("unexpected stream items: %+v, %+v", results[0], results[1])
+	}
+
+	// Test scoped view
+	scoped := rfid.ForReader("gate-01")
+	fake.requestNFunc = func(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error {
+		resp, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":    "rfid:write_tag_response",
+			"status":   "ok",
+			"uid":      "UID-1",
+			"readerId": "gate-01",
+		})
+		ch <- resp
+		close(ch)
+		return nil
+	}
+	scopedCh, err := scoped.WriteTagBatchStream(context.Background(), "daemon-01", tags, 1)
+	if err != nil {
+		t.Fatalf("scoped.WriteTagBatchStream failed: %v", err)
+	}
+	var scopedResults []*WriteTagResponse
+	for r := range scopedCh {
+		scopedResults = append(scopedResults, r)
+	}
+	if len(scopedResults) != 1 {
+		t.Fatalf("expected 1 scoped result, got %d", len(scopedResults))
+	}
+}
+
+func TestRFIDClient_WriteAFIBatchStream(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	fake.requestNFunc = func(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error {
+		resp1, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":   "rfid:write_afi_response",
+			"status":  "ok",
+			"uid":     "UID-1",
+			"afi":     "07",
+			"message": "secured 1",
+		})
+		resp2, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":   "rfid:write_afi_response",
+			"status":  "ok",
+			"uid":     "UID-2",
+			"afi":     "07",
+			"message": "secured 2",
+		})
+		ch <- resp1
+		ch <- resp2
+		close(ch)
+		return nil
+	}
+
+	rfid, err := New(fake)
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	req := NewWriteAFIBatchRequest("07", []string{"UID-1", "UID-2"})
+	ch, err := rfid.WriteAFIBatchStream(context.Background(), "daemon-01", req, 2)
+	if err != nil {
+		t.Fatalf("WriteAFIBatchStream failed: %v", err)
+	}
+
+	var results []*WriteAFIResponse
+	for r := range ch {
+		results = append(results, r)
+	}
+	if len(results) != 2 {
+		t.Fatalf("expected 2 stream results, got %d", len(results))
+	}
+	if results[0].UID != "UID-1" || results[1].UID != "UID-2" {
+		t.Errorf("unexpected stream items: %+v, %+v", results[0], results[1])
+	}
+
+	// Test scoped view
+	scoped := rfid.ForReader("gate-01")
+	fake.requestNFunc = func(ctx context.Context, evt *event.Event, numResults int, ch chan *event.Event) error {
+		resp, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
+			"event":    "rfid:write_afi_response",
+			"status":   "ok",
+			"uid":      "UID-1",
+			"readerId": "gate-01",
+		})
+		ch <- resp
+		close(ch)
+		return nil
+	}
+	scopedCh, err := scoped.WriteAFIBatchStream(context.Background(), "daemon-01", req, 1)
+	if err != nil {
+		t.Fatalf("scoped.WriteAFIBatchStream failed: %v", err)
+	}
+	var scopedResults []*WriteAFIResponse
+	for r := range scopedCh {
+		scopedResults = append(scopedResults, r)
+	}
+	if len(scopedResults) != 1 {
+		t.Fatalf("expected 1 scoped result, got %d", len(scopedResults))
+	}
+}
+
+func TestRFIDClient_Request0_Commands(t *testing.T) {
+	fake := newFakeBroker("controller-app")
+	rfid, err := New(fake)
+	if err != nil {
+		t.Fatalf("failed to create RFIDClient: %v", err)
+	}
+
+	ctx := context.Background()
+	tags := []TagWriteItem{
+		{UID: "UID-1", ItemID: "ITEM-1"},
+	}
+	if err := rfid.SendWriteTagBatch(ctx, "daemon-01", tags); err != nil {
+		t.Errorf("SendWriteTagBatch failed: %v", err)
+	}
+	if err := rfid.BroadcastWriteTagBatch(ctx, "all", tags); err != nil {
+		t.Errorf("BroadcastWriteTagBatch failed: %v", err)
+	}
+
+	afiReq := NewWriteAFIRequest("07", "UID-1")
+	if err := rfid.SendAFI(ctx, "daemon-01", afiReq); err != nil {
+		t.Errorf("SendAFI failed: %v", err)
+	}
+	if err := rfid.BroadcastAFI(ctx, "all", afiReq); err != nil {
+		t.Errorf("BroadcastAFI failed: %v", err)
+	}
+
+	// Scoped commands
+	scoped := rfid.ForReader("gate-01")
+	if err := scoped.SendWriteTagBatch(ctx, "daemon-01", tags); err != nil {
+		t.Errorf("scoped.SendWriteTagBatch failed: %v", err)
+	}
+	if err := scoped.BroadcastWriteTagBatch(ctx, "all", tags); err != nil {
+		t.Errorf("scoped.BroadcastWriteTagBatch failed: %v", err)
+	}
+	if err := scoped.SendAFI(ctx, "daemon-01", afiReq); err != nil {
+		t.Errorf("scoped.SendAFI failed: %v", err)
+	}
+	if err := scoped.BroadcastAFI(ctx, "all", afiReq); err != nil {
+		t.Errorf("scoped.BroadcastAFI failed: %v", err)
 	}
 }

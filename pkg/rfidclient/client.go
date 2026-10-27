@@ -63,6 +63,9 @@ type Client interface {
 	// GetDeviceMetadataForReader queries hardware metadata for a specific reader ID on the target daemon.
 	GetDeviceMetadataForReader(ctx context.Context, target string, readerID string) (*DeviceMetadataResponse, error)
 
+	// GetDeviceMetadataMulti queries hardware metadata from multiple readers or broadcast channels concurrently.
+	GetDeviceMetadataMulti(ctx context.Context, target string, expectedResponses int) ([]*DeviceMetadataResponse, error)
+
 	// WriteTag sends a command to program ISO 28560-2 library metadata and optional AFI to a transponder.
 	WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error)
 
@@ -71,6 +74,9 @@ type Client interface {
 
 	// WriteTagBatch sends a command to program a batch of RFID tags with individual metadata and optional AFI.
 	WriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) (*WriteTagResponse, error)
+
+	// WriteTagBatchStream sends a batch write tag request and streams write tag responses via a channel using RequestN.
+	WriteTagBatchStream(ctx context.Context, target string, tags []TagWriteItem, expectedResults int) (<-chan *WriteTagResponse, error)
 
 	// WriteTags is a variadic convenience method for batch programming multiple RFID tags.
 	WriteTags(ctx context.Context, target string, tags ...TagWriteItem) (*WriteTagResponse, error)
@@ -92,6 +98,9 @@ type Client interface {
 
 	// WriteAFIBatch is a convenience wrapper for batch writing AFI to multiple transponders.
 	WriteAFIBatch(ctx context.Context, target string, uids []string, afi string) (*WriteAFIResponse, error)
+
+	// WriteAFIBatchStream sends a batch AFI write request and streams responses via a channel using RequestN.
+	WriteAFIBatchStream(ctx context.Context, target string, req WriteAFIRequest, expectedResults int) (<-chan *WriteAFIResponse, error)
 
 	// SetAFISecured sets the AFI byte of a tag (or batch of tags / all tags) to AFISecured ("07").
 	SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error)
@@ -365,6 +374,75 @@ func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target stri
 	return &metaResp, nil
 }
 
+// GetDeviceMetadataMulti queries hardware metadata from multiple readers or broadcast channels concurrently using RequestN.
+func (c *RFIDClient) GetDeviceMetadataMulti(ctx context.Context, target string, expectedResponses int) ([]*DeviceMetadataResponse, error) {
+	if expectedResponses <= 0 {
+		expectedResponses = 1
+	}
+	targetAddr, err := c.resolveTarget(target)
+	if err != nil {
+		return nil, err
+	}
+
+	reqPayload := NewDeviceMetadataRequest(c.config.defaultReaderID)
+	token, err := wsbrokerclient.GenerateToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate correlation token")
+	}
+
+	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, reqPayload)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create device metadata request event")
+	}
+	reqEvt.Token = token
+	reqEvt.ID = reqPayload.ID
+
+	reqCtx := ctx
+	var cancel context.CancelFunc
+	if _, hasDeadline := ctx.Deadline(); !hasDeadline && c.config.defaultTimeout > 0 {
+		reqCtx, cancel = context.WithTimeout(ctx, c.config.defaultTimeout)
+		defer cancel()
+	}
+
+	rawCh := make(chan *event.Event, expectedResponses)
+	if err := c.broker.RequestN(reqCtx, reqEvt, expectedResponses, rawCh); err != nil {
+		return nil, errors.Wrapf(err, "device metadata multi request failed for target %s", targetAddr)
+	}
+
+	var results []*DeviceMetadataResponse
+	for respEvt := range rawCh {
+		if respEvt == nil || len(respEvt.Data) == 0 {
+			continue
+		}
+		var metaResp DeviceMetadataResponse
+		if err := json.Unmarshal(respEvt.Data, &metaResp); err != nil {
+			if c.logger != nil {
+				c.logger.Warn().Err(err).Msg("failed to decode device metadata response item")
+			}
+			continue
+		}
+		if metaResp.ID == "" && respEvt.ID != "" {
+			metaResp.ID = respEvt.ID
+		}
+		if metaResp.RefID == "" {
+			if respEvt.RefID != "" {
+				metaResp.RefID = respEvt.RefID
+			} else {
+				metaResp.RefID = reqPayload.ID
+			}
+		}
+		if metaResp.Source == "" && respEvt.Source != "" {
+			metaResp.Source = respEvt.Source
+		}
+		if metaResp.ReaderID == "" && respEvt.Source != "" {
+			metaResp.ReaderID = respEvt.Source
+		}
+		results = append(results, &metaResp)
+	}
+
+	return results, nil
+}
+
 // WriteTag sends a command to write ISO 28560 metadata and optional AFI to a transponder.
 func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error) {
 	if req.ReaderID == "" && c.config.defaultReaderID != "" {
@@ -526,6 +604,79 @@ func (c *RFIDClient) WriteTagBatch(ctx context.Context, target string, tags []Ta
 	return c.WriteTag(ctx, target, NewWriteTagBatchRequest(tags))
 }
 
+// WriteTagBatchStream sends a batch write tag request and streams write tag responses via a channel using RequestN.
+func (c *RFIDClient) WriteTagBatchStream(ctx context.Context, target string, tags []TagWriteItem, expectedResults int) (<-chan *WriteTagResponse, error) {
+	if len(tags) == 0 {
+		return nil, errors.New("write tag batch stream: tags list must not be empty")
+	}
+	if expectedResults <= 0 {
+		expectedResults = len(tags)
+	}
+	req := NewWriteTagBatchRequest(tags)
+	if req.ReaderID == "" && c.config.defaultReaderID != "" {
+		req.ReaderID = c.config.defaultReaderID
+	}
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+	targetAddr, err := c.resolveTarget(target)
+	if err != nil {
+		return nil, err
+	}
+	token, err := wsbrokerclient.GenerateToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate correlation token")
+	}
+	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create write tag request event")
+	}
+	reqEvt.Token = token
+	reqEvt.ID = req.ID
+
+	rawCh := make(chan *event.Event, expectedResults)
+	outCh := make(chan *WriteTagResponse, expectedResults)
+
+	go func() {
+		defer close(outCh)
+		for raw := range rawCh {
+			if raw == nil || len(raw.Data) == 0 {
+				continue
+			}
+			var resp WriteTagResponse
+			if err := json.Unmarshal(raw.Data, &resp); err != nil {
+				if c.logger != nil {
+					c.logger.Warn().Err(err).Msg("failed to decode streaming write tag response item")
+				}
+				continue
+			}
+			if resp.ID == "" && raw.ID != "" {
+				resp.ID = raw.ID
+			}
+			if resp.RefID == "" {
+				if raw.RefID != "" {
+					resp.RefID = raw.RefID
+				} else {
+					resp.RefID = req.ID
+				}
+			}
+			if resp.Source == "" && raw.Source != "" {
+				resp.Source = raw.Source
+			}
+			if resp.ReaderID == "" && raw.Source != "" {
+				resp.ReaderID = raw.Source
+			}
+			outCh <- &resp
+		}
+	}()
+
+	if err := c.broker.RequestN(ctx, reqEvt, expectedResults, rawCh); err != nil {
+		return nil, errors.Wrapf(err, "failed to start streaming batch write tag request to %s", targetAddr)
+	}
+
+	return outCh, nil
+}
+
 // WriteTags is a variadic convenience method for batch programming multiple RFID tags.
 func (c *RFIDClient) WriteTags(ctx context.Context, target string, tags ...TagWriteItem) (*WriteTagResponse, error) {
 	return c.WriteTagBatch(ctx, target, tags)
@@ -563,7 +714,7 @@ func (c *RFIDClient) SendWriteTagBatch(ctx context.Context, target string, tags 
 	}
 	reqEvt.ID = req.ID
 
-	if err := c.broker.Send(ctx, reqEvt); err != nil {
+	if err := c.broker.Request0(ctx, reqEvt); err != nil {
 		if c.logger != nil {
 			c.logger.Warn().
 				Err(err).
@@ -633,7 +784,7 @@ func (c *RFIDClient) BroadcastWriteTagBatch(ctx context.Context, channel string,
 		reqEvt.Channel = ch
 		reqEvt.ID = req.ID
 
-		if err := c.broker.Send(ctx, reqEvt); err != nil {
+		if err := c.broker.Request0(ctx, reqEvt); err != nil {
 			if c.logger != nil {
 				c.logger.Warn().
 					Err(err).
@@ -813,6 +964,83 @@ func (c *RFIDClient) WriteAFIBatch(ctx context.Context, target string, uids []st
 	return c.WriteAFI(ctx, target, NewWriteAFIBatchRequest(afi, uids))
 }
 
+// WriteAFIBatchStream sends a batch AFI write request and streams responses via a channel using RequestN.
+func (c *RFIDClient) WriteAFIBatchStream(ctx context.Context, target string, req WriteAFIRequest, expectedResults int) (<-chan *WriteAFIResponse, error) {
+	if req.ReaderID == "" && c.config.defaultReaderID != "" {
+		req.ReaderID = c.config.defaultReaderID
+	}
+	if err := req.Validate(); err != nil {
+		return nil, err
+	}
+	if expectedResults <= 0 {
+		if len(req.UIDs) > 0 {
+			expectedResults = len(req.UIDs)
+		} else {
+			expectedResults = 1
+		}
+	}
+	targetAddr, err := c.resolveTarget(target)
+	if err != nil {
+		return nil, err
+	}
+	token, err := wsbrokerclient.GenerateToken()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to generate correlation token")
+	}
+	if req.ID == "" {
+		req.ID = wsbrokerclient.GenerateEventID()
+	}
+	req.Event = EventWriteAFI
+	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create write AFI request event")
+	}
+	reqEvt.Token = token
+	reqEvt.ID = req.ID
+
+	rawCh := make(chan *event.Event, expectedResults)
+	outCh := make(chan *WriteAFIResponse, expectedResults)
+
+	go func() {
+		defer close(outCh)
+		for raw := range rawCh {
+			if raw == nil || len(raw.Data) == 0 {
+				continue
+			}
+			var resp WriteAFIResponse
+			if err := json.Unmarshal(raw.Data, &resp); err != nil {
+				if c.logger != nil {
+					c.logger.Warn().Err(err).Msg("failed to decode streaming write AFI response item")
+				}
+				continue
+			}
+			if resp.ID == "" && raw.ID != "" {
+				resp.ID = raw.ID
+			}
+			if resp.RefID == "" {
+				if raw.RefID != "" {
+					resp.RefID = raw.RefID
+				} else {
+					resp.RefID = req.ID
+				}
+			}
+			if resp.Source == "" && raw.Source != "" {
+				resp.Source = raw.Source
+			}
+			if resp.ReaderID == "" && raw.Source != "" {
+				resp.ReaderID = raw.Source
+			}
+			outCh <- &resp
+		}
+	}()
+
+	if err := c.broker.RequestN(ctx, reqEvt, expectedResults, rawCh); err != nil {
+		return nil, errors.Wrapf(err, "failed to start streaming batch AFI write request to %s", targetAddr)
+	}
+
+	return outCh, nil
+}
+
 // SetAFISecured sets the AFI byte of a tag (or batch of tags / all tags) to AFISecured ("07").
 func (c *RFIDClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
 	return c.WriteAFI(ctx, target, NewWriteAFIRequest(AFISecured, uid...))
@@ -875,7 +1103,7 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 	}
 	reqEvt.ID = req.ID
 
-	if err := c.broker.Send(ctx, reqEvt); err != nil {
+	if err := c.broker.Request0(ctx, reqEvt); err != nil {
 		c.logger.Warn().
 			Err(err).
 			Str("id", req.ID).
@@ -944,7 +1172,7 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 		reqEvt.Channel = ch
 		reqEvt.ID = req.ID
 
-		if err := c.broker.Send(ctx, reqEvt); err != nil {
+		if err := c.broker.Request0(ctx, reqEvt); err != nil {
 			c.logger.Warn().
 				Err(err).
 				Str("id", req.ID).
@@ -1339,6 +1567,10 @@ func (s *readerScopedClient) GetDeviceMetadataForReader(ctx context.Context, tar
 	return s.parent.GetDeviceMetadataForReader(ctx, target, readerID)
 }
 
+func (s *readerScopedClient) GetDeviceMetadataMulti(ctx context.Context, target string, expectedResponses int) ([]*DeviceMetadataResponse, error) {
+	return s.parent.GetDeviceMetadataMulti(ctx, target, expectedResponses)
+}
+
 func (s *readerScopedClient) WriteTag(ctx context.Context, target string, req WriteTagRequest) (*WriteTagResponse, error) {
 	if req.ReaderID == "" {
 		req.ReaderID = s.readerID
@@ -1354,6 +1586,79 @@ func (s *readerScopedClient) WriteTagBatch(ctx context.Context, target string, t
 	req := NewWriteTagBatchRequest(tags)
 	req.ReaderID = s.readerID
 	return s.WriteTag(ctx, target, req)
+}
+
+func (s *readerScopedClient) WriteTagBatchStream(ctx context.Context, target string, tags []TagWriteItem, expectedResults int) (<-chan *WriteTagResponse, error) {
+	if c, ok := s.parent.(*RFIDClient); ok {
+		if len(tags) == 0 {
+			return nil, errors.New("write tag batch stream: tags list must not be empty")
+		}
+		if expectedResults <= 0 {
+			expectedResults = len(tags)
+		}
+		req := NewWriteTagBatchRequest(tags)
+		req.ReaderID = s.readerID
+		if err := req.Validate(); err != nil {
+			return nil, err
+		}
+		targetAddr, err := c.resolveTarget(target)
+		if err != nil {
+			return nil, err
+		}
+		token, err := wsbrokerclient.GenerateToken()
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to generate correlation token")
+		}
+		reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to create write tag request event")
+		}
+		reqEvt.Token = token
+		reqEvt.ID = req.ID
+
+		rawCh := make(chan *event.Event, expectedResults)
+		outCh := make(chan *WriteTagResponse, expectedResults)
+
+		go func() {
+			defer close(outCh)
+			for raw := range rawCh {
+				if raw == nil || len(raw.Data) == 0 {
+					continue
+				}
+				var resp WriteTagResponse
+				if err := json.Unmarshal(raw.Data, &resp); err != nil {
+					if c.logger != nil {
+						c.logger.Warn().Err(err).Msg("failed to decode streaming write tag response item")
+					}
+					continue
+				}
+				if resp.ID == "" && raw.ID != "" {
+					resp.ID = raw.ID
+				}
+				if resp.RefID == "" {
+					if raw.RefID != "" {
+						resp.RefID = raw.RefID
+					} else {
+						resp.RefID = req.ID
+					}
+				}
+				if resp.Source == "" && raw.Source != "" {
+					resp.Source = raw.Source
+				}
+				if resp.ReaderID == "" && raw.Source != "" {
+					resp.ReaderID = raw.Source
+				}
+				outCh <- &resp
+			}
+		}()
+
+		if err := c.broker.RequestN(ctx, reqEvt, expectedResults, rawCh); err != nil {
+			return nil, errors.Wrapf(err, "failed to start streaming batch write tag request to %s", targetAddr)
+		}
+
+		return outCh, nil
+	}
+	return s.parent.WriteTagBatchStream(ctx, target, tags, expectedResults)
 }
 
 func (s *readerScopedClient) WriteTags(ctx context.Context, target string, tags ...TagWriteItem) (*WriteTagResponse, error) {
@@ -1384,7 +1689,7 @@ func (s *readerScopedClient) SendWriteTagBatch(ctx context.Context, target strin
 			return errors.Wrap(err, "failed to create batch write tag request event")
 		}
 		reqEvt.ID = req.ID
-		return c.broker.Send(ctx, reqEvt)
+		return c.broker.Request0(ctx, reqEvt)
 	}
 	return s.parent.SendWriteTagBatch(ctx, target, tags)
 }
@@ -1426,7 +1731,7 @@ func (s *readerScopedClient) BroadcastWriteTagBatch(ctx context.Context, channel
 			}
 			reqEvt.Channel = ch
 			reqEvt.ID = req.ID
-			if err := c.broker.Send(ctx, reqEvt); err != nil && firstErr == nil {
+			if err := c.broker.Request0(ctx, reqEvt); err != nil && firstErr == nil {
 				firstErr = errors.Wrapf(err, "failed to broadcast batch write tag command to channel %s", ch)
 			}
 		}
@@ -1456,6 +1761,13 @@ func (s *readerScopedClient) WriteAFIBatch(ctx context.Context, target string, u
 	req := NewWriteAFIBatchRequest(afi, uids)
 	req.ReaderID = s.readerID
 	return s.parent.WriteAFI(ctx, target, req)
+}
+
+func (s *readerScopedClient) WriteAFIBatchStream(ctx context.Context, target string, req WriteAFIRequest, expectedResults int) (<-chan *WriteAFIResponse, error) {
+	if req.ReaderID == "" {
+		req.ReaderID = s.readerID
+	}
+	return s.parent.WriteAFIBatchStream(ctx, target, req, expectedResults)
 }
 
 func (s *readerScopedClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
