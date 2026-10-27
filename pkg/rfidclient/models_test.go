@@ -373,8 +373,32 @@ func TestWriteAFIRequestAndResponse(t *testing.T) {
 	if batchPartialResp.GetTagError("TAG-2") != "AFI locked" {
 		t.Errorf("GetTagError(TAG-2) = %q, want 'AFI locked'", batchPartialResp.GetTagError("TAG-2"))
 	}
+	if batchPartialResp.GetTagError("TAG-1") != "" {
+		t.Errorf("GetTagError(TAG-1) = %q, want empty string for successful tag", batchPartialResp.GetTagError("TAG-1"))
+	}
 	if batchPartialResp.Summary() == "" {
 		t.Error("Summary() on partial response should not be empty")
+	}
+
+	// Test Single Tag Error does not bleed onto other UIDs
+	singleTagErrResp := WriteAFIResponse{
+		BaseRFIDPayload: BaseRFIDPayload{Event: EventWriteAFIResponse},
+		Status:          "error",
+		UID:             "TAG-FAIL",
+		Error:           "Transponder write error",
+		AFI:             "07",
+	}
+	if singleTagErrResp.IsTagSuccessful("TAG-FAIL") {
+		t.Error("TAG-FAIL should not be successful")
+	}
+	if singleTagErrResp.GetTagError("TAG-FAIL") != "Transponder write error" {
+		t.Errorf("GetTagError(TAG-FAIL) = %q, want 'Transponder write error'", singleTagErrResp.GetTagError("TAG-FAIL"))
+	}
+	if singleTagErrResp.IsTagSuccessful("TAG-OTHER") {
+		t.Error("TAG-OTHER should not be marked successful from unrelated tag's response")
+	}
+	if singleTagErrResp.GetTagError("TAG-OTHER") != "" {
+		t.Errorf("GetTagError(TAG-OTHER) = %q, want empty string for unrelated tag", singleTagErrResp.GetTagError("TAG-OTHER"))
 	}
 }
 

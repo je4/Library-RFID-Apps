@@ -80,7 +80,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 	uids := payload.UIDs
 	if len(uids) == 0 {
 		for _, t := range activeTags {
-			if t.UID != "" {
+			if t.UID != "" && !strings.EqualFold(t.AFI, afi) {
 				uids = append(uids, t.UID)
 			}
 		}
@@ -99,21 +99,11 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 		ctrl.hub.SetTagAFIPending(uids...)
 	}
 
-	targetChannels := ctrl.cfg.Channels
-	if channel != "" {
-		targetChannels = []string{channel}
-	}
-
 	var writeErrors []string
 	hadSyncWrite := false
 	if ctrl.rfidClient != nil {
 		if len(uids) == 0 {
 			req := rfidclient.NewWriteAFIRequest(afi)
-			for _, ch := range targetChannels {
-				if strings.TrimSpace(ch) != "" {
-					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, req)
-				}
-			}
 			if ctrl.cfg.DefaultReader != "" {
 				hadSyncWrite = true
 				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
@@ -124,14 +114,6 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 				}
 			}
 		} else {
-			// Broadcast batch write to configured channels
-			batchBroadcastReq := rfidclient.NewWriteAFIBatchRequest(afi, uids)
-			for _, ch := range targetChannels {
-				if strings.TrimSpace(ch) != "" {
-					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, batchBroadcastReq)
-				}
-			}
-
 			// Cluster targets by daemon source and reader ID so each write request addresses the correct daemon & reader
 			type readerClusterKey struct {
 				target   string

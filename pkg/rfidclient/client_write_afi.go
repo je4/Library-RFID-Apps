@@ -106,6 +106,15 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 	if afiResp.ReaderID == "" && respEvt.Source != "" {
 		afiResp.ReaderID = respEvt.Source
 	}
+	if afiResp.AFI == "" && req.AFI != "" {
+		afiResp.AFI = req.AFI
+	}
+	if len(afiResp.UIDs) == 0 && len(req.UIDs) > 0 {
+		afiResp.UIDs = req.UIDs
+	}
+	if afiResp.UID == "" && req.UID != "" {
+		afiResp.UID = req.UID
+	}
 
 	if c.logger != nil {
 		if afiResp.IsSuccess() {

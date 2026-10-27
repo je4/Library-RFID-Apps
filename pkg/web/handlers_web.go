@@ -333,7 +333,7 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 	var targetSource string
 	var targetReaderID string
 	if uid != "" {
-		activeTags := ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+		activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
 		for _, t := range activeTags {
 			if strings.EqualFold(t.UID, uid) {
 				targetSource = t.Source
@@ -474,7 +474,12 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 			targets = append(targets, &desk.TagItem{UID: targetUID})
 		}
 	} else {
-		targets = activeTags
+		// When securing/unsecuring all tags on pad, only target tags that do not already have the requested AFI status
+		for _, t := range activeTags {
+			if !strings.EqualFold(t.AFI, afi) {
+				targets = append(targets, t)
+			}
+		}
 	}
 
 	uids := make([]string, 0, len(targets))
@@ -501,98 +506,76 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	hadSyncWrite := false
 	var writeErrors []string
 
-	targetChannels := ctrl.cfg.Channels
-	if channel != "" {
-		targetChannels = []string{channel}
-	}
+	if ctrl.rfidClient != nil && len(targets) > 0 {
+		// Cluster targets by daemon source and reader ID so each write request addresses the correct daemon & reader
+		type readerClusterKey struct {
+			target   string
+			readerID string
+		}
+		clusterMap := make(map[readerClusterKey][]string)
+		for _, tag := range targets {
+			if tag.UID == "" {
+				continue
+			}
+			targetDaemon := tag.Source
+			if targetDaemon == "" {
+				targetDaemon = tag.ReaderID
+			}
+			if targetDaemon == "" {
+				targetDaemon = ctrl.cfg.DefaultReader
+			}
+			key := readerClusterKey{
+				target:   targetDaemon,
+				readerID: tag.ReaderID,
+			}
+			clusterMap[key] = append(clusterMap[key], tag.UID)
+		}
 
-	if ctrl.rfidClient != nil {
-		if len(targets) == 0 {
-			req := rfidclient.NewWriteAFIRequest(afi)
-			for _, ch := range targetChannels {
-				if strings.TrimSpace(ch) != "" {
-					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, req)
-				}
+		// Execute batch write per cluster
+		for key, clusterUIDs := range clusterMap {
+			if len(clusterUIDs) == 0 {
+				continue
 			}
-			if ctrl.cfg.DefaultReader != "" {
-				hadSyncWrite = true
-				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
-				if err != nil {
-					writeErrors = append(writeErrors, err.Error())
-				} else if resp != nil && !resp.IsSuccess() {
-					writeErrors = append(writeErrors, resp.GetError())
-				}
-			}
-		} else {
-			// Broadcast batch write to configured channels
-			batchBroadcastReq := rfidclient.NewWriteAFIBatchRequest(afi, uids)
-			for _, ch := range targetChannels {
-				if strings.TrimSpace(ch) != "" {
-					if err := ctrl.rfidClient.BroadcastAFI(ctx, ch, batchBroadcastReq); err != nil && ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("channel", ch).Msg("failed to broadcast batch AFI update to channel")
-					}
-				}
-			}
+			hadSyncWrite = true
+			clusterReq := rfidclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
+			clusterReq.ReaderID = key.readerID
 
-			// Cluster targets by daemon source and reader ID so each write request addresses the correct daemon & reader
-			type readerClusterKey struct {
-				target   string
-				readerID string
-			}
-			clusterMap := make(map[readerClusterKey][]string)
-			for _, tag := range targets {
-				if tag.UID == "" {
-					continue
+			resp, err := ctrl.rfidClient.WriteAFI(ctx, key.target, clusterReq)
+			if err != nil {
+				for _, uid := range clusterUIDs {
+					ctrl.hub.SetTagAFIResult(uid, afi, false, err.Error())
+					writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, err.Error()))
 				}
-				targetDaemon := tag.Source
-				if targetDaemon == "" {
-					targetDaemon = tag.ReaderID
+				if ctrl.logger != nil {
+					ctrl.logger.Warn().Err(err).Str("target", key.target).Str("readerId", key.readerID).Strs("uids", clusterUIDs).Msg("failed to write batch AFI update to reader")
 				}
-				if targetDaemon == "" {
-					targetDaemon = ctrl.cfg.DefaultReader
-				}
-				key := readerClusterKey{
-					target:   targetDaemon,
-					readerID: tag.ReaderID,
-				}
-				clusterMap[key] = append(clusterMap[key], tag.UID)
-			}
-
-			// Execute batch write per cluster
-			for key, clusterUIDs := range clusterMap {
-				if len(clusterUIDs) == 0 {
-					continue
-				}
-				hadSyncWrite = true
-				clusterReq := rfidclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
-				clusterReq.ReaderID = key.readerID
-
-				resp, err := ctrl.rfidClient.WriteAFI(ctx, key.target, clusterReq)
-				if err != nil {
-					for _, uid := range clusterUIDs {
-						ctrl.hub.SetTagAFIResult(uid, afi, false, err.Error())
-						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, err.Error()))
-					}
-					if ctrl.logger != nil {
-						ctrl.logger.Warn().Err(err).Str("target", key.target).Str("readerId", key.readerID).Strs("uids", clusterUIDs).Msg("failed to write batch AFI update to reader")
-					}
-				} else if resp != nil {
-					for _, uid := range clusterUIDs {
-						if resp.IsTagSuccessful(uid) {
-							ctrl.hub.SetTagAFIResult(uid, afi, true, "")
-						} else {
-							errMsg := resp.GetTagError(uid)
-							if errMsg == "" {
-								errMsg = "AFI-Schreibfehler"
-							}
-							ctrl.hub.SetTagAFIResult(uid, afi, false, errMsg)
-							writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, errMsg))
-							if ctrl.logger != nil {
-								ctrl.logger.Warn().Str("target", key.target).Str("readerId", key.readerID).Str("uid", uid).Str("error", errMsg).Msg("failed to write tag AFI in batch operation")
-							}
+			} else if resp != nil {
+				for _, uid := range clusterUIDs {
+					if resp.IsTagSuccessful(uid) {
+						ctrl.hub.SetTagAFIResult(uid, afi, true, "")
+					} else {
+						errMsg := resp.GetTagError(uid)
+						if errMsg == "" {
+							errMsg = "AFI-Schreibfehler"
+						}
+						ctrl.hub.SetTagAFIResult(uid, afi, false, errMsg)
+						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, errMsg))
+						if ctrl.logger != nil {
+							ctrl.logger.Warn().Str("target", key.target).Str("readerId", key.readerID).Str("uid", uid).Str("error", errMsg).Msg("failed to write tag AFI in batch operation")
 						}
 					}
 				}
+			}
+		}
+	} else if ctrl.rfidClient != nil && len(targets) == 0 && len(activeTags) == 0 {
+		req := rfidclient.NewWriteAFIRequest(afi)
+		if ctrl.cfg.DefaultReader != "" {
+			hadSyncWrite = true
+			resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
+			if err != nil {
+				writeErrors = append(writeErrors, err.Error())
+			} else if resp != nil && !resp.IsSuccess() {
+				writeErrors = append(writeErrors, resp.GetError())
 			}
 		}
 	}
@@ -631,9 +614,13 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 			}
 		} else if errorCount > 0 && successCount > 0 {
 			data.SuccessMessage = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
-			data.ErrorMessage = fmt.Sprintf("%d fehlgeschlagen: %s", errorCount, strings.Join(failedItems, "; "))
+			data.ErrorMessage = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
 		} else if errorCount > 0 && successCount == 0 {
-			data.ErrorMessage = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler): %s", errorCount, strings.Join(failedItems, "; "))
+			if targetUID != "" {
+				data.ErrorMessage = fmt.Sprintf("AFI-Schreibvorgang für Transponder %s fehlgeschlagen.", targetUID)
+			} else {
+				data.ErrorMessage = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
+			}
 		} else if len(writeErrors) > 0 {
 			data.ErrorMessage = strings.Join(writeErrors, "; ")
 		} else {

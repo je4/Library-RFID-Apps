@@ -3,6 +3,7 @@ package web
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"slices"
@@ -432,8 +433,8 @@ func TestController_AFIViaRFIDClient_Success(t *testing.T) {
 	if !strings.Contains(bodyUnsecure, "loan-action-success-row") {
 		t.Errorf("expected success notification banner in table response, got: %s", bodyUnsecure)
 	}
-	if mockCli.broadcastCount == 0 || mockCli.writeCount == 0 {
-		t.Errorf("expected broadcast and write calls on mock client, got broadcast=%d, write=%d", mockCli.broadcastCount, mockCli.writeCount)
+	if mockCli.writeCount == 0 {
+		t.Errorf("expected write calls on mock client, got write=%d", mockCli.writeCount)
 	}
 
 	// 2. Post secure
@@ -942,7 +943,7 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 	if !strings.Contains(body, "1 von 2 Medien erfolgreich aktualisiert") {
 		t.Errorf("expected partial success message in body, got: %s", body)
 	}
-	if !strings.Contains(body, "1 fehlgeschlagen") {
+	if !strings.Contains(body, "1 von 2 Medien fehlgeschlagen") {
 		t.Errorf("expected failure summary in body, got: %s", body)
 	}
 	if !strings.Contains(body, "Antenna communication timeout") {
@@ -979,6 +980,93 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 		if item.UID == "TAG-02" {
 			if item.AFI != "C2" || item.AFIWriteStatus != "success" {
 				t.Errorf("expected TAG-02 to succeed after retry, got AFI=%s, status=%s", item.AFI, item.AFIWriteStatus)
+			}
+		}
+	}
+}
+
+func TestBatchAFIWrite_OnlyDifferingTagsTargeted(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	var targetedUIDs []string
+	mockCli := &mockRFIDClient{
+		writeAFIHandler: func(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
+			if len(req.UIDs) > 0 {
+				targetedUIDs = append(targetedUIDs, req.UIDs...)
+			} else if req.UID != "" {
+				targetedUIDs = append(targetedUIDs, req.UID)
+			}
+			return nil, errors.New("write afi request timed out waiting for response from reader hardware")
+		},
+	}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "test-rfid-desk",
+		Channels:      []string{"rfid-ch"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+		RFIDClient:    mockCli,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 4 tags on reader: Top one is 07 (Gesichert), bottom 3 are already C2 (Entsichert)
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-TOP",
+		ItemID:          "BOOK-TOP",
+		AFI:             "07",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-MID-1",
+		ItemID:          "BOOK-MID-1",
+		AFI:             "C2",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-MID-2",
+		ItemID:          "",
+		AFI:             "C2",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
+	})
+	ctrl.HandleTagRead(&rfidclient.TagReadEvent{
+		UID:             "TAG-BOT",
+		ItemID:          "",
+		AFI:             "C2",
+		BaseRFIDPayload: rfidclient.BaseRFIDPayload{ReaderID: "reader-01", Timestamp: time.Now().UnixMilli()},
+	})
+
+	// Execute batch unsecure (to C2)
+	req := httptest.NewRequest(http.MethodPost, "/rfid-ch/loan/afi/unsecure", nil)
+	rec := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Errorf("expected 200, got %d", rec.Code)
+	}
+
+	// Verify only TAG-TOP was targeted because other 3 were already C2
+	if len(targetedUIDs) != 1 || targetedUIDs[0] != "TAG-TOP" {
+		t.Errorf("expected only TAG-TOP to be targeted, got %v", targetedUIDs)
+	}
+
+	// Verify only TAG-TOP has error status, others remain clean C2
+	active := hub.GetActiveTags("reader-01")
+	for _, item := range active {
+		if item.UID == "TAG-TOP" {
+			if item.AFIWriteStatus != "error" || item.AFIWriteError == "" {
+				t.Errorf("expected TAG-TOP to have error, got status=%s, error=%s", item.AFIWriteStatus, item.AFIWriteError)
+			}
+		} else {
+			if item.AFIWriteStatus == "error" || item.AFIWriteError != "" {
+				t.Errorf("expected %s to have no error, got status=%s, error=%s", item.UID, item.AFIWriteStatus, item.AFIWriteError)
 			}
 		}
 	}

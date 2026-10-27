@@ -265,10 +265,23 @@ func (r *WriteTagResponse) IsTagSuccessful(uid string) bool {
 		if _, failed := r.FailedUIDs[uid]; failed {
 			return false
 		}
+		if r.IsSuccess() || r.IsPartial() {
+			return true
+		}
 	}
-	// Fallback for single-tag responses where SuccessfulUIDs is not populated
-	if r.UID == uid || (len(r.UIDs) == 0 && len(r.SuccessfulUIDs) == 0 && len(r.Results) == 0) {
+	// If response is specifically for a single tag UID
+	if r.UID != "" {
+		if r.UID == uid {
+			return r.IsSuccess()
+		}
+		return false
+	}
+	// Fallback for general/batch responses where per-tag lists are not populated
+	if len(r.UIDs) == 0 && len(r.SuccessfulUIDs) == 0 && len(r.Results) == 0 && (r.FailedUIDs == nil || len(r.FailedUIDs) == 0) {
 		return r.IsSuccess()
+	}
+	if len(r.UIDs) > 0 && slices.Contains(r.UIDs, uid) && r.IsSuccess() {
+		return true
 	}
 	return false
 }
@@ -276,14 +289,32 @@ func (r *WriteTagResponse) IsTagSuccessful(uid string) bool {
 // GetTagError returns the specific error message for a tag UID, or the general error.
 func (r *WriteTagResponse) GetTagError(uid string) string {
 	if r.FailedUIDs != nil {
-		if errStr, failed := r.FailedUIDs[uid]; failed && errStr != "" {
-			return errStr
+		if errStr, failed := r.FailedUIDs[uid]; failed {
+			if errStr != "" {
+				return errStr
+			}
+			return r.GetError()
+		}
+		if r.IsTagSuccessful(uid) {
+			return ""
 		}
 	}
 	for _, res := range r.Results {
-		if res.UID == uid && res.Error != "" {
-			return res.Error
+		if res.UID == uid {
+			if res.IsSuccess() {
+				return ""
+			}
+			if res.Error != "" {
+				return res.Error
+			}
+			return r.GetError()
 		}
+	}
+	if r.UID != "" && r.UID != uid {
+		return ""
+	}
+	if r.IsTagSuccessful(uid) {
+		return ""
 	}
 	return r.GetError()
 }
@@ -461,10 +492,23 @@ func (r *WriteAFIResponse) IsTagSuccessful(uid string) bool {
 		if _, failed := r.FailedUIDs[uid]; failed {
 			return false
 		}
+		if r.IsSuccess() || r.IsPartial() {
+			return true
+		}
 	}
-	// Fallback for single-tag responses where SuccessfulUIDs is not populated
-	if r.UID == uid || (len(r.UIDs) == 0 && len(r.SuccessfulUIDs) == 0 && len(r.Results) == 0) {
+	// If response is specifically for a single tag UID
+	if r.UID != "" {
+		if r.UID == uid {
+			return r.IsSuccess()
+		}
+		return false
+	}
+	// Fallback for general/batch responses where per-tag lists are not populated
+	if len(r.UIDs) == 0 && len(r.SuccessfulUIDs) == 0 && len(r.Results) == 0 && (r.FailedUIDs == nil || len(r.FailedUIDs) == 0) {
 		return r.IsSuccess()
+	}
+	if len(r.UIDs) > 0 && slices.Contains(r.UIDs, uid) && r.IsSuccess() {
+		return true
 	}
 	return false
 }
@@ -472,14 +516,32 @@ func (r *WriteAFIResponse) IsTagSuccessful(uid string) bool {
 // GetTagError returns the specific error message for a tag UID, or the general error.
 func (r *WriteAFIResponse) GetTagError(uid string) string {
 	if r.FailedUIDs != nil {
-		if errStr, failed := r.FailedUIDs[uid]; failed && errStr != "" {
-			return errStr
+		if errStr, failed := r.FailedUIDs[uid]; failed {
+			if errStr != "" {
+				return errStr
+			}
+			return r.GetError()
+		}
+		if r.IsTagSuccessful(uid) {
+			return ""
 		}
 	}
 	for _, res := range r.Results {
-		if res.UID == uid && res.Error != "" {
-			return res.Error
+		if res.UID == uid {
+			if res.IsSuccess() {
+				return ""
+			}
+			if res.Error != "" {
+				return res.Error
+			}
+			return r.GetError()
 		}
+	}
+	if r.UID != "" && r.UID != uid {
+		return ""
+	}
+	if r.IsTagSuccessful(uid) {
+		return ""
 	}
 	return r.GetError()
 }

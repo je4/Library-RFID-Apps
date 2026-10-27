@@ -311,21 +311,11 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 	}
 	success := false
 
-	targetChannels := ctrl.cfg.Channels
-	if channel != "" {
-		targetChannels = []string{channel}
-	}
-
 	if targetTag != nil {
 		targetUID := targetTag.UID
 		if ctrl.rfidClient != nil {
 			afiReq := rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
 			afiReq.ReaderID = targetReaderID
-			for _, ch := range targetChannels {
-				if strings.TrimSpace(ch) != "" {
-					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, afiReq)
-				}
-			}
 			if targetSource != "" && targetSource != "all" {
 				afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
 				if err == nil && afiResp != nil && afiResp.IsSuccess() {
@@ -334,8 +324,13 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 				} else if ctrl.logger != nil {
 					ctrl.logger.Warn().Err(err).Interface("resp", afiResp).Str("target", targetSource).Str("readerId", targetReaderID).Msg("Alma SOAP SetTagSecurity: AFI-Schreiben fehlgeschlagen")
 				}
+			} else if targetReader != "" {
+				afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, afiReq)
+				if err == nil && afiResp != nil && afiResp.IsSuccess() {
+					success = true
+					ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
+				}
 			} else {
-				// Kein expliziter Ziel-Reader oder Ziel ist "all" -> Broadcast gilt als gesendet
 				ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
 				success = true
 			}
@@ -352,13 +347,18 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 			afiReq = rfidclient.NewWriteAFIRequest(targetAFI)
 		}
 		afiReq.ReaderID = targetReaderID
-		for _, ch := range targetChannels {
-			if strings.TrimSpace(ch) != "" {
-				_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, afiReq)
-			}
-		}
 		if targetSource != "" && targetSource != "all" {
 			afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
+			if err == nil && afiResp != nil && afiResp.IsSuccess() {
+				success = true
+				if targetUID != "" {
+					ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
+				} else {
+					ctrl.hub.UpdateActiveAFI(targetAFI)
+				}
+			}
+		} else if targetReader != "" {
+			afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, afiReq)
 			if err == nil && afiResp != nil && afiResp.IsSuccess() {
 				success = true
 				if targetUID != "" {
@@ -455,11 +455,6 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 	}
 	success := false
 
-	targetChannels := ctrl.cfg.Channels
-	if channel != "" {
-		targetChannels = []string{channel}
-	}
-
 	if targetTag != nil {
 		targetUID := targetTag.UID
 		if itemIdentifier != "" && !strings.EqualFold(targetTag.ItemID, itemIdentifier) {
@@ -498,11 +493,6 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 			if ctrl.rfidClient != nil {
 				afiReq := rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
 				afiReq.ReaderID = targetReaderID
-				for _, ch := range targetChannels {
-					if strings.TrimSpace(ch) != "" {
-						_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, afiReq)
-					}
-				}
 				if targetSource != "" && targetSource != "all" {
 					afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
 					if err == nil && afiResp != nil && afiResp.IsSuccess() {
@@ -510,6 +500,12 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 						ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
 					} else if ctrl.logger != nil {
 						ctrl.logger.Warn().Err(err).Interface("resp", afiResp).Str("target", targetSource).Str("readerId", targetReaderID).Msg("Alma SOAP WriteTag: AFI-Schreiben fehlgeschlagen")
+					}
+				} else if targetReader != "" {
+					afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, afiReq)
+					if err == nil && afiResp != nil && afiResp.IsSuccess() {
+						success = true
+						ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
 					}
 				} else {
 					ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
@@ -534,19 +530,24 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 				if err == nil && writeResp != nil && writeResp.IsSuccess() {
 					success = true
 				}
+			} else if targetReader != "" {
+				writeResp, err := ctrl.rfidClient.WriteTag(ctx, targetReader, writeReq)
+				if err == nil && writeResp != nil && writeResp.IsSuccess() {
+					success = true
+				}
 			} else {
 				success = true
 			}
 		} else if targetAFI != "" {
 			afiReq := rfidclient.NewWriteAFIRequest(targetAFI, req.TagUID)
 			afiReq.ReaderID = targetReaderID
-			for _, ch := range targetChannels {
-				if strings.TrimSpace(ch) != "" {
-					_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, afiReq)
-				}
-			}
 			if targetSource != "" && targetSource != "all" {
 				afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
+				if err == nil && afiResp != nil && afiResp.IsSuccess() {
+					success = true
+				}
+			} else if targetReader != "" {
+				afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, afiReq)
 				if err == nil && afiResp != nil && afiResp.IsSuccess() {
 					success = true
 				}
@@ -618,11 +619,6 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 	}
 	success := false
 
-	targetChannels := ctrl.cfg.Channels
-	if channel != "" {
-		targetChannels = []string{channel}
-	}
-
 	if targetTag != nil {
 		targetUID := targetTag.UID
 
@@ -664,11 +660,6 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 			if ctrl.rfidClient != nil {
 				afiReq := rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
 				afiReq.ReaderID = targetReaderID
-				for _, ch := range targetChannels {
-					if strings.TrimSpace(ch) != "" {
-						_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, afiReq)
-					}
-				}
 				if targetSource != "" && targetSource != "all" {
 					afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
 					if err == nil && afiResp != nil && afiResp.IsSuccess() {
@@ -676,6 +667,12 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 						ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
 					} else if ctrl.logger != nil {
 						ctrl.logger.Warn().Err(err).Interface("resp", afiResp).Str("target", targetSource).Str("readerId", targetReaderID).Msgf("Alma SOAP %s: AFI-Schreiben fehlgeschlagen", actionName)
+					}
+				} else if targetReader != "" {
+					afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, afiReq)
+					if err == nil && afiResp != nil && afiResp.IsSuccess() {
+						success = true
+						ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
 					}
 				} else {
 					ctrl.hub.UpdateActiveAFI(targetAFI, targetUID)
@@ -692,13 +689,14 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 		// Blind write to reader field when tag is not currently in memory
 		afiReq := rfidclient.NewWriteAFIRequest(targetAFI)
 		afiReq.ReaderID = targetReaderID
-		for _, ch := range targetChannels {
-			if strings.TrimSpace(ch) != "" {
-				_ = ctrl.rfidClient.BroadcastAFI(ctx, ch, afiReq)
-			}
-		}
 		if targetSource != "" && targetSource != "all" {
 			afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
+			if err == nil && afiResp != nil && afiResp.IsSuccess() {
+				success = true
+				ctrl.hub.UpdateActiveAFI(targetAFI)
+			}
+		} else if targetReader != "" {
+			afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetReader, afiReq)
 			if err == nil && afiResp != nil && afiResp.IsSuccess() {
 				success = true
 				ctrl.hub.UpdateActiveAFI(targetAFI)
