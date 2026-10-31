@@ -213,8 +213,8 @@ func (r *WriteTagRequest) Validate() error {
 	return nil
 }
 
-// WriteTagResponse represents the result of an RFID tag write operation (single or batch).
-type WriteTagResponse struct {
+// WriteTagResponseData represents the result data of an RFID tag write operation (single or batch).
+type WriteTagResponseData struct {
 	BaseRFIDPayload
 	Status         string            `json:"status"` // "ok" | "partial" | "error"
 	UID            string            `json:"uid,omitempty"`
@@ -233,23 +233,26 @@ type WriteTagResponse struct {
 	Error          string            `json:"error,omitempty"`
 }
 
+// WriteTagResponse represents a typed wsbroker event containing WriteTagResponseData.
+type WriteTagResponse = wsbrokerclient.Event[WriteTagResponseData]
+
 // IsSuccess returns true if the write was completely successful (status == "ok").
-func (r *WriteTagResponse) IsSuccess() bool {
+func (r *WriteTagResponseData) IsSuccess() bool {
 	return strings.EqualFold(r.Status, "ok")
 }
 
 // IsPartial returns true if some tags succeeded and some failed ("partial").
-func (r *WriteTagResponse) IsPartial() bool {
+func (r *WriteTagResponseData) IsPartial() bool {
 	return strings.EqualFold(r.Status, "partial")
 }
 
 // IsError returns true if the tag write completely failed.
-func (r *WriteTagResponse) IsError() bool {
+func (r *WriteTagResponseData) IsError() bool {
 	return strings.EqualFold(r.Status, "error") || (!r.IsSuccess() && !r.IsPartial())
 }
 
 // IsTagSuccessful checks whether a specific tag UID was written successfully.
-func (r *WriteTagResponse) IsTagSuccessful(uid string) bool {
+func (r *WriteTagResponseData) IsTagSuccessful(uid string) bool {
 	if uid == "" {
 		return r.IsSuccess()
 	}
@@ -287,7 +290,7 @@ func (r *WriteTagResponse) IsTagSuccessful(uid string) bool {
 }
 
 // GetTagError returns the specific error message for a tag UID, or the general error.
-func (r *WriteTagResponse) GetTagError(uid string) string {
+func (r *WriteTagResponseData) GetTagError(uid string) string {
 	if r.FailedUIDs != nil {
 		if errStr, failed := r.FailedUIDs[uid]; failed {
 			if errStr != "" {
@@ -320,7 +323,7 @@ func (r *WriteTagResponse) GetTagError(uid string) string {
 }
 
 // GetError returns the error description if write failed.
-func (r *WriteTagResponse) GetError() string {
+func (r *WriteTagResponseData) GetError() string {
 	if r.Error != "" {
 		return r.Error
 	}
@@ -331,7 +334,7 @@ func (r *WriteTagResponse) GetError() string {
 }
 
 // Summary returns a concise human-readable description of the write tag result.
-func (r *WriteTagResponse) Summary() string {
+func (r *WriteTagResponseData) Summary() string {
 	readerStr := ""
 	if rID := r.GetReaderID(); rID != "" {
 		readerStr = fmt.Sprintf(" | Reader: %s", rID)
@@ -446,8 +449,8 @@ func (r *WriteAFIRequest) Validate() error {
 	return nil
 }
 
-// WriteAFIResponse represents the result of writing the AFI byte (single tag or batch).
-type WriteAFIResponse struct {
+// WriteAFIResponseData represents the result data of writing the AFI byte (single tag or batch).
+type WriteAFIResponseData struct {
 	BaseRFIDPayload
 	Status         string            `json:"status"` // "ok" | "partial" | "error"
 	UID            string            `json:"uid,omitempty"`
@@ -460,23 +463,26 @@ type WriteAFIResponse struct {
 	Error          string            `json:"error,omitempty"`
 }
 
+// WriteAFIResponse represents a typed wsbroker event containing WriteAFIResponseData.
+type WriteAFIResponse = wsbrokerclient.Event[WriteAFIResponseData]
+
 // IsSuccess returns true if the AFI write was completely successful.
-func (r *WriteAFIResponse) IsSuccess() bool {
+func (r *WriteAFIResponseData) IsSuccess() bool {
 	return strings.EqualFold(r.Status, "ok")
 }
 
 // IsPartial returns true if some tags succeeded and some failed ("partial").
-func (r *WriteAFIResponse) IsPartial() bool {
+func (r *WriteAFIResponseData) IsPartial() bool {
 	return strings.EqualFold(r.Status, "partial")
 }
 
 // IsError returns true if the AFI write completely failed.
-func (r *WriteAFIResponse) IsError() bool {
+func (r *WriteAFIResponseData) IsError() bool {
 	return strings.EqualFold(r.Status, "error") || (!r.IsSuccess() && !r.IsPartial())
 }
 
 // IsTagSuccessful checks whether a specific tag UID was written successfully.
-func (r *WriteAFIResponse) IsTagSuccessful(uid string) bool {
+func (r *WriteAFIResponseData) IsTagSuccessful(uid string) bool {
 	if uid == "" {
 		return r.IsSuccess()
 	}
@@ -514,7 +520,7 @@ func (r *WriteAFIResponse) IsTagSuccessful(uid string) bool {
 }
 
 // GetTagError returns the specific error message for a tag UID, or the general error.
-func (r *WriteAFIResponse) GetTagError(uid string) string {
+func (r *WriteAFIResponseData) GetTagError(uid string) string {
 	if r.FailedUIDs != nil {
 		if errStr, failed := r.FailedUIDs[uid]; failed {
 			if errStr != "" {
@@ -547,22 +553,22 @@ func (r *WriteAFIResponse) GetTagError(uid string) string {
 }
 
 // IsSecured returns true if the response AFI indicates secured status (07).
-func (r *WriteAFIResponse) IsSecured() bool {
+func (r *WriteAFIResponseData) IsSecured() bool {
 	return IsAFISecured(r.AFI)
 }
 
 // IsUnsecured returns true if the response AFI indicates unsecured status (C2).
-func (r *WriteAFIResponse) IsUnsecured() bool {
+func (r *WriteAFIResponseData) IsUnsecured() bool {
 	return IsAFIUnsecured(r.AFI)
 }
 
 // SecurityStatus returns "Gesichert" for 07, "Entsichert" for C2, or empty string if unset/other.
-func (r *WriteAFIResponse) SecurityStatus() string {
+func (r *WriteAFIResponseData) SecurityStatus() string {
 	return AFISecurityStatus(r.AFI)
 }
 
 // GetError returns the error description if AFI write failed.
-func (r *WriteAFIResponse) GetError() string {
+func (r *WriteAFIResponseData) GetError() string {
 	if r.Error != "" {
 		return r.Error
 	}
@@ -573,7 +579,7 @@ func (r *WriteAFIResponse) GetError() string {
 }
 
 // Summary returns a concise human-readable description of the AFI write result.
-func (r *WriteAFIResponse) Summary() string {
+func (r *WriteAFIResponseData) Summary() string {
 	readerStr := ""
 	if rID := r.GetReaderID(); rID != "" {
 		readerStr = fmt.Sprintf(" | Reader: %s", rID)

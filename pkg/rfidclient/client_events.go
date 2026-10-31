@@ -120,12 +120,12 @@ func (c *RFIDClient) OnAnyRFIDEvent(handler AnyRFIDEventHandler) wsbrokerclient.
 func (c *RFIDClient) SubscribeTags(ctx context.Context, channel string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
 	tagCh := make(chan *TagReadEvent, 64)
 
-	unsub := c.OnTagRead(func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event) {
-		if channel != "" && rawEvt != nil && rawEvt.Target != "" && !strings.EqualFold(rawEvt.Target, channel) && !strings.EqualFold(rawEvt.Target, "all") {
+	unsub := c.OnTagRead(func(evt *TagReadEvent) {
+		if channel != "" && evt.Target != "" && !strings.EqualFold(evt.Target, channel) && !strings.EqualFold(evt.Target, "all") {
 			return
 		}
 		select {
-		case tagCh <- tag:
+		case tagCh <- evt:
 		case <-ctx.Done():
 		default:
 			c.logger.Warn().Msg("tag stream buffer full, dropping event")
@@ -149,7 +149,7 @@ func (c *RFIDClient) SubscribeTags(ctx context.Context, channel string) (<-chan 
 }
 
 // HandleEvent parses and routes a raw wsbroker Event through the registered RFID handlers.
-func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
+func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 	if evt == nil || len(evt.Data) == 0 {
 		return nil, nil
 	}
@@ -182,29 +182,29 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
 	c.mu.RUnlock()
 
 	for _, h := range anyHandlers {
-		go h(parsed, evt)
+		go h(parsed)
 	}
 
 	switch v := parsed.(type) {
 	case *TagReadEvent:
 		for _, h := range tagHandlers {
-			go h(v, evt)
+			go h(v)
 		}
 	case *TagsClearedEvent:
 		for _, h := range clearedHandlers {
-			go h(v, evt)
+			go h(v)
 		}
 	case *DeviceMetadataResponse:
 		for _, h := range metaHandlers {
-			go h(v, evt)
+			go h(v)
 		}
 	case *WriteTagResponse:
 		for _, h := range writeTagHandlers {
-			go h(v, evt)
+			go h(v)
 		}
 	case *WriteAFIResponse:
 		for _, h := range writeAFIHandlers {
-			go h(v, evt)
+			go h(v)
 		}
 	}
 
@@ -216,9 +216,9 @@ func (c *RFIDClient) OnTagReadForReader(readerID string, handler TagReadHandler)
 	if strings.TrimSpace(readerID) == "" {
 		return c.OnTagRead(handler)
 	}
-	return c.OnTagRead(func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event) {
-		if strings.EqualFold(tag.ReaderID, readerID) {
-			handler(tag, rawEvt)
+	return c.OnTagRead(func(evt *TagReadEvent) {
+		if strings.EqualFold(evt.Data.ReaderID, readerID) || strings.EqualFold(evt.Source, readerID) {
+			handler(evt)
 		}
 	})
 }
@@ -228,9 +228,9 @@ func (c *RFIDClient) OnTagsClearedForReader(readerID string, handler TagsCleared
 	if strings.TrimSpace(readerID) == "" {
 		return c.OnTagsCleared(handler)
 	}
-	return c.OnTagsCleared(func(cleared *TagsClearedEvent, rawEvt *wsbrokerclient.Event) {
-		if strings.EqualFold(cleared.ReaderID, readerID) {
-			handler(cleared, rawEvt)
+	return c.OnTagsCleared(func(evt *TagsClearedEvent) {
+		if strings.EqualFold(evt.Data.ReaderID, readerID) || strings.EqualFold(evt.Source, readerID) {
+			handler(evt)
 		}
 	})
 }
@@ -240,9 +240,9 @@ func (c *RFIDClient) OnDeviceMetadataForReader(readerID string, handler DeviceMe
 	if strings.TrimSpace(readerID) == "" {
 		return c.OnDeviceMetadata(handler)
 	}
-	return c.OnDeviceMetadata(func(meta *DeviceMetadataResponse, rawEvt *wsbrokerclient.Event) {
-		if strings.EqualFold(meta.ReaderID, readerID) {
-			handler(meta, rawEvt)
+	return c.OnDeviceMetadata(func(evt *DeviceMetadataResponse) {
+		if strings.EqualFold(evt.Data.ReaderID, readerID) || strings.EqualFold(evt.Source, readerID) {
+			handler(evt)
 		}
 	})
 }
@@ -252,9 +252,9 @@ func (c *RFIDClient) OnWriteTagResponseForReader(readerID string, handler WriteT
 	if strings.TrimSpace(readerID) == "" {
 		return c.OnWriteTagResponse(handler)
 	}
-	return c.OnWriteTagResponse(func(resp *WriteTagResponse, rawEvt *wsbrokerclient.Event) {
-		if strings.EqualFold(resp.ReaderID, readerID) {
-			handler(resp, rawEvt)
+	return c.OnWriteTagResponse(func(evt *WriteTagResponse) {
+		if strings.EqualFold(evt.Data.ReaderID, readerID) || strings.EqualFold(evt.Source, readerID) {
+			handler(evt)
 		}
 	})
 }
@@ -264,9 +264,9 @@ func (c *RFIDClient) OnWriteAFIResponseForReader(readerID string, handler WriteA
 	if strings.TrimSpace(readerID) == "" {
 		return c.OnWriteAFIResponse(handler)
 	}
-	return c.OnWriteAFIResponse(func(resp *WriteAFIResponse, rawEvt *wsbrokerclient.Event) {
-		if strings.EqualFold(resp.ReaderID, readerID) {
-			handler(resp, rawEvt)
+	return c.OnWriteAFIResponse(func(evt *WriteAFIResponse) {
+		if strings.EqualFold(evt.Data.ReaderID, readerID) || strings.EqualFold(evt.Source, readerID) {
+			handler(evt)
 		}
 	})
 }
@@ -276,10 +276,33 @@ func (c *RFIDClient) OnAnyRFIDEventForReader(readerID string, handler AnyRFIDEve
 	if strings.TrimSpace(readerID) == "" {
 		return c.OnAnyRFIDEvent(handler)
 	}
-	return c.OnAnyRFIDEvent(func(rfidEvt any, rawEvt *wsbrokerclient.Event) {
+	return c.OnAnyRFIDEvent(func(rfidEvt any) {
 		if getter, ok := rfidEvt.(interface{ GetReaderID() string }); ok {
 			if strings.EqualFold(getter.GetReaderID(), readerID) {
-				handler(rfidEvt, rawEvt)
+				handler(rfidEvt)
+				return
+			}
+		}
+		switch v := rfidEvt.(type) {
+		case *TagReadEvent:
+			if strings.EqualFold(v.Data.ReaderID, readerID) || strings.EqualFold(v.Source, readerID) {
+				handler(rfidEvt)
+			}
+		case *TagsClearedEvent:
+			if strings.EqualFold(v.Data.ReaderID, readerID) || strings.EqualFold(v.Source, readerID) {
+				handler(rfidEvt)
+			}
+		case *DeviceMetadataResponse:
+			if strings.EqualFold(v.Data.ReaderID, readerID) || strings.EqualFold(v.Source, readerID) {
+				handler(rfidEvt)
+			}
+		case *WriteTagResponse:
+			if strings.EqualFold(v.Data.ReaderID, readerID) || strings.EqualFold(v.Source, readerID) {
+				handler(rfidEvt)
+			}
+		case *WriteAFIResponse:
+			if strings.EqualFold(v.Data.ReaderID, readerID) || strings.EqualFold(v.Source, readerID) {
+				handler(rfidEvt)
 			}
 		}
 	})
@@ -289,12 +312,12 @@ func (c *RFIDClient) OnAnyRFIDEventForReader(readerID string, handler AnyRFIDEve
 func (c *RFIDClient) SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
 	tagCh := make(chan *TagReadEvent, 64)
 
-	unsub := c.OnTagReadForReader(readerID, func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event) {
-		if channel != "" && rawEvt != nil && rawEvt.Target != "" && !strings.EqualFold(rawEvt.Target, channel) && !strings.EqualFold(rawEvt.Target, "all") {
+	unsub := c.OnTagReadForReader(readerID, func(evt *TagReadEvent) {
+		if channel != "" && evt.Target != "" && !strings.EqualFold(evt.Target, channel) && !strings.EqualFold(evt.Target, "all") {
 			return
 		}
 		select {
-		case tagCh <- tag:
+		case tagCh <- evt:
 		case <-ctx.Done():
 		default:
 			c.logger.Warn().Msg("tag stream buffer full, dropping event")

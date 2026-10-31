@@ -15,22 +15,22 @@ import (
 // Handler function signatures for concrete RFID events.
 type (
 	// TagReadHandler receives tag read scan events.
-	TagReadHandler func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event)
+	TagReadHandler func(evt *TagReadEvent)
 
 	// TagsClearedHandler receives reader field cleared events.
-	TagsClearedHandler func(cleared *TagsClearedEvent, rawEvt *wsbrokerclient.Event)
+	TagsClearedHandler func(evt *TagsClearedEvent)
 
 	// DeviceMetadataHandler receives reader hardware metadata responses.
-	DeviceMetadataHandler func(meta *DeviceMetadataResponse, rawEvt *wsbrokerclient.Event)
+	DeviceMetadataHandler func(evt *DeviceMetadataResponse)
 
 	// WriteTagResponseHandler receives tag write responses.
-	WriteTagResponseHandler func(resp *WriteTagResponse, rawEvt *wsbrokerclient.Event)
+	WriteTagResponseHandler func(evt *WriteTagResponse)
 
 	// WriteAFIResponseHandler receives AFI byte write responses.
-	WriteAFIResponseHandler func(resp *WriteAFIResponse, rawEvt *wsbrokerclient.Event)
+	WriteAFIResponseHandler func(evt *WriteAFIResponse)
 
-	// AnyRFIDEventHandler receives any parsed RFID event payload along with the raw envelope.
-	AnyRFIDEventHandler func(rfidEvt any, rawEvt *wsbrokerclient.Event)
+	// AnyRFIDEventHandler receives any parsed RFID event payload.
+	AnyRFIDEventHandler func(rfidEvt any)
 )
 
 // Client defines the high-level interface for interacting with rfid-headless reader daemons.
@@ -160,7 +160,7 @@ type Client interface {
 	SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error)
 
 	// HandleEvent parses and routes a raw wsbroker Event through the registered RFID handlers.
-	HandleEvent(evt *wsbrokerclient.Event) (any, error)
+	HandleEvent(evt *wsbrokerclient.RawEvent) (any, error)
 }
 
 var _ Client = (*RFIDClient)(nil)
@@ -208,7 +208,7 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*RFIDClie
 	}
 
 	// Register listener for incoming message events from WSBroker
-	c.brokerUnsub = c.broker.OnMessage(func(evt *event.Event) {
+	c.brokerUnsub = c.broker.OnMessage(func(evt *event.RawEvent) {
 		_, _ = c.HandleEvent(evt)
 	})
 

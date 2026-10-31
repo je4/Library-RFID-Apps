@@ -66,10 +66,12 @@ func TestFindISILEntry_And_TagItemEnrich(t *testing.T) {
 	// Test Hub integration
 	hub := NewHub(10, list)
 	item := hub.AddTag(&rfidclient.TagReadEvent{
-		UID:     "E004015011223344",
-		ItemID:  "ITEM-001",
-		ISIL:    "CH-000050-X",
-		Country: "CH",
+		Data: rfidclient.TagReadData{
+			UID:     "E004015011223344",
+			ItemID:  "ITEM-001",
+			ISIL:    "CH-000050-X",
+			Country: "CH",
+		},
 	})
 	assert.Equal(t, "Aargauer Kantonsbibliothek", item.ISILName)
 	assert.NotNil(t, item.ISILEntry)

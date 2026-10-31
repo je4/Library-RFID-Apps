@@ -29,16 +29,16 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		req.ID = wsbrokerclient.GenerateEventID()
 	}
 	req.Event = EventWriteTag
-	token, err := wsbrokerclient.GenerateToken()
+	session, err := wsbrokerclient.GenerateSessionID()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate correlation token")
+		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 
 	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write tag request event")
 	}
-	reqEvt.Token = token
+	reqEvt.Session = session
 	reqEvt.ID = req.ID
 
 	reqCtx := ctx
@@ -93,69 +93,66 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		return nil, errors.New("empty response received for write tag request")
 	}
 
-	var writeResp WriteTagResponse
-	if err := json.Unmarshal(respEvt.Data, &writeResp); err != nil {
+	var writeData WriteTagResponseData
+	if err := json.Unmarshal(respEvt.Data, &writeData); err != nil {
 		return nil, errors.Wrap(err, "failed to decode write tag response")
 	}
 
-	if writeResp.ID == "" && respEvt.ID != "" {
-		writeResp.ID = respEvt.ID
+	if writeData.ReaderID == "" && respEvt.Source != "" {
+		writeData.ReaderID = respEvt.Source
 	}
-	if writeResp.RefID == "" {
-		if respEvt.RefID != "" {
-			writeResp.RefID = respEvt.RefID
-		} else {
-			writeResp.RefID = req.ID
-		}
+
+	baseEvt := respEvt.BaseEvent
+	if baseEvt.RefID == "" {
+		baseEvt.RefID = req.ID
 	}
-	if writeResp.Source == "" && respEvt.Source != "" {
-		writeResp.Source = respEvt.Source
-	}
-	if writeResp.ReaderID == "" && respEvt.Source != "" {
-		writeResp.ReaderID = respEvt.Source
+
+	writeResp := &WriteTagResponse{
+		BaseEvent: baseEvt,
+		Data:      writeData,
 	}
 
 	if c.logger != nil {
-		if writeResp.IsSuccess() {
+		if writeData.IsSuccess() {
 			logEvt := c.logger.Info().
 				Str("id", writeResp.ID).
 				Str("refId", writeResp.RefID).
 				Str("target", targetAddr)
-			if writeResp.ReaderID != "" {
-				logEvt = logEvt.Str("readerId", writeResp.ReaderID)
+			if writeData.ReaderID != "" {
+				logEvt = logEvt.Str("readerId", writeData.ReaderID)
 			}
-			if len(writeResp.SuccessfulUIDs) > 0 {
-				logEvt = logEvt.Strs("successfulUids", writeResp.SuccessfulUIDs)
-			} else if writeResp.UID != "" {
-				logEvt = logEvt.Str("uid", writeResp.UID).
-					Str("itemId", writeResp.ItemID).
-					Str("afi", writeResp.AFI)
+			if len(writeData.SuccessfulUIDs) > 0 {
+				logEvt = logEvt.Strs("successfulUids", writeData.SuccessfulUIDs)
+			} else if writeData.UID != "" {
+				logEvt = logEvt.Str("uid", writeData.UID).
+					Str("itemId", writeData.ItemID).
+					Str("afi", writeData.AFI)
 			}
 			logEvt.Msg("RFID tag written successfully")
-		} else if writeResp.IsPartial() {
+		} else if writeData.IsPartial() {
 			c.logger.Warn().
 				Str("id", writeResp.ID).
 				Str("refId", writeResp.RefID).
 				Str("target", targetAddr).
-				Str("readerId", writeResp.ReaderID).
-				Strs("successfulUids", writeResp.SuccessfulUIDs).
-				Interface("failedUids", writeResp.FailedUIDs).
-				Str("error", writeResp.GetError()).
+				Str("readerId", writeData.ReaderID).
+				Strs("successfulUids", writeData.SuccessfulUIDs).
+				Interface("failedUids", writeData.FailedUIDs).
+				Str("error", writeData.GetError()).
 				Msg("RFID tags partially written")
 		} else {
 			c.logger.Warn().
 				Str("id", writeResp.ID).
 				Str("refId", writeResp.RefID).
-				Str("itemId", writeResp.ItemID).
-				Str("uid", writeResp.UID).
+				Str("itemId", writeData.ItemID).
+				Str("uid", writeData.UID).
 				Str("target", targetAddr).
-				Str("readerId", writeResp.ReaderID).
-				Str("error", writeResp.GetError()).
+				Str("readerId", writeData.ReaderID).
+				Str("error", writeData.GetError()).
 				Msg("failed to write RFID tag")
 		}
 	}
 
-	return &writeResp, nil
+	return writeResp, nil
 }
 
 // WriteTagForReader sends a write tag command directed to a specific logical reader ID.
@@ -197,18 +194,18 @@ func (c *RFIDClient) writeTagBatchStreamWithReader(ctx context.Context, target s
 	if err != nil {
 		return nil, err
 	}
-	token, err := wsbrokerclient.GenerateToken()
+	session, err := wsbrokerclient.GenerateSessionID()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate correlation token")
+		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write tag request event")
 	}
-	reqEvt.Token = token
+	reqEvt.Session = session
 	reqEvt.ID = req.ID
 
-	rawCh := make(chan *event.Event, expectedResults)
+	rawCh := make(chan *event.RawEvent, expectedResults)
 	outCh := make(chan *WriteTagResponse, expectedResults)
 
 	go func() {
@@ -217,30 +214,24 @@ func (c *RFIDClient) writeTagBatchStreamWithReader(ctx context.Context, target s
 			if raw == nil || len(raw.Data) == 0 {
 				continue
 			}
-			var resp WriteTagResponse
-			if err := json.Unmarshal(raw.Data, &resp); err != nil {
+			var data WriteTagResponseData
+			if err := json.Unmarshal(raw.Data, &data); err != nil {
 				if c.logger != nil {
 					c.logger.Warn().Err(err).Msg("failed to decode streaming write tag response item")
 				}
 				continue
 			}
-			if resp.ID == "" && raw.ID != "" {
-				resp.ID = raw.ID
+			if data.ReaderID == "" && raw.Source != "" {
+				data.ReaderID = raw.Source
 			}
-			if resp.RefID == "" {
-				if raw.RefID != "" {
-					resp.RefID = raw.RefID
-				} else {
-					resp.RefID = req.ID
-				}
+			baseEvt := raw.BaseEvent
+			if baseEvt.RefID == "" {
+				baseEvt.RefID = req.ID
 			}
-			if resp.Source == "" && raw.Source != "" {
-				resp.Source = raw.Source
+			outCh <- &WriteTagResponse{
+				BaseEvent: baseEvt,
+				Data:      data,
 			}
-			if resp.ReaderID == "" && raw.Source != "" {
-				resp.ReaderID = raw.Source
-			}
-			outCh <- &resp
 		}
 	}()
 

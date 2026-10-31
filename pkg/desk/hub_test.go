@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/wsbrokerclient"
 )
 
 func TestHub_AddTagAndGetTags(t *testing.T) {
@@ -23,17 +24,21 @@ func TestHub_AddTagAndGetTags(t *testing.T) {
 	parts := 2
 	partNo := 1
 	tag1 := &rfidclient.TagReadEvent{
-		UID:     "E004015011223344",
-		ItemID:  "ITEM-001",
-		ISIL:    "CH-000001-1",
-		Country: "CH",
-		CRCOk:   true,
-		Parts:   &parts,
-		PartNo:  &partNo,
-		AFI:     "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "rfid:reader:01",
-			Timestamp: time.Now().UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now(),
+		},
+		Data: rfidclient.TagReadData{
+			UID:     "E004015011223344",
+			ItemID:  "ITEM-001",
+			ISIL:    "CH-000001-1",
+			Country: "CH",
+			CRCOk:   true,
+			Parts:   &parts,
+			PartNo:  &partNo,
+			AFI:     "07",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "rfid:reader:01",
+			},
 		},
 	}
 
@@ -55,9 +60,9 @@ func TestHub_AddTagAndGetTags(t *testing.T) {
 		t.Fatalf("expected count 1, got %d", count)
 	}
 
-	tag2 := &rfidclient.TagReadEvent{UID: "UID-2", ItemID: "ITEM-2", Timestamp: time.Now().UnixMilli()}
-	tag3 := &rfidclient.TagReadEvent{UID: "UID-3", ItemID: "ITEM-3", Timestamp: time.Now().UnixMilli()}
-	tag4 := &rfidclient.TagReadEvent{UID: "UID-4", ItemID: "ITEM-4", Timestamp: time.Now().UnixMilli()}
+	tag2 := &rfidclient.TagReadEvent{Data: rfidclient.TagReadData{UID: "UID-2", ItemID: "ITEM-2"}}
+	tag3 := &rfidclient.TagReadEvent{Data: rfidclient.TagReadData{UID: "UID-3", ItemID: "ITEM-3"}}
+	tag4 := &rfidclient.TagReadEvent{Data: rfidclient.TagReadData{UID: "UID-4", ItemID: "ITEM-4"}}
 
 	hub.AddTag(tag2)
 	hub.AddTag(tag3)
@@ -118,9 +123,10 @@ func TestHub_DefaultMaxTags100(t *testing.T) {
 
 	for i := 0; i < 150; i++ {
 		hub.AddTag(&rfidclient.TagReadEvent{
-			UID:       "UID-" + string(rune('A'+(i%26))),
-			ItemID:    "ITEM",
-			Timestamp: time.Now().UnixMilli(),
+			Data: rfidclient.TagReadData{
+				UID:    "UID-" + string(rune('A'+(i%26))),
+				ItemID: "ITEM",
+			},
 		})
 	}
 
@@ -197,9 +203,11 @@ func TestTagItem_AFISecurityStatus(t *testing.T) {
 	for _, tc := range tests {
 		t.Run(tc.name, func(t *testing.T) {
 			item := NewTagItem(&rfidclient.TagReadEvent{
-				UID: "E00401",
-				AFI: tc.afi,
-				Raw: tc.raw,
+				Data: rfidclient.TagReadData{
+					UID: "E00401",
+					AFI: tc.afi,
+					Raw: tc.raw,
+				},
 			})
 			if item.AFISecured != tc.wantSecured {
 				t.Errorf("AFISecured = %v, want %v", item.AFISecured, tc.wantSecured)
@@ -221,22 +229,30 @@ func TestHub_ActiveTagsAndAFI(t *testing.T) {
 
 	// Tag 1 from configured reader
 	tag1 := &rfidclient.TagReadEvent{
-		UID:    "UID-001",
-		ItemID: "ITEM-001",
-		AFI:    "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "rfid:reader:desk01",
-			Timestamp: time.Now().UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now(),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-001",
+			ItemID: "ITEM-001",
+			AFI:    "07",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "rfid:reader:desk01",
+			},
 		},
 	}
 	// Tag 2 from another reader
 	tag2 := &rfidclient.TagReadEvent{
-		UID:    "UID-002",
-		ItemID: "ITEM-002",
-		AFI:    "07",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "rfid:reader:other",
-			Timestamp: time.Now().UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now(),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-002",
+			ItemID: "ITEM-002",
+			AFI:    "07",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "rfid:reader:other",
+			},
 		},
 	}
 
@@ -266,11 +282,15 @@ func TestHub_ActiveTagsAndAFI(t *testing.T) {
 
 	// Test Active Window Expiration
 	oldTag := &rfidclient.TagReadEvent{
-		UID:    "UID-OLD",
-		ItemID: "ITEM-OLD",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "rfid:reader:desk01",
-			Timestamp: time.Now().Add(-1 * time.Second).UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now().Add(-1 * time.Second),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-OLD",
+			ItemID: "ITEM-OLD",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "rfid:reader:desk01",
+			},
 		},
 	}
 	hub.AddTag(oldTag)
@@ -291,31 +311,43 @@ func TestHub_SequentialTagsAccumulation(t *testing.T) {
 
 	// Add tag 1
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "UID-1",
-		ItemID: "ITEM-1",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "reader-1",
-			Timestamp: time.Now().Add(-10 * time.Second).UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now().Add(-10 * time.Second),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-1",
+			ItemID: "ITEM-1",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "reader-1",
+			},
 		},
 	})
 
 	// Add tag 2 sequentially later
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "UID-2",
-		ItemID: "ITEM-2",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "reader-1",
-			Timestamp: time.Now().Add(-5 * time.Second).UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now().Add(-5 * time.Second),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-2",
+			ItemID: "ITEM-2",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "reader-1",
+			},
 		},
 	})
 
 	// Add tag 3 sequentially later
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "UID-3",
-		ItemID: "ITEM-3",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "reader-1",
-			Timestamp: time.Now().UnixMilli(),
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Timestamp: time.Now(),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-3",
+			ItemID: "ITEM-3",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "reader-1",
+			},
 		},
 	})
 
@@ -362,14 +394,18 @@ func TestHub_MatchReader(t *testing.T) {
 func TestHub_SetTagAFIResult(t *testing.T) {
 	hub := NewHub(10)
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "TAG-001",
-		ItemID: "BOOK-001",
-		AFI:    "07",
+		Data: rfidclient.TagReadData{
+			UID:    "TAG-001",
+			ItemID: "BOOK-001",
+			AFI:    "07",
+		},
 	})
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "TAG-002",
-		ItemID: "BOOK-002",
-		AFI:    "07",
+		Data: rfidclient.TagReadData{
+			UID:    "TAG-002",
+			ItemID: "BOOK-002",
+			AFI:    "07",
+		},
 	})
 
 	// Set success on TAG-001
@@ -408,9 +444,11 @@ func TestHub_SetTagAFIResult(t *testing.T) {
 func TestHub_AFIWriteStatusLifecycle(t *testing.T) {
 	hub := NewHub(10)
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "TAG-001",
-		ItemID: "BOOK-001",
-		AFI:    "07",
+		Data: rfidclient.TagReadData{
+			UID:    "TAG-001",
+			ItemID: "BOOK-001",
+			AFI:    "07",
+		},
 	})
 
 	// Mark pending
@@ -429,9 +467,11 @@ func TestHub_AFIWriteStatusLifecycle(t *testing.T) {
 
 	// Re-reading tag on reader pad preserves write status
 	hub.AddTag(&rfidclient.TagReadEvent{
-		UID:    "TAG-001",
-		ItemID: "BOOK-001",
-		AFI:    "C2",
+		Data: rfidclient.TagReadData{
+			UID:    "TAG-001",
+			ItemID: "BOOK-001",
+			AFI:    "C2",
+		},
 	})
 	tags = hub.GetActiveTags()
 	if tags[0].AFIWriteStatus != "success" {
@@ -450,21 +490,29 @@ func TestHub_ChannelFiltering(t *testing.T) {
 	hub := NewHub(10)
 
 	tagA := &rfidclient.TagReadEvent{
-		UID:    "UID-CH-A",
-		ItemID: "ITEM-A",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "reader-01",
+		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel:   "channel-a",
-			Timestamp: time.Now().UnixMilli(),
+			Timestamp: time.Now(),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-CH-A",
+			ItemID: "ITEM-A",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "reader-01",
+			},
 		},
 	}
 	tagB := &rfidclient.TagReadEvent{
-		UID:    "UID-CH-B",
-		ItemID: "ITEM-B",
-		BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-			ReaderID:  "reader-01",
+		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel:   "channel-b",
-			Timestamp: time.Now().UnixMilli(),
+			Timestamp: time.Now(),
+		},
+		Data: rfidclient.TagReadData{
+			UID:    "UID-CH-B",
+			ItemID: "ITEM-B",
+			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
+				ReaderID: "reader-01",
+			},
 		},
 	}
 

@@ -8,7 +8,7 @@ import (
 	"github.com/je4/wsbrokerclient"
 )
 
-// ParseRFIDPayload unmarshals raw JSON bytes into the concrete typed RFID payload struct.
+// ParseRFIDPayload unmarshals raw JSON bytes into the concrete typed RFID payload data struct.
 func ParseRFIDPayload(data []byte) (any, error) {
 	trimmed := bytes.TrimSpace(data)
 	if len(trimmed) == 0 {
@@ -33,23 +33,23 @@ func ParseRFIDPayload(data []byte) (any, error) {
 
 	switch header.Event {
 	case EventTagRead:
-		var tag TagReadEvent
+		var tag TagReadData
 		if err := json.Unmarshal(data, &tag); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal TagReadEvent")
+			return nil, errors.Wrap(err, "failed to unmarshal TagReadData")
 		}
 		return &tag, nil
 
 	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared:
-		var cleared TagsClearedEvent
+		var cleared TagsClearedData
 		if err := json.Unmarshal(data, &cleared); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedEvent")
+			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedData")
 		}
 		return &cleared, nil
 
 	case EventDeviceMetadataResponse, EventDeviceMetadata:
-		var meta DeviceMetadataResponse
+		var meta DeviceMetadataResponseData
 		if err := json.Unmarshal(data, &meta); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataResponse")
+			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataResponseData")
 		}
 		return &meta, nil
 
@@ -61,17 +61,17 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		return &req, nil
 
 	case EventWriteTagResponse:
-		var writeResp WriteTagResponse
+		var writeResp WriteTagResponseData
 		if err := json.Unmarshal(data, &writeResp); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
+			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponseData")
 		}
 		return &writeResp, nil
 
 	case EventWriteTag:
 		if header.Status != "" {
-			var writeResp WriteTagResponse
+			var writeResp WriteTagResponseData
 			if err := json.Unmarshal(data, &writeResp); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponse")
+				return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponseData")
 			}
 			return &writeResp, nil
 		}
@@ -82,17 +82,17 @@ func ParseRFIDPayload(data []byte) (any, error) {
 		return &writeReq, nil
 
 	case EventWriteAFIResponse:
-		var afiResp WriteAFIResponse
+		var afiResp WriteAFIResponseData
 		if err := json.Unmarshal(data, &afiResp); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
+			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponseData")
 		}
 		return &afiResp, nil
 
 	case EventWriteAFI:
 		if header.Status != "" {
-			var afiResp WriteAFIResponse
+			var afiResp WriteAFIResponseData
 			if err := json.Unmarshal(data, &afiResp); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponse")
+				return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponseData")
 			}
 			return &afiResp, nil
 		}
@@ -108,7 +108,7 @@ func ParseRFIDPayload(data []byte) (any, error) {
 }
 
 // ParseEvent extracts and parses the RFID payload from a wsbroker event envelope.
-func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
+func ParseEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 	if evt == nil {
 		return nil, errors.New("event envelope is nil")
 	}
@@ -123,54 +123,30 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		return nil, err
 	}
 	switch v := payload.(type) {
-	case *TagReadEvent:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
-		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
-		}
-		if v.Source == "" && evt.Source != "" {
-			v.Source = evt.Source
-		}
+	case *TagReadData:
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
-		if v.Channel == "" && evt.Channel != "" {
-			v.Channel = evt.Channel
-		}
-	case *TagsClearedEvent:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
-		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
-		}
-		if v.Source == "" && evt.Source != "" {
-			v.Source = evt.Source
-		}
+		return &TagReadEvent{
+			BaseEvent: evt.BaseEvent,
+			Data:      *v,
+		}, nil
+	case *TagsClearedData:
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
-		if v.Channel == "" && evt.Channel != "" {
-			v.Channel = evt.Channel
-		}
-	case *DeviceMetadataResponse:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
-		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
-		}
-		if v.Source == "" && evt.Source != "" {
-			v.Source = evt.Source
-		}
+		return &TagsClearedEvent{
+			BaseEvent: evt.BaseEvent,
+			Data:      *v,
+		}, nil
+	case *DeviceMetadataResponseData:
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
-		if v.Channel == "" && evt.Channel != "" {
-			v.Channel = evt.Channel
-		}
+		return &DeviceMetadataResponse{
+			BaseEvent: evt.BaseEvent,
+			Data:      *v,
+		}, nil
 	case *DeviceMetadataRequest:
 		if v.ID == "" && evt.ID != "" {
 			v.ID = evt.ID
@@ -178,22 +154,15 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-	case *WriteTagResponse:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
-		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
-		}
-		if v.Source == "" && evt.Source != "" {
-			v.Source = evt.Source
-		}
+		return v, nil
+	case *WriteTagResponseData:
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
-		if v.Channel == "" && evt.Channel != "" {
-			v.Channel = evt.Channel
-		}
+		return &WriteTagResponse{
+			BaseEvent: evt.BaseEvent,
+			Data:      *v,
+		}, nil
 	case *WriteTagRequest:
 		if v.ID == "" && evt.ID != "" {
 			v.ID = evt.ID
@@ -201,22 +170,15 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
-	case *WriteAFIResponse:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
-		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
-		}
-		if v.Source == "" && evt.Source != "" {
-			v.Source = evt.Source
-		}
+		return v, nil
+	case *WriteAFIResponseData:
 		if v.ReaderID == "" && evt.Source != "" {
 			v.ReaderID = evt.Source
 		}
-		if v.Channel == "" && evt.Channel != "" {
-			v.Channel = evt.Channel
-		}
+		return &WriteAFIResponse{
+			BaseEvent: evt.BaseEvent,
+			Data:      *v,
+		}, nil
 	case *WriteAFIRequest:
 		if v.ID == "" && evt.ID != "" {
 			v.ID = evt.ID
@@ -224,6 +186,8 @@ func ParseEvent(evt *wsbrokerclient.Event) (any, error) {
 		if v.RefID == "" && evt.RefID != "" {
 			v.RefID = evt.RefID
 		}
+		return v, nil
+	default:
+		return payload, nil
 	}
-	return payload, nil
 }

@@ -29,16 +29,16 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		req.ID = wsbrokerclient.GenerateEventID()
 	}
 	req.Event = EventWriteAFI
-	token, err := wsbrokerclient.GenerateToken()
+	session, err := wsbrokerclient.GenerateSessionID()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate correlation token")
+		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 
 	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write afi request event")
 	}
-	reqEvt.Token = token
+	reqEvt.Session = session
 	reqEvt.ID = req.ID
 
 	reqCtx := ctx
@@ -85,79 +85,76 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		return nil, errors.New("empty response received for write afi request")
 	}
 
-	var afiResp WriteAFIResponse
-	if err := json.Unmarshal(respEvt.Data, &afiResp); err != nil {
+	var afiData WriteAFIResponseData
+	if err := json.Unmarshal(respEvt.Data, &afiData); err != nil {
 		return nil, errors.Wrap(err, "failed to decode write afi response")
 	}
 
-	if afiResp.ID == "" && respEvt.ID != "" {
-		afiResp.ID = respEvt.ID
+	if afiData.ReaderID == "" && respEvt.Source != "" {
+		afiData.ReaderID = respEvt.Source
 	}
-	if afiResp.RefID == "" {
-		if respEvt.RefID != "" {
-			afiResp.RefID = respEvt.RefID
-		} else {
-			afiResp.RefID = req.ID
-		}
+	if afiData.AFI == "" && req.AFI != "" {
+		afiData.AFI = req.AFI
 	}
-	if afiResp.Source == "" && respEvt.Source != "" {
-		afiResp.Source = respEvt.Source
+	if len(afiData.UIDs) == 0 && len(req.UIDs) > 0 {
+		afiData.UIDs = req.UIDs
 	}
-	if afiResp.ReaderID == "" && respEvt.Source != "" {
-		afiResp.ReaderID = respEvt.Source
+	if afiData.UID == "" && req.UID != "" {
+		afiData.UID = req.UID
 	}
-	if afiResp.AFI == "" && req.AFI != "" {
-		afiResp.AFI = req.AFI
+
+	baseEvt := respEvt.BaseEvent
+	if baseEvt.RefID == "" {
+		baseEvt.RefID = req.ID
 	}
-	if len(afiResp.UIDs) == 0 && len(req.UIDs) > 0 {
-		afiResp.UIDs = req.UIDs
-	}
-	if afiResp.UID == "" && req.UID != "" {
-		afiResp.UID = req.UID
+
+	afiResp := &WriteAFIResponse{
+		BaseEvent: baseEvt,
+		Data:      afiData,
 	}
 
 	if c.logger != nil {
-		if afiResp.IsSuccess() {
+		if afiData.IsSuccess() {
 			logEvt := c.logger.Info().
 				Str("id", afiResp.ID).
 				Str("refId", afiResp.RefID).
-				Str("afi", afiResp.AFI).
-				Str("status", AFISecurityStatus(afiResp.AFI)).
+				Str("afi", afiData.AFI).
+				Str("status", AFISecurityStatus(afiData.AFI)).
 				Str("target", targetAddr)
-			if afiResp.ReaderID != "" {
-				logEvt = logEvt.Str("readerId", afiResp.ReaderID)
+			if afiData.ReaderID != "" {
+				logEvt = logEvt.Str("readerId", afiData.ReaderID)
 			}
-			if len(afiResp.SuccessfulUIDs) > 0 {
-				logEvt = logEvt.Strs("successfulUids", afiResp.SuccessfulUIDs)
-			} else if afiResp.UID != "" {
-				logEvt = logEvt.Str("uid", afiResp.UID)
+			if len(afiData.SuccessfulUIDs) > 0 {
+				logEvt = logEvt.Strs("successfulUids", afiData.SuccessfulUIDs)
+			} else if afiData.UID != "" {
+				logEvt = logEvt.Str("uid", afiData.UID)
 			}
 			logEvt.Msg("RFID AFI security byte updated successfully")
-		} else if afiResp.IsPartial() {
+		} else if afiData.IsPartial() {
 			c.logger.Warn().
 				Str("id", afiResp.ID).
 				Str("refId", afiResp.RefID).
-				Str("afi", afiResp.AFI).
+				Str("afi", afiData.AFI).
 				Str("target", targetAddr).
-				Str("readerId", afiResp.ReaderID).
-				Strs("successfulUids", afiResp.SuccessfulUIDs).
-				Interface("failedUids", afiResp.FailedUIDs).
-				Str("error", afiResp.GetError()).
+				Str("readerId", afiData.ReaderID).
+				Strs("successfulUids", afiData.SuccessfulUIDs).
+				Interface("failedUids", afiData.FailedUIDs).
+				Str("error", afiData.GetError()).
 				Msg("RFID AFI security byte partially updated")
 		} else {
 			c.logger.Warn().
 				Str("id", afiResp.ID).
 				Str("refId", afiResp.RefID).
-				Str("afi", afiResp.AFI).
+				Str("afi", afiData.AFI).
 				Str("target", targetAddr).
-				Str("readerId", afiResp.ReaderID).
-				Str("uid", afiResp.UID).
-				Str("error", afiResp.GetError()).
+				Str("readerId", afiData.ReaderID).
+				Str("uid", afiData.UID).
+				Str("error", afiData.GetError()).
 				Msg("failed to update RFID AFI security byte")
 		}
 	}
 
-	return &afiResp, nil
+	return afiResp, nil
 }
 
 // WriteAFIForReader sends an AFI write command directed to a specific logical reader ID.
@@ -195,9 +192,9 @@ func (c *RFIDClient) WriteAFIBatchStream(ctx context.Context, target string, req
 	if err != nil {
 		return nil, err
 	}
-	token, err := wsbrokerclient.GenerateToken()
+	session, err := wsbrokerclient.GenerateSessionID()
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to generate correlation token")
+		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 	if req.ID == "" {
 		req.ID = wsbrokerclient.GenerateEventID()
@@ -207,10 +204,10 @@ func (c *RFIDClient) WriteAFIBatchStream(ctx context.Context, target string, req
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write AFI request event")
 	}
-	reqEvt.Token = token
+	reqEvt.Session = session
 	reqEvt.ID = req.ID
 
-	rawCh := make(chan *event.Event, expectedResults)
+	rawCh := make(chan *event.RawEvent, expectedResults)
 	outCh := make(chan *WriteAFIResponse, expectedResults)
 
 	go func() {
@@ -219,30 +216,27 @@ func (c *RFIDClient) WriteAFIBatchStream(ctx context.Context, target string, req
 			if raw == nil || len(raw.Data) == 0 {
 				continue
 			}
-			var resp WriteAFIResponse
-			if err := json.Unmarshal(raw.Data, &resp); err != nil {
+			var data WriteAFIResponseData
+			if err := json.Unmarshal(raw.Data, &data); err != nil {
 				if c.logger != nil {
 					c.logger.Warn().Err(err).Msg("failed to decode streaming write AFI response item")
 				}
 				continue
 			}
-			if resp.ID == "" && raw.ID != "" {
-				resp.ID = raw.ID
+			if data.ReaderID == "" && raw.Source != "" {
+				data.ReaderID = raw.Source
 			}
-			if resp.RefID == "" {
-				if raw.RefID != "" {
-					resp.RefID = raw.RefID
-				} else {
-					resp.RefID = req.ID
-				}
+			if data.AFI == "" && req.AFI != "" {
+				data.AFI = req.AFI
 			}
-			if resp.Source == "" && raw.Source != "" {
-				resp.Source = raw.Source
+			baseEvt := raw.BaseEvent
+			if baseEvt.RefID == "" {
+				baseEvt.RefID = req.ID
 			}
-			if resp.ReaderID == "" && raw.Source != "" {
-				resp.ReaderID = raw.Source
+			outCh <- &WriteAFIResponse{
+				BaseEvent: baseEvt,
+				Data:      data,
 			}
-			outCh <- &resp
 		}
 	}()
 

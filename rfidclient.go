@@ -1,5 +1,26 @@
 // Package rfidclient provides a high-level, production-ready Go client library
 // for communicating with rfid-headless RFID reader/writer daemons via wsbrokerclient.
+//
+// # Generic Event Architecture
+//
+// The client implements a clean generic event architecture built on wsbrokerclient.Event[T]:
+//
+//  1. Transport Metadata (wsbrokerclient.BaseEvent): Embedded in each event, carrying routing metadata
+//     (Source, Target, Channel, Token, Type, Timestamp, ID, RefID).
+//  2. Domain Data (TagReadData, TagsClearedData, etc.): Strongly typed RFID data structures
+//     embedding BaseRFIDPayload with ISO 28560-2 library metadata, AFI security flags, and domain helper methods.
+//
+// # Single-Envelope Handler Signatures
+//
+// All event listener callbacks (OnTagRead, OnTagsCleared, OnWriteTagResponse, OnWriteAFIResponse)
+// receive strongly typed *wsbrokerclient.Event[T] envelopes:
+//
+//	client.OnTagRead(func(evt *rfidclient.TagReadEvent) {
+//	    // Access typed domain fields:
+//	    fmt.Printf("Scanned Item ID: %s, UID: %s\n", evt.Data.ItemID, evt.Data.UID)
+//	    // Access envelope routing metadata directly:
+//	    fmt.Printf("Received from source: %s on channel: %s\n", evt.Source, evt.Channel)
+//	})
 package rfidclient
 
 import (
@@ -9,21 +30,26 @@ import (
 
 // Re-exported types from pkg/rfidclient for streamlined root import.
 type (
-	Client                 = rfidclient.Client
-	RFIDClient             = rfidclient.RFIDClient
-	Option                 = rfidclient.Option
-	BaseRFIDPayload        = rfidclient.BaseRFIDPayload
-	TagReadEvent           = rfidclient.TagReadEvent
-	TagsClearedEvent       = rfidclient.TagsClearedEvent
-	DeviceMetadataRequest  = rfidclient.DeviceMetadataRequest
-	DeviceMetadataResponse = rfidclient.DeviceMetadataResponse
-	WriteTagRequest        = rfidclient.WriteTagRequest
-	WriteTagResponse       = rfidclient.WriteTagResponse
-	TagWriteItem           = rfidclient.TagWriteItem
-	TagWriteResult         = rfidclient.TagWriteResult
-	WriteAFIRequest        = rfidclient.WriteAFIRequest
-	WriteAFIResponse       = rfidclient.WriteAFIResponse
-	TagAFIResult           = rfidclient.TagAFIResult
+	Client                     = rfidclient.Client
+	RFIDClient                 = rfidclient.RFIDClient
+	Option                     = rfidclient.Option
+	BaseRFIDPayload            = rfidclient.BaseRFIDPayload
+	TagReadData                = rfidclient.TagReadData
+	TagReadEvent               = rfidclient.TagReadEvent
+	TagsClearedData            = rfidclient.TagsClearedData
+	TagsClearedEvent           = rfidclient.TagsClearedEvent
+	DeviceMetadataRequest      = rfidclient.DeviceMetadataRequest
+	DeviceMetadataResponseData = rfidclient.DeviceMetadataResponseData
+	DeviceMetadataResponse     = rfidclient.DeviceMetadataResponse
+	WriteTagRequest            = rfidclient.WriteTagRequest
+	WriteTagResponseData       = rfidclient.WriteTagResponseData
+	WriteTagResponse           = rfidclient.WriteTagResponse
+	TagWriteItem               = rfidclient.TagWriteItem
+	TagWriteResult             = rfidclient.TagWriteResult
+	WriteAFIRequest            = rfidclient.WriteAFIRequest
+	WriteAFIResponseData       = rfidclient.WriteAFIResponseData
+	WriteAFIResponse           = rfidclient.WriteAFIResponse
+	TagAFIResult               = rfidclient.TagAFIResult
 
 	TagReadHandler          = rfidclient.TagReadHandler
 	TagsClearedHandler      = rfidclient.TagsClearedHandler

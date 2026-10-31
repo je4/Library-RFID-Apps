@@ -214,6 +214,6 @@ func (s *readerScopedClient) SubscribeTagsForReader(ctx context.Context, channel
 	return s.parent.SubscribeTagsForReader(ctx, channel, readerID)
 }
 
-func (s *readerScopedClient) HandleEvent(evt *wsbrokerclient.Event) (any, error) {
+func (s *readerScopedClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 	return s.parent.HandleEvent(evt)
 }

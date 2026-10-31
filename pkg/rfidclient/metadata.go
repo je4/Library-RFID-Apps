@@ -52,8 +52,8 @@ func NewDeviceMetadataRequestForReader(readerID string) DeviceMetadataRequest {
 	return NewDeviceMetadataRequest(readerID)
 }
 
-// DeviceMetadataResponse represents reader hardware metadata and initialization diagnostics.
-type DeviceMetadataResponse struct {
+// DeviceMetadataResponseData represents reader hardware metadata and initialization diagnostics data.
+type DeviceMetadataResponseData struct {
 	BaseRFIDPayload
 	Status          string `json:"status"`
 	DeviceID        string `json:"deviceId"`
@@ -62,13 +62,16 @@ type DeviceMetadataResponse struct {
 	Description     string `json:"description,omitempty"`
 }
 
+// DeviceMetadataResponse represents a typed wsbroker event containing DeviceMetadataResponseData.
+type DeviceMetadataResponse = wsbrokerclient.Event[DeviceMetadataResponseData]
+
 // IsSuccess returns true if the status equals "ok".
-func (r *DeviceMetadataResponse) IsSuccess() bool {
+func (r *DeviceMetadataResponseData) IsSuccess() bool {
 	return strings.EqualFold(r.Status, "ok")
 }
 
 // GetDescription returns the full init diagnostic report / device description.
-func (r *DeviceMetadataResponse) GetDescription() string {
+func (r *DeviceMetadataResponseData) GetDescription() string {
 	if r.InitDescription != "" {
 		return r.InitDescription
 	}
@@ -76,7 +79,7 @@ func (r *DeviceMetadataResponse) GetDescription() string {
 }
 
 // Summary returns a concise human-readable description of the device metadata.
-func (r *DeviceMetadataResponse) Summary() string {
+func (r *DeviceMetadataResponseData) Summary() string {
 	desc := r.GetDescription()
 	if len(desc) > 60 {
 		desc = desc[:57] + "..."

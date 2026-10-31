@@ -36,6 +36,34 @@ Diese Client-Bibliothek ermöglicht es nachgelagerten Go-Anwendungen (z. B. Verb
 
 ## Architektur
 
+### Zweischichtiges Event-Modell
+
+Die Event-Verarbeitung folgt einer klaren zweischichtigen Architektur, die generische Netzwerk-Infrastruktur von der RFID-Fachdomäne trennt:
+
+1. **Transport-Schicht (`wsbrokerclient.Event`)**: Generischer Umschlag (Envelope) für WebSocket-Publish/Subscribe und RPC (`Source`, `Target`, `Channel`, `Data []byte`, `Timestamp`).
+2. **Fach- und Domänenschicht (`pkg/rfidclient`)**: Typisierte Datenstrukturen (`TagReadEvent`, `TagsClearedEvent`, `WriteTagResponse`, `WriteAFIResponse`), die `BaseRFIDPayload` einbetten. Sie kapseln ISO-28560-2-Bibliotheksstandards, AFI-Sicherheitslogik und hardwarebezogene Reader-Zuordnungen.
+
+```mermaid
+graph LR
+    WS[WSBroker Server] -->|wsbrokerclient.Event| BC[wsbrokerclient]
+    BC -->|TypeMessage| PE[ParseEvent in rfidclient]
+    PE -->|TagReadEvent + rawEvt| TRH[TagReadHandler]
+    PE -->|TagsClearedEvent + rawEvt| TCH[TagsClearedHandler]
+    TRH --> DeskHub[Hub / Web Controller in rfid-desk]
+```
+
+### Handler-Signatur mit Doppel-Umschlag (Dual-Argument)
+
+Alle Event-Listener (`OnTagRead`, `OnTagsCleared`, `OnWriteTagResponse`, `OnWriteAFIResponse`) stellen sowohl das typisierte Fachmodell als auch das rohe Transport-Envelope bereit:
+
+```go
+type TagReadHandler func(tag *TagReadEvent, rawEvt *wsbrokerclient.Event)
+```
+
+Konsumenten profitieren von sofortiger Typsicherheit und fachlichen Hilfsmethoden (`tag.IsSecured()`, `tag.IsCRCValidStatus()`), können aber bei Bedarf direkt auf Transport-Metadaten (`rawEvt.Source`, `rawEvt.Channel`) zugreifen.
+
+### Ablaufdiagramm
+
 ```mermaid
 sequenceDiagram
     autonumber
@@ -53,7 +81,7 @@ sequenceDiagram
     HW-->>HL: ISO 15693 Tag erkannt
     HL->>WS: type: "message", event: "rfid:tag_read"
     WS->>App: Broadcast Event
-    App->>App: OnTagRead(tag, envelope) Callback
+    App->>App: OnTagRead(tag, rawEvt) Callback
     end
 
     rect rgb(255, 245, 238)
@@ -310,6 +338,8 @@ Für die direkte Integration mit dem **Ex Libris Alma Bibliotheksmanagementsyste
 
 ## Datenstrukturen & Events
 
+### Ereignis- und Antwort-Typen
+
 | Event Identifier | Struct | Beschreibung |
 | :--- | :--- | :--- |
 | `rfid:tag_read` | `TagReadEvent` | Tag erkannt & decodiert (UID, ItemId, ISIL, Land, AFI, CRC, Teile, Rohdaten) |
@@ -320,6 +350,27 @@ Für die direkte Integration mit dem **Ex Libris Alma Bibliotheksmanagementsyste
 | `rfid:write_tag_response` | `WriteTagResponse` | Statusmeldung des Schreibvorgangs |
 | `rfid:write_afi` | `WriteAFIRequest` | Befehl zum Setzen des AFI-Sicherheitsstatus |
 | `rfid:write_afi_response` | `WriteAFIResponse` | Statusmeldung des AFI-Schreibvorgangs |
+
+### Rolle von `BaseRFIDPayload`
+
+Alle Event- und Response-Modelle betten `BaseRFIDPayload` ein:
+
+```go
+type BaseRFIDPayload struct {
+    Event     string `json:"event"`
+    ID        string `json:"id,omitempty"`
+    RefID     string `json:"refId,omitempty"`
+    Session   string `json:"session,omitempty"`
+    Timestamp int64  `json:"timestamp,omitempty"`
+    ReaderID  string `json:"readerId,omitempty"`
+    Source    string `json:"source,omitempty"`
+    Channel   string `json:"channel,omitempty"`
+}
+```
+
+* **JSON-Nutzdaten-Mapping**: Ermöglicht direkte Deserialisierung aus `wsbrokerclient.Event.Data`.
+* **Hardware- & Domänen-Semantik**: Kapselt physische Reader- und Hardware-Attribute (`ReaderID`, `Session`, `Timestamp`), getrennt von Broker-Routingfeldern (`Source`, `Target`).
+* **Autarke Domänen-Objekte**: Ermöglicht die Weiterverarbeitung und das Testen ohne zwingende Abhängigkeit zum Transport-Envelope.
 
 ---
 

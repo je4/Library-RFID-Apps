@@ -48,32 +48,29 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 		return &TagItem{}
 	}
 
-	readTime := tag.Time()
+	readTime := tag.Timestamp
 	if readTime.IsZero() {
 		readTime = time.Now()
 	}
 
-	ts := tag.Timestamp
-	if ts <= 0 {
-		ts = readTime.UnixMilli()
-	}
+	ts := readTime.UnixMilli()
 
-	crcOk := tag.IsCRCValidStatus()
+	crcOk := tag.Data.IsCRCValidStatus()
 	crcStatus := "Fehler"
 	if crcOk {
 		crcStatus = "OK (Gültig)"
 	}
 
-	parts := tag.GetParts()
-	partNo := tag.GetPartNo()
-	isMultiPart := tag.IsMultiPart()
+	parts := tag.Data.GetParts()
+	partNo := tag.Data.GetPartNo()
+	isMultiPart := tag.Data.IsMultiPart()
 
 	// Extract AFI if present in tag event or raw string
-	afi := tag.AFI
-	if afi == "" && strings.Contains(tag.Raw, "AFI:") {
-		parts := strings.Split(tag.Raw, "AFI:")
-		if len(parts) > 1 {
-			afi = strings.TrimSpace(strings.Fields(parts[1])[0])
+	afi := tag.Data.AFI
+	if afi == "" && strings.Contains(tag.Data.Raw, "AFI:") {
+		rawParts := strings.Split(tag.Data.Raw, "AFI:")
+		if len(rawParts) > 1 {
+			afi = strings.TrimSpace(strings.Fields(rawParts[1])[0])
 		}
 	}
 
@@ -82,14 +79,19 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 	afiSecurityStatus := rfidclient.AFISecurityStatus(afi)
 
 	// Create unique scan row ID
-	rowID := fmt.Sprintf("%s-%d", strings.ReplaceAll(tag.UID, ":", ""), ts)
+	rowID := fmt.Sprintf("%s-%d", strings.ReplaceAll(tag.Data.UID, ":", ""), ts)
+
+	readerID := tag.Data.GetReaderID()
+	if readerID == "" {
+		readerID = tag.Source
+	}
 
 	return &TagItem{
 		ID:                rowID,
-		UID:               tag.UID,
-		ItemID:            tag.ItemID,
-		ISIL:              tag.ISIL,
-		Country:           tag.Country,
+		UID:               tag.Data.UID,
+		ItemID:            tag.Data.ItemID,
+		ISIL:              tag.Data.ISIL,
+		Country:           tag.Data.Country,
 		CRCOk:             crcOk,
 		CRCStatus:         crcStatus,
 		Parts:             parts,
@@ -99,12 +101,12 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 		AFISecured:        afiSecured,
 		AFIUnsecured:      afiUnsecured,
 		AFISecurityStatus: afiSecurityStatus,
-		UsageType:         tag.GetUsageType(),
+		UsageType:         tag.Data.GetUsageType(),
 		Timestamp:         ts,
 		TimeFormatted:     readTime.Format("15:04:05"),
 		DateFormatted:     readTime.Format("02.01.2006"),
-		Raw:               tag.Raw,
-		ReaderID:          tag.GetReaderID(),
+		Raw:               tag.Data.Raw,
+		ReaderID:          readerID,
 		Source:            tag.Source,
 		Channel:           tag.Channel,
 		ReadTime:          readTime,

@@ -109,8 +109,8 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
 				if err != nil {
 					writeErrors = append(writeErrors, err.Error())
-				} else if resp != nil && !resp.IsSuccess() {
-					writeErrors = append(writeErrors, resp.GetError())
+				} else if resp != nil && !resp.Data.IsSuccess() {
+					writeErrors = append(writeErrors, resp.Data.GetError())
 				}
 			}
 		} else {
@@ -160,10 +160,10 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 					}
 				} else if resp != nil {
 					for _, uid := range clusterUIDs {
-						if resp.IsTagSuccessful(uid) {
+						if resp.Data.IsTagSuccessful(uid) {
 							ctrl.hub.SetTagAFIResult(uid, afi, true, "")
 						} else {
-							errMsg := resp.GetTagError(uid)
+							errMsg := resp.Data.GetTagError(uid)
 							if errMsg == "" {
 								errMsg = "AFI-Schreibfehler"
 							}

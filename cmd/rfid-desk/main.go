@@ -112,36 +112,24 @@ func main() {
 	webCtrl.SetRFIDClient(rfidCli)
 
 	// 6. Register event listeners for tag scans and antenna field events
-	rfidCli.OnTagRead(func(tag *rfidclient.TagReadEvent, rawEvt *wsbrokerclient.Event) {
-		if rawEvt != nil {
-			if tag.Source == "" && rawEvt.Source != "" {
-				tag.Source = rawEvt.Source
-			}
-			if tag.ReaderID == "" && rawEvt.Source != "" {
-				tag.ReaderID = rawEvt.Source
-			}
-			if tag.Channel == "" && rawEvt.Channel != "" {
-				tag.Channel = rawEvt.Channel
-			}
-		}
-
+	rfidCli.OnTagRead(func(tag *rfidclient.TagReadEvent) {
 		logger.Info().
 			Str("id", tag.ID).
 			Str("refId", tag.RefID).
-			Str("uid", tag.UID).
-			Str("itemId", tag.ItemID).
-			Str("isil", tag.ISIL).
-			Str("reader", tag.ReaderID).
+			Str("uid", tag.Data.UID).
+			Str("itemId", tag.Data.ItemID).
+			Str("isil", tag.Data.ISIL).
+			Str("reader", tag.Data.ReaderID).
 			Str("source", tag.Source).
 			Str("channel", tag.Channel).
-			Str("afi", tag.AFI).
-			Bool("crcOk", tag.IsCRCValidStatus()).
+			Str("afi", tag.Data.AFI).
+			Bool("crcOk", tag.Data.IsCRCValidStatus()).
 			Msg("NFC/RFID tag scanned")
 
 		webCtrl.HandleTagRead(tag)
 	})
 
-	rfidCli.OnTagsCleared(func(cleared *rfidclient.TagsClearedEvent, rawEvt *wsbrokerclient.Event) {
+	rfidCli.OnTagsCleared(func(cleared *rfidclient.TagsClearedEvent) {
 		logger.Info().
 			Str("id", cleared.ID).
 			Str("refId", cleared.RefID).
@@ -149,60 +137,60 @@ func main() {
 		webCtrl.HandleTagsCleared()
 	})
 
-	rfidCli.OnWriteTagResponse(func(resp *rfidclient.WriteTagResponse, rawEvt *wsbrokerclient.Event) {
-		if resp.IsSuccess() {
+	rfidCli.OnWriteTagResponse(func(resp *rfidclient.WriteTagResponse) {
+		if resp.Data.IsSuccess() {
 			logger.Info().
 				Str("id", resp.ID).
 				Str("refId", resp.RefID).
-				Str("uid", resp.UID).
-				Str("itemId", resp.ItemID).
-				Str("isil", resp.ISIL).
-				Str("afi", resp.AFI).
+				Str("uid", resp.Data.UID).
+				Str("itemId", resp.Data.ItemID).
+				Str("isil", resp.Data.ISIL).
+				Str("afi", resp.Data.AFI).
 				Msg("RFID tag write response received: success")
 		} else {
 			logger.Warn().
 				Str("id", resp.ID).
 				Str("refId", resp.RefID).
-				Str("uid", resp.UID).
-				Str("itemId", resp.ItemID).
-				Str("error", resp.GetError()).
+				Str("uid", resp.Data.UID).
+				Str("itemId", resp.Data.ItemID).
+				Str("error", resp.Data.GetError()).
 				Msg("RFID tag write response received: failed")
 		}
 	})
 
-	rfidCli.OnWriteAFIResponse(func(resp *rfidclient.WriteAFIResponse, rawEvt *wsbrokerclient.Event) {
-		secStatus := rfidclient.AFISecurityStatus(resp.AFI)
+	rfidCli.OnWriteAFIResponse(func(resp *rfidclient.WriteAFIResponse) {
+		secStatus := rfidclient.AFISecurityStatus(resp.Data.AFI)
 		if secStatus == "" {
-			secStatus = resp.AFI
+			secStatus = resp.Data.AFI
 		}
-		if resp.IsSuccess() {
+		if resp.Data.IsSuccess() {
 			logEvt := logger.Info().
 				Str("id", resp.ID).
 				Str("refId", resp.RefID).
-				Str("afi", resp.AFI).
+				Str("afi", resp.Data.AFI).
 				Str("securityStatus", secStatus)
-			if len(resp.SuccessfulUIDs) > 0 {
-				logEvt = logEvt.Strs("successfulUids", resp.SuccessfulUIDs)
-			} else if resp.UID != "" {
-				logEvt = logEvt.Str("uid", resp.UID)
+			if len(resp.Data.SuccessfulUIDs) > 0 {
+				logEvt = logEvt.Strs("successfulUids", resp.Data.SuccessfulUIDs)
+			} else if resp.Data.UID != "" {
+				logEvt = logEvt.Str("uid", resp.Data.UID)
 			}
 			logEvt.Msg("RFID AFI security update confirmed")
-		} else if resp.IsPartial() {
+		} else if resp.Data.IsPartial() {
 			logger.Warn().
 				Str("id", resp.ID).
 				Str("refId", resp.RefID).
-				Str("afi", resp.AFI).
-				Strs("successfulUids", resp.SuccessfulUIDs).
-				Interface("failedUids", resp.FailedUIDs).
-				Str("error", resp.GetError()).
+				Str("afi", resp.Data.AFI).
+				Strs("successfulUids", resp.Data.SuccessfulUIDs).
+				Interface("failedUids", resp.Data.FailedUIDs).
+				Str("error", resp.Data.GetError()).
 				Msg("RFID AFI security update partially succeeded")
 		} else {
 			logger.Warn().
 				Str("id", resp.ID).
 				Str("refId", resp.RefID).
-				Str("uid", resp.UID).
-				Str("afi", resp.AFI).
-				Str("error", resp.GetError()).
+				Str("uid", resp.Data.UID).
+				Str("afi", resp.Data.AFI).
+				Str("error", resp.Data.GetError()).
 				Msg("RFID AFI security update failed")
 		}
 		webCtrl.HandleWriteAFIResponse(resp)

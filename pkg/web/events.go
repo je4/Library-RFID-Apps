@@ -59,85 +59,85 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *rfidclient.WriteAFIResponse
 		return
 	}
 
-	statusName := rfidclient.AFISecurityStatus(resp.AFI)
+	statusName := rfidclient.AFISecurityStatus(resp.Data.AFI)
 	var successMsg, errorMsg string
 
-	if len(resp.Results) > 0 {
+	if len(resp.Data.Results) > 0 {
 		successCount := 0
 		errorCount := 0
 		var failedList []string
-		for _, res := range resp.Results {
+		for _, res := range resp.Data.Results {
 			if res.IsSuccess() {
 				successCount++
-				ctrl.hub.SetTagAFIResult(res.UID, resp.AFI, true, "")
+				ctrl.hub.SetTagAFIResult(res.UID, resp.Data.AFI, true, "")
 			} else {
 				errorCount++
 				errMsg := res.Error
 				if errMsg == "" {
-					errMsg = resp.GetError()
+					errMsg = resp.Data.GetError()
 				}
 				if errMsg == "" {
 					errMsg = "AFI-Schreibfehler"
 				}
-				ctrl.hub.SetTagAFIResult(res.UID, resp.AFI, false, errMsg)
+				ctrl.hub.SetTagAFIResult(res.UID, resp.Data.AFI, false, errMsg)
 				failedList = append(failedList, fmt.Sprintf("%s (%s)", res.UID, errMsg))
 			}
 		}
 		if errorCount == 0 && successCount > 0 {
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medien gesetzt.", statusName, resp.AFI, successCount)
+			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medien gesetzt.", statusName, resp.Data.AFI, successCount)
 		} else if errorCount > 0 && successCount > 0 {
 			successMsg = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
 			errorMsg = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
 		} else if errorCount > 0 && successCount == 0 {
 			errorMsg = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
 		}
-	} else if len(resp.SuccessfulUIDs) > 0 || len(resp.FailedUIDs) > 0 {
-		for _, uid := range resp.SuccessfulUIDs {
-			ctrl.hub.SetTagAFIResult(uid, resp.AFI, true, "")
+	} else if len(resp.Data.SuccessfulUIDs) > 0 || len(resp.Data.FailedUIDs) > 0 {
+		for _, uid := range resp.Data.SuccessfulUIDs {
+			ctrl.hub.SetTagAFIResult(uid, resp.Data.AFI, true, "")
 		}
 		var failedList []string
-		for uid, failErr := range resp.FailedUIDs {
+		for uid, failErr := range resp.Data.FailedUIDs {
 			errMsg := failErr
 			if errMsg == "" {
-				errMsg = resp.GetError()
+				errMsg = resp.Data.GetError()
 			}
 			if errMsg == "" {
 				errMsg = "AFI-Schreibfehler"
 			}
-			ctrl.hub.SetTagAFIResult(uid, resp.AFI, false, errMsg)
+			ctrl.hub.SetTagAFIResult(uid, resp.Data.AFI, false, errMsg)
 			failedList = append(failedList, fmt.Sprintf("%s (%s)", uid, errMsg))
 		}
-		successCount := len(resp.SuccessfulUIDs)
-		errorCount := len(resp.FailedUIDs)
+		successCount := len(resp.Data.SuccessfulUIDs)
+		errorCount := len(resp.Data.FailedUIDs)
 		if errorCount == 0 && successCount > 0 {
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medien gesetzt.", statusName, resp.AFI, successCount)
+			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medien gesetzt.", statusName, resp.Data.AFI, successCount)
 		} else if errorCount > 0 && successCount > 0 {
 			successMsg = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
 			errorMsg = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
 		} else if errorCount > 0 && successCount == 0 {
 			errorMsg = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
 		}
-	} else if resp.IsSuccess() {
-		if resp.UID != "" {
-			ctrl.hub.SetTagAFIResult(resp.UID, resp.AFI, true, "")
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für Transponder %s gesetzt.", statusName, resp.AFI, resp.UID)
+	} else if resp.Data.IsSuccess() {
+		if resp.Data.UID != "" {
+			ctrl.hub.SetTagAFIResult(resp.Data.UID, resp.Data.AFI, true, "")
+			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für Transponder %s gesetzt.", statusName, resp.Data.AFI, resp.Data.UID)
 		} else {
-			ctrl.hub.UpdateActiveAFI(resp.AFI)
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) gesetzt.", statusName, resp.AFI)
+			ctrl.hub.UpdateActiveAFI(resp.Data.AFI)
+			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) gesetzt.", statusName, resp.Data.AFI)
 		}
 	} else {
-		errMsg := resp.GetError()
+		errMsg := resp.Data.GetError()
 		if errMsg == "" {
 			errMsg = "Unbekannter Fehler beim Schreiben der AFI"
 		}
-		if resp.UID != "" {
-			ctrl.hub.SetTagAFIResult(resp.UID, resp.AFI, false, errMsg)
-			errorMsg = fmt.Sprintf("Transponder %s: %s", resp.UID, errMsg)
-		} else if len(resp.UIDs) > 0 {
-			for _, uid := range resp.UIDs {
-				ctrl.hub.SetTagAFIResult(uid, resp.AFI, false, errMsg)
+		if resp.Data.UID != "" {
+			ctrl.hub.SetTagAFIResult(resp.Data.UID, resp.Data.AFI, false, errMsg)
+			errorMsg = fmt.Sprintf("Transponder %s: %s", resp.Data.UID, errMsg)
+		} else if len(resp.Data.UIDs) > 0 {
+			for _, uid := range resp.Data.UIDs {
+				ctrl.hub.SetTagAFIResult(uid, resp.Data.AFI, false, errMsg)
 			}
-			errorMsg = fmt.Sprintf("AFI-Schreibvorgang für %d Medien fehlgeschlagen.", len(resp.UIDs))
+			errorMsg = fmt.Sprintf("AFI-Schreibvorgang für %d Medien fehlgeschlagen.", len(resp.Data.UIDs))
 		} else {
 			errorMsg = errMsg
 		}
