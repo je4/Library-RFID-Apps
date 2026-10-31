@@ -32,6 +32,8 @@ go.work.sum
 .idea/
 .vscode/
 .junie/
+.agents/
+.claude/
 certs/
 data/skills/
 data/almapicker/
