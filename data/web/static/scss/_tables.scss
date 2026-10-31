@@ -1,103 +1,7 @@
 // ==========================================================================
-// Table Styles: Rows, Cells, UID Box, Copy Feedback & Stream Scroll
+// Table Stream Scroll Container
 // ==========================================================================
 
-// Table Rows & Tag Container
-.app-tag-row {
-    position: relative;
-
-    &:hover {
-        .app-uid-box {
-            border-color: var(--color-tag-uid-hover-border);
-        }
-    }
-}
-
-.app-tag-item-id {
-    color: var(--color-tag-item-id);
-}
-
-.app-text-dim {
-    color: var(--color-text-dim);
-}
-
-.app-isil-text {
-    color: var(--color-tag-isil-text);
-}
-
-// UID Tag Box & Copy Button
-.app-uid-box {
-    background-color: var(--color-tag-uid-bg);
-    border: 1px solid var(--color-tag-uid-border);
-    color: var(--color-tag-uid-text);
-    display: inline-flex;
-    align-items: center;
-    gap: tw-space(1.5);
-    padding: tw-space(1) tw-space(2);
-    border-radius: var(--radius-sm, 0.25rem);
-    flex-shrink: 0;
-    white-space: nowrap;
-    font-family: var(--font-mono, monospace);
-    @include tw-transition(border-color);
-}
-
-.app-copy-btn {
-    color: var(--color-text-dim);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: tw-space(0.5);
-    border-radius: var(--radius-sm, 0.25rem);
-    flex-shrink: 0;
-    line-height: 1;
-    vertical-align: middle;
-    cursor: pointer;
-    @include tw-transition((color, background-color, transform));
-
-    &:hover {
-        color: var(--color-text-main);
-        background-color: var(--color-btn-hover-bg);
-    }
-
-    &:active {
-        transform: scale(0.92);
-    }
-
-    img,
-    svg {
-        width: 0.875rem !important;
-        height: 0.875rem !important;
-        min-width: 0.875rem !important;
-        min-height: 0.875rem !important;
-        max-width: 0.875rem !important;
-        max-height: 0.875rem !important;
-        flex-shrink: 0 !important;
-        display: block;
-    }
-}
-
-// Timestamps & Empty State
-.app-time-text {
-    color: var(--color-text-main);
-}
-
-.app-time-ago {
-    color: var(--color-text-dim);
-}
-
-.app-empty-icon {
-    color: var(--color-text-dim);
-}
-
-.app-empty-title {
-    color: var(--color-text-muted);
-}
-
-.app-empty-desc {
-    color: var(--color-text-dim);
-}
-
-// Transponder stream scroll container & sticky header styling
 .transponder-stream-scroll {
     overflow-y: auto;
     overflow-x: auto;
@@ -109,9 +13,9 @@
         position: sticky;
         top: 0;
         z-index: 10;
-        background-color: var(--color-table-header-bg);
-        @include tw-blur(md);
-        color: var(--color-table-header-text);
-        border-bottom: 1px solid var(--color-table-header-border);
+        background-color: hsla(var(--b2) / 0.90);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 1px solid hsla(var(--bc) / 0.12);
     }
 }

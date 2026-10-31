@@ -16,11 +16,11 @@ export function onSSEOpen() {
     const statusDot = document.getElementById('sse-status-dot');
     const statusText = document.getElementById('sse-status-text');
     if (statusContainer) {
-        statusContainer.classList.remove('connecting');
-        statusContainer.classList.add('connected');
+        statusContainer.classList.remove('badge-warning');
+        statusContainer.classList.add('badge-success');
     }
     if (statusDot) {
-        statusDot.className = 'w-2 h-2 rounded-full pulse-indicator';
+        statusDot.className = 'w-2 h-2 rounded-full bg-success pulse-indicator';
     }
     if (statusText) {
         statusText.textContent = 'SSE Verbunden';
@@ -32,11 +32,11 @@ export function onSSEError() {
     const statusDot = document.getElementById('sse-status-dot');
     const statusText = document.getElementById('sse-status-text');
     if (statusContainer) {
-        statusContainer.classList.remove('connected');
-        statusContainer.classList.add('connecting');
+        statusContainer.classList.remove('badge-success');
+        statusContainer.classList.add('badge-warning');
     }
     if (statusDot) {
-        statusDot.className = 'w-2 h-2 rounded-full';
+        statusDot.className = 'w-2 h-2 rounded-full bg-warning';
     }
     if (statusText) {
         statusText.textContent = 'Verbindung wird wiederhergestellt...';
@@ -87,10 +87,10 @@ export function showClearedNotification() {
     const badge = document.getElementById('field-status-badge');
     if (badge) {
         badge.textContent = 'Lesefeld frei';
-        badge.className = 'badge badge-sm badge-outline app-badge-status-cleared transition-all';
+        badge.className = 'badge badge-sm badge-warning badge-outline transition-all';
         setTimeout(() => {
             badge.textContent = 'Bereit';
-            badge.className = 'badge badge-sm badge-outline app-badge-status transition-all';
+            badge.className = 'badge badge-sm badge-outline transition-all';
         }, 3000);
     }
 }

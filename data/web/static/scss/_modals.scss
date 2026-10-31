@@ -2,20 +2,12 @@
 // Modal Dialogs & Mouseover Detail Flyouts
 // ==========================================================================
 
-// ISIL & Library Details Mouseover Flyout
 .app-isil-container {
     position: relative;
     display: flex;
     flex-direction: column;
     min-width: 0;
     max-width: 320px;
-}
-
-.app-isil-name {
-    word-break: break-word;
-    overflow-wrap: break-word;
-    white-space: normal;
-    line-height: 1.35;
 }
 
 .app-isil-info-wrapper {
@@ -51,19 +43,19 @@
     max-width: min(440px, calc(100vw - 32px));
     max-height: calc(100vh - 32px);
     overflow-y: auto;
-    background: var(--color-panel-bg);
-    border: 1px solid var(--color-panel-border);
-    border-radius: var(--radius-xl, 0.875rem);
+    background: hsla(var(--b1) / 0.92);
+    border: 1px solid hsla(var(--bc) / 0.15);
+    border-radius: var(--rounded-box, 0.875rem);
     box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.25), 0 6px 16px -2px rgba(0, 0, 0, 0.15);
-    @include tw-blur(xl);
-    padding: tw-space(3.5) tw-space(4);
-    color: var(--color-text-main);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.875rem 1rem;
+    color: hsl(var(--bc));
     opacity: 0;
     visibility: hidden;
     transform: translateY(4px) scale(0.98);
     transition: opacity 0.15s cubic-bezier(0.16, 1, 0.3, 1), transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.15s;
     pointer-events: none;
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     text-align: left;
     white-space: normal;
     word-break: break-word;
@@ -77,30 +69,11 @@
     }
 }
 
-.app-flyout-header {
-    border-color: var(--color-border-subtle);
-}
-
-.app-flyout-title {
-    color: var(--color-text-main);
-}
-
-.app-flyout-badge {
-    background: var(--color-tag-uid-bg);
-    border: 1px solid var(--color-tag-uid-border);
-    color: var(--color-tag-uid-text);
-}
-
-.app-flyout-label {
-    color: var(--color-text-muted);
-    font-weight: 500;
-}
-
-.app-flyout-val {
-    color: var(--color-text-main);
-}
-
-.dark {
+.dark,
+[data-theme="dark"],
+[data-theme="synthwave"],
+[data-theme="black"],
+[data-theme="abyss"] {
     #app-global-isil-flyout,
     .app-isil-flyout {
         background: rgba(15, 23, 42, 0.95);

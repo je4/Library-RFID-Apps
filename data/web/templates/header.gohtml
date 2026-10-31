@@ -1,5 +1,5 @@
 <!-- Header Bar with Navigation -->
-<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 app-header gap-4 p-0 min-h-0">
+<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 bg-base-100/80 backdrop-blur border border-base-200 shadow-sm rounded-2xl px-4 py-2 gap-4 min-h-0">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
@@ -8,17 +8,17 @@
 
         <div>
             <!-- Titel & Status Badge -->
-            <h1 class="text-xl font-bold tracking-tight app-title flex items-center gap-2.5">
+            <h1 class="text-xl font-bold tracking-tight flex items-center gap-2.5">
                 {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}
                 {{if .Channel}}
-                <span id="field-status-badge" class="badge badge-sm badge-outline app-badge-status transition-all">Bereit</span>
+                <span id="field-status-badge" class="badge badge-sm badge-outline transition-all">Bereit</span>
                 {{else}}
-                <span class="badge badge-sm badge-outline app-badge-status transition-all">Channel-Auswahl</span>
+                <span class="badge badge-sm badge-outline transition-all">Channel-Auswahl</span>
                 {{end}}
             </h1>
 
             <!-- Metadaten-Zeile -->
-            <p class="text-xs app-meta-text font-mono flex items-center gap-2">
+            <p class="text-xs text-base-content/70 font-mono flex items-center gap-2">
                 {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
                 {{if or .IsLoan .IsEncode}}
                 <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
@@ -34,7 +34,7 @@
     <!-- Top Right Actions & Theme Selector -->
     <div class="flex items-center space-x-3">
         <!-- Theme & Appearance Dialog Trigger Button -->
-        <button id="theme-dialog-btn" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Themes)" aria-haspopup="dialog" aria-controls="theme-modal-dialog">
+        <button id="theme-dialog-btn" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Themes)" aria-haspopup="dialog" aria-controls="theme-modal-dialog">
             <span class="app-icon icon-palette w-4 h-4 shrink-0" aria-hidden="true"></span>
             <span class="hidden sm:inline text-xs font-semibold">Design</span>
             <span id="theme-mode-indicator" class="badge badge-xs badge-outline font-mono text-[10px] uppercase">Auto</span>
@@ -43,30 +43,30 @@
 
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
-        <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur Channel-Auswahl">
+        <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Zurück zur Channel-Auswahl">
             <span class="app-icon icon-arrow-left w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
             <span>Channels</span>
         </a>
 
         {{if or .IsLoan .IsEncode}}
         <!-- Back to Desk Button (Relative to Channel) -->
-        <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Zurück zur RFID Desk Gesamtübersicht">
+        <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Zurück zur RFID Desk Gesamtübersicht">
             <span class="app-icon icon-home w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
             <span>Desk</span>
         </a>
         {{end}}
 
         <!-- Audio Feedback Toggle Button -->
-        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Signalton einschalten" aria-pressed="false">
+        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Signalton einschalten" aria-pressed="false">
             <span class="app-icon icon-volume-off w-3.5 h-3.5 shrink-0 sound-icon-off" aria-hidden="true"></span>
             <span class="app-icon icon-volume-high w-3.5 h-3.5 shrink-0 sound-icon-on hidden" aria-hidden="true"></span>
             <span>Ton</span>
-            <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block"></span>
+            <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block bg-base-content/30"></span>
         </button>
 
         <!-- SSE Status Badge -->
-        <div id="sse-status-container" class="badge badge-sm gap-2 px-3 py-2.5 app-sse-badge">
-            <span id="sse-status-dot" class="w-2 h-2 rounded-full"></span>
+        <div id="sse-status-container" class="badge badge-sm badge-outline gap-2 px-3 py-2.5">
+            <span id="sse-status-dot" class="w-2 h-2 rounded-full bg-warning"></span>
             <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
         </div>
         {{end}}

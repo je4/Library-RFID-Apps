@@ -14,82 +14,82 @@
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
-<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="app-main">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
 
         <!-- Metrics Overview Grid -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <!-- Active Media on Pad Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-primary">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-primary flex items-center justify-center text-primary">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                             <span class="app-icon icon-book-open w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Aufliegende Medien</div>
-                    <div id="stats-active-tags" class="stat-value text-2xl font-bold font-mono text-primary app-metric-val mt-1">{{len .Tags}}</div>
+                    <div class="stat-title text-xs font-semibold">Aufliegende Medien</div>
+                    <div id="stats-active-tags" class="stat-value text-2xl font-bold font-mono text-primary mt-1">{{len .Tags}}</div>
                 </div>
             </div>
 
             <!-- Configured Reader Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-accent">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-accent flex items-center justify-center text-accent">
+                        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
                             <span class="app-icon icon-chip w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Konfigurierter Reader</div>
+                    <div class="stat-title text-xs font-semibold">Konfigurierter Reader</div>
                     <div class="stat-value text-sm font-semibold font-mono text-accent mt-1 truncate max-w-[180px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
                 </div>
             </div>
 
             <!-- Channel Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-secondary">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-secondary flex items-center justify-center text-secondary">
+                        <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
                             <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Channel</div>
+                    <div class="stat-title text-xs font-semibold">Channel</div>
                     <div class="stat-value text-sm font-semibold font-mono text-secondary mt-1 truncate max-w-[180px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
             </div>
         </section>
 
         <!-- Active Media Table & Control Panel -->
-        <section class="app-panel flex-1">
+        <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden flex-1 flex flex-col">
             <!-- Action Toolbar -->
-            <div class="app-panel-toolbar">
+            <div class="p-4 sm:p-5 border-b border-base-200 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <h2 class="text-base font-semibold app-panel-title">Aufliegende Medien auf Reader</h2>
-                        <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Tags}}</span>
+                        <h2 class="text-base font-semibold">Aufliegende Medien auf Reader</h2>
+                        <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono">{{len .Tags}}</span>
                     </div>
                 </div>
 
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost app-btn flex items-center gap-1.5" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
                         <span class="app-icon icon-copy w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span id="copy-all-label">Item-IDs kopieren</span>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-warning app-btn flex items-center gap-1.5" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-warning flex items-center gap-1.5" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
                         <span class="app-icon icon-lock-open w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span>Entsichern</span>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info app-btn flex items-center gap-1.5" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info flex items-center gap-1.5" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
                         <span class="app-icon icon-lock-closed w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span>Sichern</span>
                     </button>
@@ -97,21 +97,21 @@
             </div>
 
             <!-- Status Notification Banner -->
-            <div id="action-notification" class="hidden px-4 py-2 text-xs font-medium border-b transition-all flex items-center justify-between">
+            <div id="action-notification" class="hidden px-4 py-2 text-xs font-medium border-b border-base-200 transition-all flex items-center justify-between">
                 <span id="action-notification-text"></span>
             </div>
 
             <!-- Active Tags Table with SSE Connection -->
-            <div class="transponder-stream-scroll flex-1">
+            <div class="transponder-stream-scroll flex-1 overflow-x-auto">
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
-                    <thead class="sticky top-0 z-10 shadow-sm">
-                        <tr class="text-[11px] font-semibold uppercase tracking-wider">
+                    <thead class="sticky top-0 z-10 bg-base-200/80 backdrop-blur">
+                        <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Transponder UID</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Teile (Multi-Part)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Bibliothek / ISIL</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">CRC Prüfsumme</th>
-                            <th scope="col" class="py-3 px-4 app-afi-status-cell">AFI Sicherheitsstatus</th>
+                            <th scope="col" class="py-3 px-4">AFI Sicherheitsstatus</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Aktionen</th>
                             <th scope="col" class="py-3 px-4 text-right whitespace-nowrap">Zuletzt erfasst</th>
                         </tr>
@@ -128,22 +128,22 @@
     {{template "footer.gohtml" .}}
 
     <!-- AFI Writing Modal Dialog / Waiting Overlay -->
-    <dialog id="afi-modal-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="afi-modal-title">
-        <div class="modal-box text-center max-w-md app-afi-modal-dialog">
-            <div class="mx-auto mb-4 flex items-center justify-center app-afi-spinner-container">
-                <span class="loading loading-spinner loading-lg text-primary app-afi-spinner-ring"></span>
+    <dialog id="afi-modal-overlay" class="modal modal-bottom sm:modal-middle" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="afi-modal-title">
+        <div class="modal-box text-center max-w-md bg-base-100 border border-base-200 shadow-xl">
+            <div class="mx-auto mb-4 flex items-center justify-center">
+                <span class="loading loading-spinner loading-lg text-primary"></span>
             </div>
-            <h3 id="afi-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">AFI wird geschrieben...</h3>
-            <p id="afi-modal-message" class="text-sm opacity-80 mb-4 app-afi-modal-desc">
+            <h3 id="afi-modal-title" class="font-bold text-lg mb-2">AFI wird geschrieben...</h3>
+            <p id="afi-modal-message" class="text-sm opacity-80 mb-4">
                 Bitte warten Sie, bis der Sicherheitsstatus auf dem Lesefeld aktualisiert wurde. Bitte keine Medien vom Lesegerät entfernen.
             </p>
-            <div class="flex items-center justify-center gap-2 mb-3 app-afi-modal-badge">
+            <div class="flex items-center justify-center gap-2 mb-3">
                 <span class="badge badge-info badge-outline gap-1 text-xs">
                     <span class="w-2 h-2 rounded-full bg-info animate-ping"></span>
                     <span id="afi-modal-status-text">RFID-Kommunikation aktiv...</span>
                 </span>
             </div>
-            <div id="afi-modal-timeout-hint" class="text-xs opacity-60 app-afi-modal-hint">
+            <div id="afi-modal-timeout-hint" class="text-xs opacity-60">
                 Timeout-Schutz aktiv (10s)
             </div>
         </div>

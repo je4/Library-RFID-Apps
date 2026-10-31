@@ -14,41 +14,41 @@
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
-<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="app-main">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
 
         <!-- Top Navigation / Action Bar -->
         <nav class="flex items-center flex-wrap gap-4" aria-label="Aktionsleiste">
             <!-- Ausleihe & Rückgabe (Loan) Action Card -->
-            <a href="loan" id="nav-loan-btn" class="card card-bordered bg-base-100 hover:shadow-lg transition-all duration-300 app-loan-action-card group flex-1 min-w-[220px]" title="Zur Ausleihe und Rückgabe wechseln">
+            <a href="loan" id="nav-loan-btn" class="card card-bordered bg-base-100 hover:bg-base-200/60 border-base-200 shadow-sm hover:shadow-md transition-all duration-200 group flex-1 min-w-[220px]" title="Zur Ausleihe und Rückgabe wechseln">
                 <div class="card-body p-4 sm:p-5 flex flex-col justify-between">
                     <div class="flex items-center justify-between w-full mb-3">
-                        <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
-                            <span class="app-icon icon-book w-7 h-7" aria-hidden="true"></span>
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
+                            <span class="app-icon icon-book w-6 h-6" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div>
-                        <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
-                        <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Ausleihe &amp; Rückgabe</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-base-content/60 block mb-0.5">Funktion</span>
+                        <span class="card-title text-base font-bold tracking-tight block">Ausleihe &amp; Rückgabe</span>
                     </div>
                 </div>
             </a>
 
             <!-- Medium kodieren (Encode) Action Card -->
-            <a href="encode" id="nav-encode-btn" class="card card-bordered bg-base-100 hover:shadow-lg transition-all duration-300 app-encode-action-card group flex-1 min-w-[220px]" title="Zu Medium kodieren wechseln">
+            <a href="encode" id="nav-encode-btn" class="card card-bordered bg-base-100 hover:bg-base-200/60 border-base-200 shadow-sm hover:shadow-md transition-all duration-200 group flex-1 min-w-[220px]" title="Zu Medium kodieren wechseln">
                 <div class="card-body p-4 sm:p-5 flex flex-col justify-between">
                     <div class="flex items-center justify-between w-full mb-3">
-                        <div class="card-icon-box transition-transform duration-300 group-hover:scale-110">
-                            <span class="app-icon icon-tag w-7 h-7" aria-hidden="true"></span>
+                        <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center transition-transform duration-200 group-hover:scale-110">
+                            <span class="app-icon icon-tag w-6 h-6" aria-hidden="true"></span>
                         </div>
                     </div>
                     <div>
-                        <span class="card-subtitle text-[11px] font-semibold uppercase tracking-wider block mb-0.5">Funktion</span>
-                        <span class="card-title text-sm sm:text-base font-bold tracking-tight block">Medium kodieren</span>
+                        <span class="text-[11px] font-semibold uppercase tracking-wider text-base-content/60 block mb-0.5">Funktion</span>
+                        <span class="card-title text-base font-bold tracking-tight block">Medium kodieren</span>
                     </div>
                 </div>
             </a>
@@ -57,78 +57,78 @@
         <!-- Metrics Overview Grid -->
         <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <!-- Total Tags Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-primary">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-primary flex items-center justify-center text-primary">
+                        <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                             <span class="app-icon icon-tag w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Gelesene RFID-Tags</div>
-                    <div id="stats-total-tags" class="stat-value text-2xl font-bold font-mono text-primary app-metric-val mt-1">{{len .Tags}}</div>
+                    <div class="stat-title text-xs font-semibold">Gelesene RFID-Tags</div>
+                    <div id="stats-total-tags" class="stat-value text-2xl font-bold font-mono text-primary mt-1">{{len .Tags}}</div>
                 </div>
             </div>
 
             <!-- Target Reader / Channel Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-secondary">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-secondary flex items-center justify-center text-secondary">
+                        <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
                             <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Channel</div>
-                    <div class="stat-value text-sm font-semibold font-mono text-secondary app-metric-val-secondary mt-1 truncate max-w-[160px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
+                    <div class="stat-title text-xs font-semibold">Channel</div>
+                    <div class="stat-value text-sm font-semibold font-mono text-secondary mt-1 truncate max-w-[160px]">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</div>
                 </div>
             </div>
 
             <!-- Target Reader Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-accent">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-accent flex items-center justify-center text-accent">
+                        <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
                             <span class="app-icon icon-chip w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Standard Reader</div>
-                    <div class="stat-value text-sm font-semibold font-mono text-accent app-metric-val-accent mt-1 truncate max-w-[160px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
+                    <div class="stat-title text-xs font-semibold">Standard Reader</div>
+                    <div class="stat-value text-sm font-semibold font-mono text-accent mt-1 truncate max-w-[160px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</div>
                 </div>
             </div>
 
             <!-- Uptime Card -->
-            <div class="stats shadow-sm bg-base-100 border border-base-300/60 app-card">
+            <div class="stats bg-base-100 border border-base-200 shadow-sm">
                 <div class="stat p-4">
                     <div class="stat-figure text-info">
-                        <div class="w-10 h-10 rounded-lg app-icon-box-info flex items-center justify-center text-info">
+                        <div class="w-10 h-10 rounded-lg bg-info/10 flex items-center justify-center text-info">
                             <span class="app-icon icon-clock w-5 h-5" aria-hidden="true"></span>
                         </div>
                     </div>
-                    <div class="stat-title text-xs font-semibold app-metric-label">Laufzeit</div>
-                    <div class="stat-value text-sm font-semibold font-mono text-info app-metric-val-info mt-1">{{.Uptime}}</div>
+                    <div class="stat-title text-xs font-semibold">Laufzeit</div>
+                    <div class="stat-value text-sm font-semibold font-mono text-info mt-1">{{.Uptime}}</div>
                 </div>
             </div>
         </section>
 
         <!-- Live Scanned Tags Panel -->
-        <section class="app-panel flex-1">
+        <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden flex-1 flex flex-col">
             <!-- Toolbar -->
-            <div class="app-panel-toolbar">
+            <div class="p-4 sm:p-5 border-b border-base-200 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <h2 class="text-base font-semibold app-panel-title">Live NFC / RFID Transponder Stream</h2>
-                        <span id="tag-count-badge" class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Tags}}</span>
+                        <h2 class="text-base font-semibold">Live NFC / RFID Transponder Stream</h2>
+                        <span id="tag-count-badge" class="badge badge-sm badge-outline font-mono">{{len .Tags}}</span>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-2.5">
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
-                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="input input-sm input-bordered app-input has-leading-icon w-48 sm:w-64 font-mono">
-                        <span class="app-icon icon-search w-4 h-4 text-base-content/50 absolute left-2.5 pointer-events-none" aria-hidden="true"></span>
+                        <input id="tag-filter-input" type="text" placeholder="Filtern nach ItemID / UID..." class="input input-sm input-bordered pl-8 w-48 sm:w-64 font-mono text-xs">
+                        <span class="app-icon icon-search w-3.5 h-3.5 text-base-content/50 absolute left-2.5 pointer-events-none" aria-hidden="true"></span>
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
-                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost text-error hover:bg-error hover:text-error-content app-btn flex items-center gap-1.5" title="Transponder-Liste leeren">
+                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost text-error hover:bg-error hover:text-error-content flex items-center gap-1.5" title="Transponder-Liste leeren">
                         <span class="app-icon icon-trash w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span>Leeren</span>
                     </button>
@@ -136,10 +136,10 @@
             </div>
 
             <!-- Tags Table with SSE Connection -->
-            <div class="transponder-stream-scroll flex-1">
+            <div class="transponder-stream-scroll flex-1 overflow-x-auto">
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
-                    <thead class="sticky top-0 z-10 shadow-sm">
-                        <tr class="text-[11px] font-semibold uppercase tracking-wider">
+                    <thead class="sticky top-0 z-10 bg-base-200/80 backdrop-blur">
+                        <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Transponder UID</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Reader (Sender)</th>

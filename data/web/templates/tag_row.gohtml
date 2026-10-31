@@ -1,26 +1,26 @@
-<tr id="tag-{{.ID}}" class="tag-row app-tag-row border-b transition-colors animate-scan-flash group {{if eq .AFIWriteStatus "error"}}bg-error/5 dark:bg-error/10 border-l-4 border-l-error{{end}}">
+<tr id="tag-{{.ID}}" class="tag-row border-b border-base-200/60 hover:bg-base-200/40 transition-colors animate-scan-flash group {{if eq .AFIWriteStatus "error"}}bg-error/10 border-l-4 border-l-error{{end}}">
     <!-- Item ID -->
     <td class="py-3.5 px-4 font-mono font-medium whitespace-nowrap">
         <div class="flex items-center space-x-2">
-            <span class="app-status-dot {{if .CRCOk}}is-success{{else}}is-danger{{end}}"></span>
+            <span class="w-2 h-2 rounded-full shrink-0 {{if .CRCOk}}bg-success{{else}}bg-error{{end}}"></span>
             {{if .ItemID}}
             <div class="inline-flex items-center space-x-1.5 flex-nowrap">
-                <span class="text-sm font-semibold tracking-wide app-tag-item-id">{{.ItemID}}</span>
-                <button type="button" class="copy-itemid-btn app-copy-btn btn btn-ghost btn-xs btn-square" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
+                <span class="text-sm font-semibold tracking-wide">{{.ItemID}}</span>
+                <button type="button" class="copy-itemid-btn btn btn-ghost btn-xs btn-square" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
                     <span class="app-icon icon-copy w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></span>
                 </button>
             </div>
             {{else}}
-            <span class="text-sm font-semibold tracking-wide app-tag-item-id"><span class="app-text-dim italic">Keine ItemID</span></span>
+            <span class="text-sm font-semibold tracking-wide text-base-content/40 italic">Keine ItemID</span>
             {{end}}
         </div>
     </td>
 
     <!-- UID with Copy Button -->
     <td class="py-3.5 px-4 font-mono text-xs whitespace-nowrap">
-        <div class="app-uid-box flex items-center gap-1.5">
+        <div class="badge badge-ghost font-mono text-xs gap-1.5 py-3 px-2.5">
             <span class="whitespace-nowrap">{{.UID}}</span>
-            <button type="button" class="copy-uid-btn app-copy-btn btn btn-ghost btn-xs btn-square" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
+            <button type="button" class="copy-uid-btn btn btn-ghost btn-xs btn-square h-5 w-5 min-h-0" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
                 <span class="app-icon icon-copy w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></span>
             </button>
         </div>
@@ -32,7 +32,7 @@
             {{if .ReaderID}}
             <span class="font-medium text-base-content" title="Reader: {{.ReaderID}}">{{.ReaderID}}</span>
             {{else}}
-            <span class="app-text-dim">-</span>
+            <span class="text-base-content/40">-</span>
             {{end}}
             {{if .Channel}}
             <span class="text-[11px] opacity-75" title="Channel: {{.Channel}}">#{{.Channel}}</span>
@@ -45,36 +45,36 @@
         {{if or .ISIL .Country .ISILName}}
         <div class="app-isil-container">
             {{if .ISILName}}
-            <span class="font-sans font-semibold text-xs tracking-tight app-isil-name break-words whitespace-normal block mb-0.5" title="{{.ISILName}}">{{.ISILName}}</span>
+            <span class="font-sans font-semibold text-xs tracking-tight break-words whitespace-normal block mb-0.5" title="{{.ISILName}}">{{.ISILName}}</span>
             {{end}}
-            <div class="font-mono text-[11px] flex items-center space-x-1.5 {{if not .ISILName}}font-semibold text-xs{{else}}app-text-dim{{end}}">
-                <span class="app-isil-code">{{if .Country}}{{.Country}}-{{end}}{{.ISIL}}</span>
+            <div class="font-mono text-[11px] flex items-center space-x-1.5 {{if not .ISILName}}font-semibold text-xs{{else}}text-base-content/70{{end}}">
+                <span>{{if .Country}}{{.Country}}-{{end}}{{.ISIL}}</span>
                 {{if .ISILEntry}}
                 <div class="app-isil-info-wrapper relative inline-flex items-center">
-                    <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-blue-500 hover:text-blue-600 dark:hover:text-blue-400 transition-colors" title="Bibliotheksdetails anzeigen (Mouseover)">
+                    <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-primary hover:text-primary-focus transition-colors" title="Bibliotheksdetails anzeigen (Mouseover)">
                         <img src="{{.StaticPath}}/img/icons/info-circle.svg" class="w-3.5 h-3.5 flex-shrink-0" alt="Info" />
                     </span>
 
                     <!-- Detailed Library Flyout Template -->
                     <template class="app-isil-flyout-template">
-                        <div class="flex items-start justify-between gap-2 border-b pb-2 mb-2 app-flyout-header">
+                        <div class="flex items-start justify-between gap-2 border-b border-base-200 pb-2 mb-2">
                             <div>
-                                <h4 class="text-xs font-bold leading-tight font-sans app-flyout-title">{{.ISILEntry.NameOriginal}}</h4>
+                                <h4 class="text-xs font-bold leading-tight font-sans">{{.ISILEntry.NameOriginal}}</h4>
                                 {{if and .ISILEntry.NameDE (ne .ISILEntry.NameDE .ISILEntry.NameOriginal)}}
-                                <div class="text-[11px] app-text-dim font-sans mt-0.5">{{.ISILEntry.NameDE}}</div>
+                                <div class="text-[11px] text-base-content/70 font-sans mt-0.5">{{.ISILEntry.NameDE}}</div>
                                 {{else if and .ISILEntry.NameFR (ne .ISILEntry.NameFR .ISILEntry.NameOriginal)}}
-                                <div class="text-[11px] app-text-dim font-sans mt-0.5">{{.ISILEntry.NameFR}}</div>
+                                <div class="text-[11px] text-base-content/70 font-sans mt-0.5">{{.ISILEntry.NameFR}}</div>
                                 {{else if and .ISILEntry.NameIT (ne .ISILEntry.NameIT .ISILEntry.NameOriginal)}}
-                                <div class="text-[11px] app-text-dim font-sans mt-0.5">{{.ISILEntry.NameIT}}</div>
+                                <div class="text-[11px] text-base-content/70 font-sans mt-0.5">{{.ISILEntry.NameIT}}</div>
                                 {{else if and .ISILEntry.NameEN (ne .ISILEntry.NameEN .ISILEntry.NameOriginal)}}
-                                <div class="text-[11px] app-text-dim font-sans mt-0.5">{{.ISILEntry.NameEN}}</div>
+                                <div class="text-[11px] text-base-content/70 font-sans mt-0.5">{{.ISILEntry.NameEN}}</div>
                                 {{end}}
                             </div>
                             <div class="flex flex-col items-end gap-1 flex-shrink-0">
-                                <span class="app-flyout-badge">{{.ISILEntry.ISIL}}</span>
+                                <span class="badge badge-xs badge-primary font-mono">{{.ISILEntry.ISIL}}</span>
                                 {{if .ISILEntry.Status}}
-                                <span class="inline-flex items-center gap-1 text-[10px] font-medium {{if eq .ISILEntry.Status "aktiv"}}text-emerald-600 dark:text-emerald-400{{else}}app-text-dim{{end}}">
-                                    <span class="app-status-dot w-1.5 h-1.5 {{if eq .ISILEntry.Status "aktiv"}}is-success{{else}}is-dim{{end}}"></span>
+                                <span class="inline-flex items-center gap-1 text-[10px] font-medium {{if eq .ISILEntry.Status "aktiv"}}text-success{{else}}text-base-content/40{{end}}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{if eq .ISILEntry.Status "aktiv"}}bg-success{{else}}bg-base-content/30{{end}}"></span>
                                     {{.ISILEntry.Status}}
                                 </span>
                                 {{end}}
@@ -84,51 +84,51 @@
                         <div class="space-y-2 text-[11px] leading-relaxed font-sans">
                             {{if .ISILEntry.Mutterinstitution}}
                             <div>
-                                <span class="app-flyout-label">Mutterinstitution:</span>
+                                <span class="text-base-content/60 font-medium">Mutterinstitution:</span>
                                 <span class="font-medium break-words">{{.ISILEntry.Mutterinstitution}}</span>
                             </div>
                             {{end}}
 
                             {{if or .ISILEntry.Institutionstyp .ISILEntry.Institutionskategorie .ISILEntry.VZSigel}}
-                            <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] app-text-dim">
-                                {{if .ISILEntry.Institutionstyp}}<span>Typ: <strong class="app-flyout-val">{{.ISILEntry.Institutionstyp}}</strong></span>{{end}}
-                                {{if .ISILEntry.Institutionskategorie}}<span>Kategorie: <strong class="app-flyout-val">{{.ISILEntry.Institutionskategorie}}</strong></span>{{end}}
-                                {{if .ISILEntry.VZSigel}}<span>VZ-Sigel: <strong class="app-flyout-val font-mono">{{.ISILEntry.VZSigel}}</strong></span>{{end}}
+                            <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-base-content/70">
+                                {{if .ISILEntry.Institutionstyp}}<span>Typ: <strong>{{.ISILEntry.Institutionstyp}}</strong></span>{{end}}
+                                {{if .ISILEntry.Institutionskategorie}}<span>Kategorie: <strong>{{.ISILEntry.Institutionskategorie}}</strong></span>{{end}}
+                                {{if .ISILEntry.VZSigel}}<span>VZ-Sigel: <strong class="font-mono">{{.ISILEntry.VZSigel}}</strong></span>{{end}}
                             </div>
                             {{end}}
 
                             <!-- Adresse -->
                             {{if or .ISILEntry.Strasse .ISILEntry.Ortschaft .ISILEntry.Postfach}}
-                            <div class="pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                                <div class="app-flyout-label mb-0.5">Adresse:</div>
-                                <div class="pl-2 border-l-2 border-blue-500/40 space-y-0.5">
+                            <div class="pt-1 border-t border-base-200">
+                                <div class="text-base-content/60 font-medium mb-0.5">Adresse:</div>
+                                <div class="pl-2 border-l-2 border-primary/40 space-y-0.5">
                                     {{if .ISILEntry.Strasse}}<div>{{.ISILEntry.Strasse}}{{if .ISILEntry.Adresszusatz}}, {{.ISILEntry.Adresszusatz}}{{end}}</div>{{end}}
-                                    {{if .ISILEntry.Postfach}}<div class="text-[10px] app-text-dim">Postfach: {{.ISILEntry.Postfach}}</div>{{end}}
+                                    {{if .ISILEntry.Postfach}}<div class="text-[10px] text-base-content/70">Postfach: {{.ISILEntry.Postfach}}</div>{{end}}
                                     <div>{{.ISILEntry.Postleitzahl}} {{.ISILEntry.Ortschaft}}{{if .ISILEntry.Kanton}} ({{.ISILEntry.Kanton}}){{end}}</div>
-                                    {{if .ISILEntry.Land}}<div class="text-[10px] app-text-dim">{{.ISILEntry.Land}}</div>{{end}}
+                                    {{if .ISILEntry.Land}}<div class="text-[10px] text-base-content/70">{{.ISILEntry.Land}}</div>{{end}}
                                 </div>
                             </div>
                             {{end}}
 
                             <!-- Kontakt -->
                             {{if or .ISILEntry.Telefon .ISILEntry.EMail .ISILEntry.Webseite}}
-                            <div class="pt-1 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1">
+                            <div class="pt-1 border-t border-base-200 space-y-1">
                                 {{if .ISILEntry.Telefon}}
                                 <div class="flex items-center space-x-1.5">
-                                    <span class="app-flyout-label w-12 flex-shrink-0">Telefon:</span>
-                                    <a href="tel:{{.ISILEntry.Telefon}}" class="font-mono hover:text-blue-500 transition-colors">{{.ISILEntry.Telefon}}</a>
+                                    <span class="text-base-content/60 w-12 flex-shrink-0">Telefon:</span>
+                                    <a href="tel:{{.ISILEntry.Telefon}}" class="font-mono hover:text-primary transition-colors">{{.ISILEntry.Telefon}}</a>
                                 </div>
                                 {{end}}
                                 {{if .ISILEntry.EMail}}
                                 <div class="flex items-center space-x-1.5">
-                                    <span class="app-flyout-label w-12 flex-shrink-0">E-Mail:</span>
-                                    <a href="mailto:{{.ISILEntry.EMail}}" class="text-blue-500 hover:underline break-all">{{.ISILEntry.EMail}}</a>
+                                    <span class="text-base-content/60 w-12 flex-shrink-0">E-Mail:</span>
+                                    <a href="mailto:{{.ISILEntry.EMail}}" class="text-primary hover:underline break-all">{{.ISILEntry.EMail}}</a>
                                 </div>
                                 {{end}}
                                 {{if .ISILEntry.Webseite}}
                                 <div class="flex items-start space-x-1.5">
-                                    <span class="app-flyout-label w-12 flex-shrink-0 mt-0.5">Web:</span>
-                                    <a href="{{.ISILEntry.Webseite}}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-all inline-flex items-center gap-1">
+                                    <span class="text-base-content/60 w-12 flex-shrink-0 mt-0.5">Web:</span>
+                                    <a href="{{.ISILEntry.Webseite}}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline break-all inline-flex items-center gap-1">
                                         <span>{{.ISILEntry.Webseite}}</span>
                                         <img src="{{.StaticPath}}/img/icons/external-link.svg" class="w-3 h-3 flex-shrink-0" alt="Web" />
                                     </a>
@@ -139,10 +139,10 @@
 
                             <!-- Fernleihe -->
                             {{if or .ISILEntry.FernleiheMail .ISILEntry.FernleiheTelefon .ISILEntry.FernleiheOrtschaft}}
-                            <div class="pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                                <div class="app-flyout-label mb-0.5">Fernleihe:</div>
-                                <div class="pl-2 border-l-2 border-indigo-500/40 space-y-0.5 text-[10px]">
-                                    {{if .ISILEntry.FernleiheMail}}<div>Mail: <a href="mailto:{{.ISILEntry.FernleiheMail}}" class="text-blue-500 hover:underline break-all">{{.ISILEntry.FernleiheMail}}</a></div>{{end}}
+                            <div class="pt-1 border-t border-base-200">
+                                <div class="text-base-content/60 font-medium mb-0.5">Fernleihe:</div>
+                                <div class="pl-2 border-l-2 border-secondary/40 space-y-0.5 text-[10px]">
+                                    {{if .ISILEntry.FernleiheMail}}<div>Mail: <a href="mailto:{{.ISILEntry.FernleiheMail}}" class="text-primary hover:underline break-all">{{.ISILEntry.FernleiheMail}}</a></div>{{end}}
                                     {{if .ISILEntry.FernleiheTelefon}}<div>Tel: <span class="font-mono">{{.ISILEntry.FernleiheTelefon}}</span></div>{{end}}
                                     {{if or .ISILEntry.FernleiheStrasse .ISILEntry.FernleiheOrtschaft}}
                                     <div>{{if .ISILEntry.FernleiheStrasse}}{{.ISILEntry.FernleiheStrasse}}, {{end}}{{.ISILEntry.FernleihePostleitzahl}} {{.ISILEntry.FernleiheOrtschaft}}</div>
@@ -153,12 +153,12 @@
 
                             <!-- Bestand & Services -->
                             {{if or .ISILEntry.Bibliotheksbestand .ISILEntry.OnlineKatalog .ISILEntry.Zugangsbedingungen .ISILEntry.Zugaenglichkeitsgrad .ISILEntry.Mitgliedschaft}}
-                            <div class="pt-1 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1 text-[10px]">
-                                {{if .ISILEntry.Bibliotheksbestand}}<div><span class="app-flyout-label">Bestand:</span> <span class="break-words">{{.ISILEntry.Bibliotheksbestand}}</span></div>{{end}}
-                                {{if .ISILEntry.OnlineKatalog}}<div><span class="app-flyout-label">Katalog:</span> <a href="{{.ISILEntry.OnlineKatalog}}" target="_blank" rel="noopener noreferrer" class="text-blue-500 hover:underline break-all">Online-Katalog öffnen</a></div>{{end}}
-                                {{if .ISILEntry.Zugangsbedingungen}}<div><span class="app-flyout-label">Zugang:</span> <span class="break-words">{{.ISILEntry.Zugangsbedingungen}}</span></div>{{end}}
-                                {{if .ISILEntry.Zugaenglichkeitsgrad}}<div><span class="app-flyout-label">Zugänglichkeit:</span> <span class="break-words">{{.ISILEntry.Zugaenglichkeitsgrad}}</span></div>{{end}}
-                                {{if .ISILEntry.Mitgliedschaft}}<div><span class="app-flyout-label">Mitgliedschaft:</span> <span class="break-words">{{.ISILEntry.Mitgliedschaft}}</span></div>{{end}}
+                            <div class="pt-1 border-t border-base-200 space-y-1 text-[10px]">
+                                {{if .ISILEntry.Bibliotheksbestand}}<div><span class="text-base-content/60">Bestand:</span> <span class="break-words">{{.ISILEntry.Bibliotheksbestand}}</span></div>{{end}}
+                                {{if .ISILEntry.OnlineKatalog}}<div><span class="text-base-content/60">Katalog:</span> <a href="{{.ISILEntry.OnlineKatalog}}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline break-all">Online-Katalog öffnen</a></div>{{end}}
+                                {{if .ISILEntry.Zugangsbedingungen}}<div><span class="text-base-content/60">Zugang:</span> <span class="break-words">{{.ISILEntry.Zugangsbedingungen}}</span></div>{{end}}
+                                {{if .ISILEntry.Zugaenglichkeitsgrad}}<div><span class="text-base-content/60">Zugänglichkeit:</span> <span class="break-words">{{.ISILEntry.Zugaenglichkeitsgrad}}</span></div>{{end}}
+                                {{if .ISILEntry.Mitgliedschaft}}<div><span class="text-base-content/60">Mitgliedschaft:</span> <span class="break-words">{{.ISILEntry.Mitgliedschaft}}</span></div>{{end}}
                             </div>
                             {{end}}
                         </div>
@@ -168,7 +168,7 @@
             </div>
         </div>
         {{else}}
-        <span class="app-text-dim">-</span>
+        <span class="text-base-content/40">-</span>
         {{end}}
     </td>
 
@@ -197,7 +197,7 @@
     </td>
 
     <!-- AFI / Usage -->
-    <td class="py-3.5 px-4 text-xs font-mono app-afi-status-cell">
+    <td class="py-3.5 px-4 text-xs font-mono">
         <div class="flex flex-col space-y-1">
             <div class="flex items-center space-x-1.5 flex-wrap gap-1">
                 {{if .AFISecured}}
@@ -213,7 +213,7 @@
                 {{else if .AFI}}
                 <span class="font-mono">AFI: {{.AFI}}</span>
                 {{else}}
-                <span class="app-text-dim">-</span>
+                <span class="text-base-content/40">-</span>
                 {{end}}
 
                 {{if eq .AFIWriteStatus "success"}}
@@ -234,7 +234,7 @@
 
     <!-- Timestamp -->
     <td class="py-3.5 px-4 text-xs text-right whitespace-nowrap">
-        <div class="app-time-text font-mono">{{.TimeFormatted}}</div>
-        <div class="text-[11px] app-time-ago time-ago" data-timestamp="{{.Timestamp}}">gerade eben</div>
+        <div class="font-mono text-base-content/90">{{.TimeFormatted}}</div>
+        <div class="text-[11px] text-base-content/50 time-ago" data-timestamp="{{.Timestamp}}">gerade eben</div>
     </td>
 </tr>

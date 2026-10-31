@@ -14,39 +14,39 @@
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
-<body class="app-body min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
+<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="app-main">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
 
         <!-- Form & Controls Panel for Encoding -->
-        <section class="app-panel">
-            <div class="app-panel-toolbar">
+        <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden">
+            <div class="p-4 sm:p-5 border-b border-base-200">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                         <span class="app-icon icon-tag w-5 h-5 text-primary" aria-hidden="true"></span>
                     </div>
                     <div>
-                        <h2 class="text-base font-semibold app-panel-title">Transponder beschreiben (ISO 28560-2)</h2>
-                        <p class="text-xs app-meta-text">Geben Sie Barcode und Metadaten ein, um RFID-Etiketten zu programmieren.</p>
+                        <h2 class="text-base font-semibold">Transponder beschreiben (ISO 28560-2)</h2>
+                        <p class="text-xs text-base-content/70">Geben Sie Barcode und Metadaten ein, um RFID-Etiketten zu programmieren.</p>
                     </div>
                 </div>
             </div>
 
             <!-- Encoding Input Grid -->
-            <div class="app-panel-body">
+            <div class="p-5 sm:p-6">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                     <!-- Barcode / ItemID Input -->
                     <div class="md:col-span-6 flex flex-col gap-1.5">
-                        <label for="encode-item-id" class="text-xs font-semibold app-metric-label flex items-center justify-between">
-                            <span>Barcode / ItemID <span class="text-rose-500">*</span></span>
-                            <span class="text-xs font-normal app-text-dim">Erforderlich</span>
+                        <label for="encode-item-id" class="text-xs font-semibold flex items-center justify-between">
+                            <span>Barcode / ItemID <span class="text-error">*</span></span>
+                            <span class="text-xs font-normal text-base-content/60">Erforderlich</span>
                         </label>
                         <div class="relative flex items-center">
                             <input id="encode-item-id" type="text" placeholder="Barcode scannen oder eingeben..." autofocus
-                                   class="input input-bordered w-full font-mono pl-9 app-input has-leading-icon"
+                                   class="input input-bordered w-full font-mono pl-9 text-sm"
                                    autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
                             <span class="app-icon icon-search w-4 h-4 text-base-content/50 absolute left-3 pointer-events-none" aria-hidden="true"></span>
                         </div>
@@ -55,23 +55,23 @@
                     <!-- ISIL Identifier & AFI Switch -->
                     <div class="md:col-span-6 flex flex-col gap-1.5">
                         <div class="flex items-center justify-between">
-                            <label for="encode-isil" class="text-xs font-semibold app-metric-label">
+                            <label for="encode-isil" class="text-xs font-semibold">
                                 <span>Bibliothek / ISIL</span>
                             </label>
-                            <span class="text-xs font-semibold app-metric-label">AFI Sicherheitsstatus</span>
+                            <span class="text-xs font-semibold">AFI Sicherheitsstatus</span>
                         </div>
                         <div class="flex items-center gap-3">
                             <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
-                                   class="input input-bordered flex-1 font-mono app-input">
+                                   class="input input-bordered flex-1 font-mono text-sm">
                             <div class="join shrink-0" id="encode-afi-toggle-group" role="radiogroup" aria-label="AFI Sicherheitsstatus">
                                 <button type="button" id="encode-afi-btn-secure" data-afi="07"
-                                        class="btn btn-sm join-item app-btn {{if eq .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
+                                        class="btn btn-sm join-item {{if eq .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
                                         role="radio" aria-checked="{{if eq .DefaultAFI "07"}}true{{else}}false{{end}}" title="AFI 07: Gesichert / EAS aktiv">
                                     <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
                                     <span>Gesichert (07)</span>
                                 </button>
                                 <button type="button" id="encode-afi-btn-unsecure" data-afi="C2"
-                                        class="btn btn-sm join-item app-btn {{if ne .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
+                                        class="btn btn-sm join-item {{if ne .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
                                         role="radio" aria-checked="{{if ne .DefaultAFI "07"}}true{{else}}false{{end}}" title="AFI C2: Entsichert / EAS deaktiviert">
                                     <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
                                     <span>Entsichert (C2)</span>
@@ -84,23 +84,23 @@
             </div>
 
             <!-- Parts Selection & Start Action Bar -->
-            <div class="app-panel-footer">
+            <div class="p-4 sm:p-5 bg-base-200/40 border-t border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <!-- Multi-part selector -->
                 <div class="flex items-center flex-wrap gap-3">
-                    <span class="text-xs font-semibold app-metric-label mr-1">Teile (Multi-Part):</span>
+                    <span class="text-xs font-semibold mr-1">Teile (Multi-Part):</span>
                     <input type="hidden" id="encode-parts-input" value="{{.DefaultParts}}">
                     
                     <div class="join" id="encode-parts-pills" role="radiogroup" aria-label="Teileanzahl auswählen">
-                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 1}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="1" role="radio" aria-checked="{{if eq .DefaultParts 1}}true{{else}}false{{end}}">1</button>
-                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 2}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="2" role="radio" aria-checked="{{if eq .DefaultParts 2}}true{{else}}false{{end}}">2</button>
-                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 3}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="3" role="radio" aria-checked="{{if eq .DefaultParts 3}}true{{else}}false{{end}}">3</button>
-                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 4}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="4" role="radio" aria-checked="{{if eq .DefaultParts 4}}true{{else}}false{{end}}">4</button>
-                        <button type="button" class="btn btn-sm join-item app-btn encode-part-btn {{if eq .DefaultParts 5}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="5" role="radio" aria-checked="{{if eq .DefaultParts 5}}true{{else}}false{{end}}">5</button>
+                        <button type="button" class="btn btn-sm join-item encode-part-btn {{if eq .DefaultParts 1}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="1" role="radio" aria-checked="{{if eq .DefaultParts 1}}true{{else}}false{{end}}">1</button>
+                        <button type="button" class="btn btn-sm join-item encode-part-btn {{if eq .DefaultParts 2}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="2" role="radio" aria-checked="{{if eq .DefaultParts 2}}true{{else}}false{{end}}">2</button>
+                        <button type="button" class="btn btn-sm join-item encode-part-btn {{if eq .DefaultParts 3}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="3" role="radio" aria-checked="{{if eq .DefaultParts 3}}true{{else}}false{{end}}">3</button>
+                        <button type="button" class="btn btn-sm join-item encode-part-btn {{if eq .DefaultParts 4}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="4" role="radio" aria-checked="{{if eq .DefaultParts 4}}true{{else}}false{{end}}">4</button>
+                        <button type="button" class="btn btn-sm join-item encode-part-btn {{if eq .DefaultParts 5}}btn-primary app-part-active{{else}}btn-ghost{{end}}" data-parts="5" role="radio" aria-checked="{{if eq .DefaultParts 5}}true{{else}}false{{end}}">5</button>
                     </div>
 
                     <!-- Dropdown for 6 to 12 parts -->
                     <div class="relative inline-flex items-center">
-                        <select id="encode-parts-select" class="select select-sm select-bordered app-input h-8 text-xs font-semibold rounded-lg px-2.5 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
+                        <select id="encode-parts-select" class="select select-sm select-bordered h-8 text-xs font-semibold rounded-lg px-2.5 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
                             <option value="" disabled {{if le .DefaultParts 5}}selected{{end}}>6 - 12 Teile...</option>
                             <option value="6" {{if eq .DefaultParts 6}}selected{{end}}>6 Teile</option>
                             <option value="7" {{if eq .DefaultParts 7}}selected{{end}}>7 Teile</option>
@@ -115,7 +115,7 @@
 
                 <!-- Start Action Button -->
                 <button id="btn-encode-start" type="button" disabled
-                        class="btn btn-primary app-btn font-bold px-5 flex items-center gap-2"
+                        class="btn btn-primary font-bold px-5 flex items-center gap-2"
                         title="Kodierung für die aufgelegten Medien starten">
                     <span class="app-icon icon-tag w-4 h-4 shrink-0" aria-hidden="true"></span>
                     <span>Kodierung starten</span>
@@ -124,37 +124,37 @@
         </section>
 
         <!-- Active Media Table & Control Panel -->
-        <section class="app-panel flex-1">
+        <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden flex-1 flex flex-col">
             <!-- Action Toolbar -->
-            <div class="app-panel-toolbar">
+            <div class="p-4 sm:p-5 border-b border-base-200 flex flex-wrap items-center justify-between gap-3">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <h2 class="text-base font-semibold app-panel-title">Aktuell aufliegende Medien auf Reader</h2>
-                        <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono app-count-badge">{{len .Tags}}</span>
+                        <h2 class="text-base font-semibold">Aktuell aufliegende Medien auf Reader</h2>
+                        <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono">{{len .Tags}}</span>
                     </div>
                 </div>
 
-                <div class="text-xs app-meta-text">
-                    Reader: <strong class="font-mono text-cyan-500">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</strong>
+                <div class="text-xs text-base-content/70">
+                    Reader: <strong class="font-mono text-primary">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</strong>
                 </div>
             </div>
 
             <!-- Status Notification Banner -->
-            <div id="action-notification" class="hidden px-4 py-2 text-xs font-medium border-b transition-all flex items-center justify-between">
+            <div id="action-notification" class="hidden px-4 py-2 text-xs font-medium border-b border-base-200 transition-all flex items-center justify-between">
                 <span id="action-notification-text"></span>
             </div>
 
             <!-- Active Tags Table with SSE Connection -->
-            <div class="transponder-stream-scroll flex-1">
+            <div class="transponder-stream-scroll flex-1 overflow-x-auto">
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
-                    <thead class="sticky top-0 z-10 shadow-sm">
-                        <tr class="text-[11px] font-semibold uppercase tracking-wider">
+                    <thead class="sticky top-0 z-10 bg-base-200/80 backdrop-blur">
+                        <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Transponder UID</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Teile (Multi-Part)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Bibliothek / ISIL</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">CRC Prüfsumme</th>
-                            <th scope="col" class="py-3 px-4 app-afi-status-cell">AFI Sicherheitsstatus</th>
+                            <th scope="col" class="py-3 px-4">AFI Sicherheitsstatus</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Aktionen</th>
                             <th scope="col" class="py-3 px-4 text-right whitespace-nowrap">Zuletzt erfasst</th>
                         </tr>
@@ -171,13 +171,13 @@
     {{template "footer.gohtml" .}}
 
     <!-- Encoding Progress & Waiting Modal Overlay -->
-    <dialog id="encode-modal-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="encode-modal-title">
-        <div class="modal-box text-center max-w-md app-afi-modal-dialog">
+    <dialog id="encode-modal-overlay" class="modal modal-bottom sm:modal-middle" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="encode-modal-title">
+        <div class="modal-box text-center max-w-md bg-base-100 border border-base-200 shadow-xl">
             <div class="mx-auto mb-4 flex items-center justify-center">
                 <span class="loading loading-spinner loading-lg text-primary" id="encode-spinner-ring"></span>
             </div>
-            <h3 id="encode-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">Medium wird kodiert...</h3>
-            <p id="encode-modal-message" class="text-sm opacity-80 mb-4 app-afi-modal-desc">
+            <h3 id="encode-modal-title" class="font-bold text-lg mb-2">Medium wird kodiert...</h3>
+            <p id="encode-modal-message" class="text-sm opacity-80 mb-4">
                 Schreibe ISO 28560-2 Daten auf Transponder... Bitte Medium nicht entfernen.
             </p>
             
@@ -191,7 +191,7 @@
             </div>
 
             <div class="modal-action justify-center mt-2">
-                <button id="btn-encode-modal-stop" type="button" class="btn btn-error btn-sm font-semibold text-white app-btn">
+                <button id="btn-encode-modal-stop" type="button" class="btn btn-error btn-sm font-semibold text-white">
                     Kodierung stoppen / Abbrechen
                 </button>
             </div>
@@ -202,26 +202,26 @@
     </dialog>
 
     <!-- Overwrite Confirmation Modal Dialog -->
-    <dialog id="encode-overwrite-overlay" class="modal modal-bottom sm:modal-middle app-afi-modal-overlay" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="overwrite-modal-title">
-        <div class="modal-box text-center max-w-md app-afi-modal-dialog">
+    <dialog id="encode-overwrite-overlay" class="modal modal-bottom sm:modal-middle" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="overwrite-modal-title">
+        <div class="modal-box text-center max-w-md bg-base-100 border border-base-200 shadow-xl">
             <div class="w-12 h-12 rounded-full bg-warning/20 text-warning flex items-center justify-center mx-auto mb-4">
                 <span class="app-icon icon-alert-circle w-6 h-6 text-warning" aria-hidden="true"></span>
             </div>
-            <h3 id="overwrite-modal-title" class="font-bold text-lg mb-2 app-afi-modal-title">Bereits kodierter Transponder erkannt</h3>
-            <p class="text-sm opacity-80 mb-4 app-afi-modal-desc" id="overwrite-modal-desc">
+            <h3 id="overwrite-modal-title" class="font-bold text-lg mb-2">Bereits kodierter Transponder erkannt</h3>
+            <p class="text-sm opacity-80 mb-4" id="overwrite-modal-desc">
                 Transponder <strong id="overwrite-uid" class="font-mono text-primary">E004...</strong> enthält bereits den Barcode <strong id="overwrite-old-item" class="font-mono text-warning">31415...</strong>.
                 <br><br>
                 Möchten Sie diesen Transponder wirklich mit dem neuen Barcode überschreiben?
             </p>
 
             <div class="modal-action justify-center flex-wrap gap-2.5 pt-2">
-                <button id="btn-overwrite-confirm" type="button" class="btn btn-warning btn-sm font-bold app-btn">
+                <button id="btn-overwrite-confirm" type="button" class="btn btn-warning btn-sm font-bold">
                     Überschreiben
                 </button>
-                <button id="btn-overwrite-skip" type="button" class="btn btn-ghost btn-sm app-btn" title="Diesen Transponder überspringen">
+                <button id="btn-overwrite-skip" type="button" class="btn btn-ghost btn-sm" title="Diesen Transponder überspringen">
                     Überspringen
                 </button>
-                <button id="btn-overwrite-cancel" type="button" class="btn btn-error btn-sm text-white app-btn">
+                <button id="btn-overwrite-cancel" type="button" class="btn btn-error btn-sm text-white">
                     Abbrechen
                 </button>
             </div>
