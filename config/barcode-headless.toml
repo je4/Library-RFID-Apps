@@ -1,0 +1,35 @@
+name = "barcode:headless:01"
+wsbroker = "https://localhost:8765"
+channels = ["rfid"]
+
+[clienttls]
+type = "minivault"
+
+[clienttls.minivault]
+baseurl = "https://localhost:8759/api/v1"
+parenttoken = "%%PARENT_TOKEN%%"
+tokentype = "client_cert"
+tokenpolicies = ["wsbroker.client"]
+certtype = "client_cert"
+uris = ["wsbroker:client:barcode:headless:01", "wsbroker:channel:rfid"]
+ca = ["certs/minivault.ca.pem"]
+usesystempool = false
+
+# Barcode Readers Configuration (Multiple readers can be configured)
+[[readers]]
+id = "honeywell-01"
+device_id = "honeywell-1300g-01"
+device_type = "honeywell-1300g"
+port = "COM8"                      # Windows: COM3, Linux: /dev/ttyUSB0 or /dev/ttyACM0
+baud_rate = 9600                   # Honeywell 1300G default baud rate: 9600
+data_bits = 8
+stop_bits = 1
+parity = "none"                    # none, odd, even, mark, space
+delimiter = "\r"                   # Honeywell line terminator (\r or \r\n)
+trim_whitespace = true             # Strip whitespace and control characters
+strip_aim_id = true                # Strip AIM symbology prefix (e.g. ]C1)
+debounce_ms = 300                  # Suppress rapid duplicate scans within 300ms
+channels = ["rfid"]   # Optional per-reader channel routing
+read_only = true
+enabled = true
+reconnect_sec = 3                  # Reconnect retry interval in seconds

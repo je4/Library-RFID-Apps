@@ -47,6 +47,7 @@ require (
 	github.com/smallstep/certinfo v1.18.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.3.2 // indirect
+	go.bug.st/serial v1.8.0 // indirect
 	go.mongodb.org/mongo-driver/v2 v2.9.2 // indirect
 	go.step.sm/crypto v0.91.1 // indirect
 	go.ub.unibas.ch/cloud/minivaultclient v1.0.7 // indirect
