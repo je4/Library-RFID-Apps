@@ -28,7 +28,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
 		ExtAddr:       "http://localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		WSBroker:      "https://localhost:8765",
 		Channels:      []string{"all", "intern", "rfid"},
 		DefaultReader: "reader-01",
@@ -136,7 +136,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Fatalf("expected 200 for index page, got %d", recIndex.Code)
 	}
 	bodyIndex := recIndex.Body.String()
-	if !strings.Contains(bodyIndex, "RFID Desk") || !strings.Contains(bodyIndex, "test-rfid-desk") {
+	if !strings.Contains(bodyIndex, "RFID Desk") || !strings.Contains(bodyIndex, "test-library-desk") {
 		t.Errorf("expected index page to contain app name and client ID, got %s", bodyIndex)
 	}
 	if !strings.Contains(bodyIndex, "Channel-Auswahl") {
@@ -157,7 +157,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Fatalf("expected 200 for channel dashboard UI, got %d", recUI.Code)
 	}
 	bodyUI := recUI.Body.String()
-	if !strings.Contains(bodyUI, "RFID Desk") || !strings.Contains(bodyUI, "test-rfid-desk") {
+	if !strings.Contains(bodyUI, "RFID Desk") || !strings.Contains(bodyUI, "test-library-desk") {
 		t.Errorf("expected dashboard UI to contain app name and client ID, got %s", bodyUI)
 	}
 	if !strings.Contains(bodyUI, "Reader (Sender)") {
@@ -173,6 +173,9 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	ctrl.router.ServeHTTP(recStatus, reqStatus)
 	if recStatus.Code != http.StatusOK {
 		t.Errorf("expected 200 for status API, got %d", recStatus.Code)
+	}
+	if !strings.Contains(recStatus.Body.String(), `"app":"library-desk"`) {
+		t.Errorf("expected status API to contain '\"app\":\"library-desk\"', got %s", recStatus.Body.String())
 	}
 
 	// 4. Test Tag Scan Broadcasting and API Tags
@@ -415,7 +418,7 @@ func TestController_AFIViaRFIDClient_Success(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -492,7 +495,7 @@ func TestController_AFIViaRFIDClient_Error(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -552,7 +555,7 @@ func TestController_HandleWriteAFIResponse_Success(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		DefaultReader: "reader-01",
 		Hub:           hub,
 	})
@@ -616,7 +619,7 @@ func TestController_HandleWriteAFIResponse_Error(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		DefaultReader: "reader-01",
 		Hub:           hub,
 	})
@@ -691,7 +694,7 @@ func TestController_SetAFI_SynchronousFailure(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -746,7 +749,7 @@ func TestController_SetAFI_TargetedReader(t *testing.T) {
 	// No DefaultReader configured
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "",
 		Hub:           hub,
@@ -791,7 +794,7 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -917,7 +920,7 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -1034,7 +1037,7 @@ func TestController_LoanAFIFailurePreservedOnContinuousRescans(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -1152,7 +1155,7 @@ func TestBatchAFIWrite_OnlyDifferingTagsTargeted(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -1274,7 +1277,7 @@ func TestController_APILoanAFI_MixedBatch(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		DefaultReader: "reader-01",
 		Hub:           hub,
 		RFIDClient:    mockCli,
@@ -1333,7 +1336,7 @@ func TestController_ChannelIsolationAndCardDisplay(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"desk-a", "desk-b"},
 		DefaultReader: "reader-01",
 		Hub:           hub,
@@ -1495,7 +1498,7 @@ func TestController_LoanAFI_ClusteredByReader(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "reader-default",
 		Hub:           hub,
@@ -1652,7 +1655,7 @@ func TestController_LoanAFI_ClusteredBySourceAndReaderID(t *testing.T) {
 
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		Channels:      []string{"rfid-ch"},
 		DefaultReader: "rfid:reader:01",
 		Hub:           hub,

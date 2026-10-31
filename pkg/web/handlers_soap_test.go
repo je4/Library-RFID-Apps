@@ -67,7 +67,7 @@ func setupTestSOAPController(t *testing.T) (*Controller, *desk.Hub, *mockSOAPRfi
 	ctrl, err := NewController(Config{
 		Addr:          "localhost:8762",
 		ExtAddr:       "http://localhost:8762",
-		ClientName:    "test-rfid-desk",
+		ClientName:    "test-library-desk",
 		WSBroker:      "https://localhost:8765",
 		Channels:      []string{"all", "intern", "rfid"},
 		DefaultReader: "reader-01",

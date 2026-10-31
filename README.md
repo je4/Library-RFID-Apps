@@ -9,7 +9,7 @@ Comprehensive Go ecosystem for RFID and Barcode hardware integration in library 
 `Library-RFID-Apps` provides daemons, client SDKs, and workstation applications connecting library hardware (RFID reader/writers and serial Barcode scanners) to automated circulation systems, self-checkout kiosks, return stations, and ILS systems (such as Ex Libris Alma):
 
 - **`cmd/barcode-headless`**: Autonomous background daemon for serial barcode scanners (e.g. Honeywell 1300G-2). Dispatches decoded barcode streams over WebSocket.
-- **`cmd/rfid-desk`**: Desktop and web-based workstation application for item check-out, check-in, media labeling, RFID transponder encoding, and Alma 3M896 TagService emulation.
+- **`cmd/library-desk`**: Desktop and web-based workstation application for item check-out, check-in, media labeling, RFID transponder encoding, and Alma 3M896 TagService emulation.
 - **`pkg/libraryclient`**: High-level unified Go client library for communicating with both `rfid-headless` RFID daemons and `barcode-headless` serial barcode scanners.
 - **`pkg/barcodescanner`**: Core serial port driver and event dispatcher engine supporting AIM symbology extraction, debouncing, and auto-reconnection.
 - **`pkg/alma`**: Alma 3M896 SOAP TagService integration server.
@@ -36,7 +36,7 @@ graph TD
 
     subgraph Go Applications & SDKs
         LIB_CLIENT[pkg/libraryclient]
-        DESK_APP[cmd/rfid-desk]
+        DESK_APP[cmd/library-desk]
         ALMA_SOAP[Alma 3M896 SOAP Service]
     end
 
@@ -137,10 +137,10 @@ func main() {
 ### 1. `barcode-headless`
 Serial barcode scanner daemon. See [docs/barcode-headless.md](docs/barcode-headless.md) for detailed configuration, COM port parameters, AIM prefix stripping, and debouncing setup.
 
-### 2. `rfid-desk`
+### 2. `library-desk`
 Circulation desk assistant with web UI, live tag reading, Alma integration, tag encoding, and AFI security toggle. Run via:
 ```bash
-rfid-desk -config config/rfid-desk.toml
+library-desk -config config/library-desk.toml
 ```
 
 ---

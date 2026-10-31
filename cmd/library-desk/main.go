@@ -32,7 +32,7 @@ func main() {
 
 	// 2. Initialize structured logging
 	output := zerolog.ConsoleWriter{Out: os.Stdout, TimeFormat: time.RFC3339}
-	loggerZero := zerolog.New(output).With().Timestamp().Str("app", "rfid-desk").Logger()
+	loggerZero := zerolog.New(output).With().Timestamp().Str("app", "library-desk").Logger()
 	var logger zLogger.ZLogger = &loggerZero
 
 	addr := conf.Addr
@@ -206,7 +206,7 @@ func main() {
 	}
 
 	fmt.Println("==================================================")
-	fmt.Printf(" RFID Desk Web Application Started\n")
+	fmt.Printf(" Library Desk Web Application Started\n")
 	fmt.Printf(" Client:    %s\n", conf.Name)
 	fmt.Printf(" Broker:    %s\n", conf.WSBroker)
 	fmt.Printf(" Channels:  %v\n", conf.Channels)
@@ -232,5 +232,5 @@ func main() {
 	webCtrl.GracefulStop()
 	wg.Wait()
 
-	fmt.Println("RFID Desk stopped.")
+	fmt.Println("Library Desk stopped.")
 }

@@ -7,12 +7,12 @@ import (
 	"go.ub.unibas.ch/cloud/certloader/v2/pkg/loader"
 )
 
-// DeskAppConfig defines configuration parameters for the rfid-desk application.
+// DeskAppConfig defines configuration parameters for the library-desk application.
 //
 // Fields:
 //   - Addr: Local listen address for the HTTP web server (e.g. "localhost:8762").
 //   - ExtAddr: External address for links and display (e.g. "http://localhost:8762").
-//   - Name: Unique client identifier (e.g. "rfid-desk-01") for WSBroker authorization.
+//   - Name: Unique client identifier (e.g. "library-desk-01") for WSBroker authorization.
 //   - WSBroker: Target broker WebSocket endpoint URL (e.g. "https://localhost:8765").
 //   - Channels: List of WSBroker channels to subscribe on connect (e.g. ["all", "intern", "rfid"]).
 //   - DefaultReader: Target reader identifier for RPC commands (e.g. "rfid-reader-station-01").
@@ -41,11 +41,11 @@ type DeskAppConfig struct {
 type Config = DeskAppConfig
 
 // LoadConfig loads the DeskAppConfig from the specified TOML file path, or falls back
-// to the embedded default configuration (config/rfid-desk.toml) if path is empty.
+// to the embedded default configuration (config/library-desk.toml) if path is empty.
 func LoadConfig(path string) (*DeskAppConfig, error) {
 	conf := &DeskAppConfig{}
 	if path == "" {
-		if _, err := toml.Decode(config.RFIDDeskConfigTOML, conf); err != nil {
+		if _, err := toml.Decode(config.LibraryDeskConfigTOML, conf); err != nil {
 			return nil, errors.Wrap(err, "cannot decode embedded default config")
 		}
 		return conf, nil

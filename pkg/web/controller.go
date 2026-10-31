@@ -197,11 +197,11 @@ func (ctrl *Controller) Start(wg *sync.WaitGroup) {
 			defer wg.Done()
 		}
 		if ctrl.logger != nil {
-			ctrl.logger.Info().Str("addr", ctrl.cfg.Addr).Msg("starting rfid-desk web server")
+			ctrl.logger.Info().Str("addr", ctrl.cfg.Addr).Msg("starting library-desk web server")
 		}
 		if err := ctrl.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			if ctrl.logger != nil {
-				ctrl.logger.Error().Err(err).Msg("rfid-desk web server encountered an error")
+				ctrl.logger.Error().Err(err).Msg("library-desk web server encountered an error")
 			}
 		}
 	}()

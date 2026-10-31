@@ -7,7 +7,7 @@ import (
 )
 
 func TestLoadConfig_EmbeddedDefault(t *testing.T) {
-	// Change working directory to project root so relative certificate paths in rfid-desk.toml resolve correctly
+	// Change working directory to project root so relative certificate paths in library-desk.toml resolve correctly
 	cwd, err := os.Getwd()
 	if err != nil {
 		t.Fatalf("failed to get current working directory: %v", err)

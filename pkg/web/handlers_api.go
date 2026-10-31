@@ -21,7 +21,7 @@ type LoanAFIRequestPayload struct {
 func (ctrl *Controller) handleAPIStatus(c *gin.Context) {
 	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
 	c.JSON(http.StatusOK, gin.H{
-		"app":           "rfid-desk",
+		"app":           "library-desk",
 		"clientName":    ctrl.cfg.ClientName,
 		"wsbroker":      ctrl.cfg.WSBroker,
 		"channels":      ctrl.cfg.Channels,

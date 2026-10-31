@@ -1,6 +1,6 @@
 # Standard Event Protocol Specification
 
-This document specifies the standardized WebSocket message events exchanged between headless reader daemons (`rfid-headless`, `barcode-headless`), client libraries (`pkg/rfidclient`, `pkg/barcodeclient`), and applications (`rfid-desk`, self-checkouts, return kiosks, inventory scanners) via **WSBroker**.
+This document specifies the standardized WebSocket message events exchanged between headless reader daemons (`rfid-headless`, `barcode-headless`), client libraries (`pkg/rfidclient`, `pkg/barcodeclient`), and applications (`library-desk`, self-checkouts, return kiosks, inventory scanners) via **WSBroker**.
 
 ---
 

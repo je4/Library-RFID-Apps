@@ -2,7 +2,7 @@ package data
 
 import "embed"
 
-// WebFS contains all embedded web templates and static assets for the rfid-desk frontend.
+// WebFS contains all embedded web templates and static assets for the library-desk frontend.
 //
 //go:embed web/static/css/*
 //go:embed web/static/scss/*.css
