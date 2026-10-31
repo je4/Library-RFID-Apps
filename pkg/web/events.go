@@ -9,12 +9,12 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 // HandleTagRead processes an incoming scan event, persists it in the hub,
 // and broadcasts the rendered HTML fragment via SSE.
-func (ctrl *Controller) HandleTagRead(tag *rfidclient.TagReadEvent) {
+func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 	if tag == nil {
 		return
 	}
@@ -54,12 +54,12 @@ func (ctrl *Controller) HandleTagsCleared() {
 }
 
 // HandleWriteAFIResponse processes an incoming AFI write response event from an RFID reader daemon.
-func (ctrl *Controller) HandleWriteAFIResponse(resp *rfidclient.WriteAFIResponse) {
+func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIResponse) {
 	if resp == nil {
 		return
 	}
 
-	statusName := rfidclient.AFISecurityStatus(resp.Data.AFI)
+	statusName := libraryclient.AFISecurityStatus(resp.Data.AFI)
 	var successMsg, errorMsg string
 
 	if len(resp.Data.Results) > 0 {

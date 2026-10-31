@@ -8,7 +8,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 // LoanAFIRequestPayload defines the JSON payload for setting AFI via API.
@@ -59,11 +59,11 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 	afi := payload.AFI
 	if afi == "" {
 		if strings.EqualFold(payload.Action, "secure") || strings.EqualFold(payload.Action, "sichern") {
-			afi = rfidclient.AFISecured
+			afi = libraryclient.AFISecured
 		} else if strings.EqualFold(payload.Action, "unsecure") || strings.EqualFold(payload.Action, "entsichern") {
-			afi = rfidclient.AFIUnsecured
+			afi = libraryclient.AFIUnsecured
 		} else {
-			afi = rfidclient.AFISecured
+			afi = libraryclient.AFISecured
 		}
 	}
 
@@ -89,7 +89,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 	if ctrl.logger != nil {
 		ctrl.logger.Info().
 			Str("afi", afi).
-			Str("status", rfidclient.AFISecurityStatus(afi)).
+			Str("status", libraryclient.AFISecurityStatus(afi)).
 			Int("tagsCount", len(uids)).
 			Strs("uids", uids).
 			Msg("AFI security update triggered via API")
@@ -103,7 +103,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 	hadSyncWrite := false
 	if ctrl.rfidClient != nil {
 		if len(uids) == 0 {
-			req := rfidclient.NewWriteAFIRequest(afi)
+			req := libraryclient.NewWriteAFIRequest(afi)
 			if ctrl.cfg.DefaultReader != "" {
 				hadSyncWrite = true
 				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
@@ -146,7 +146,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 					continue
 				}
 				hadSyncWrite = true
-				clusterReq := rfidclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
+				clusterReq := libraryclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
 				clusterReq.ReaderID = key.readerID
 
 				resp, err := ctrl.rfidClient.WriteAFI(ctx, key.target, clusterReq)

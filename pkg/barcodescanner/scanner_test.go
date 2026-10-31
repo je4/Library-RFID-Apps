@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/je4/Library-RFID-Apps/pkg/barcodeclient"
 	"github.com/je4/Library-RFID-Apps/pkg/barcodescanner"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"go.bug.st/serial"
@@ -90,13 +90,13 @@ func TestBarcodeReaderInstance_ScanProcessing(t *testing.T) {
 	inst := barcodescanner.NewBarcodeReaderInstance(cfg, nil, opener)
 	assert.Equal(t, "scanner-01", inst.GetReaderID())
 
-	var scanned []*barcodeclient.BarcodeReadData
+	var scanned []*libraryclient.BarcodeReadData
 	var mu sync.Mutex
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	err := inst.Start(ctx, func(data *barcodeclient.BarcodeReadData) {
+	err := inst.Start(ctx, func(data *libraryclient.BarcodeReadData) {
 		mu.Lock()
 		scanned = append(scanned, data)
 		mu.Unlock()

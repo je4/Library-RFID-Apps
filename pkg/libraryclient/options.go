@@ -1,4 +1,4 @@
-package rfidclient
+package libraryclient
 
 import (
 	"time"
@@ -25,7 +25,7 @@ func defaultConfig() *clientConfig {
 	}
 }
 
-// Option configures the RFIDClient.
+// Option configures the LibraryClient.
 type Option func(*clientConfig)
 
 // WithDefaultTarget sets the default target reader client identifier or channel name.
@@ -60,7 +60,7 @@ func WithLogger(logger zLogger.ZLogger) Option {
 	}
 }
 
-// WithChannels sets initial channels to subscribe/attach for RFID events.
+// WithChannels sets initial channels to subscribe/attach for events.
 func WithChannels(channels ...string) Option {
 	return func(c *clientConfig) {
 		if len(channels) > 0 {

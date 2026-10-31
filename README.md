@@ -10,8 +10,7 @@ Comprehensive Go ecosystem for RFID and Barcode hardware integration in library 
 
 - **`cmd/barcode-headless`**: Autonomous background daemon for serial barcode scanners (e.g. Honeywell 1300G-2). Dispatches decoded barcode streams over WebSocket.
 - **`cmd/rfid-desk`**: Desktop and web-based workstation application for item check-out, check-in, media labeling, RFID transponder encoding, and Alma 3M896 TagService emulation.
-- **`pkg/barcodeclient`**: High-level Go client library for consuming `barcode-headless` scan events and querying scanner diagnostics.
-- **`pkg/rfidclient`**: High-level Go client library for communicating with `rfid-headless` daemons (ISO 15693 / ISO 28560-2 RFID tags, AFI security bits, metadata).
+- **`pkg/libraryclient`**: High-level unified Go client library for communicating with both `rfid-headless` RFID daemons and `barcode-headless` serial barcode scanners.
 - **`pkg/barcodescanner`**: Core serial port driver and event dispatcher engine supporting AIM symbology extraction, debouncing, and auto-reconnection.
 - **`pkg/alma`**: Alma 3M896 SOAP TagService integration server.
 
@@ -36,8 +35,7 @@ graph TD
     end
 
     subgraph Go Applications & SDKs
-        BC_CLIENT[pkg/barcodeclient]
-        RFID_CLIENT[pkg/rfidclient]
+        LIB_CLIENT[pkg/libraryclient]
         DESK_APP[cmd/rfid-desk]
         ALMA_SOAP[Alma 3M896 SOAP Service]
     end
@@ -48,12 +46,10 @@ graph TD
     HL_RFID <-->|rfid/* events| WS
     HL_BARCODE <-->|barcode/* events| WS
 
-    WS <-->|wsbrokerclient| BC_CLIENT
-    WS <-->|wsbrokerclient| RFID_CLIENT
+    WS <-->|wsbrokerclient| LIB_CLIENT
 
-    BC_CLIENT --> DESK_APP
-    RFID_CLIENT --> DESK_APP
-    RFID_CLIENT --> ALMA_SOAP
+    LIB_CLIENT --> DESK_APP
+    LIB_CLIENT --> ALMA_SOAP
 ```
 
 ### Standardized Event Protocol
@@ -87,7 +83,7 @@ All communication between headless daemons and client applications uses a unifie
 go get github.com/je4/Library-RFID-Apps
 ```
 
-### RFID Client Usage Example
+### Library Client Usage Example (Unified RFID & Barcode)
 
 ```go
 package main
@@ -97,7 +93,7 @@ import (
 	"fmt"
 	"log"
 
-	rfidclient "github.com/je4/Library-RFID-Apps"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/wsbrokerclient"
 )
 
@@ -105,51 +101,24 @@ func main() {
 	cfg := wsbrokerclient.DefaultConfig()
 	cfg.Endpoint = "wss://localhost:8080/ws"
 
-	client, err := rfidclient.NewFromConfig(cfg, rfidclient.WithChannels("intern", "all"))
+	client, err := libraryclient.NewFromConfig(cfg,
+		libraryclient.WithChannels("intern", "all"),
+		libraryclient.WithDefaultTarget("rfid-headless-01"),
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	client.OnTagRead(func(evt *rfidclient.TagReadEvent) {
+	// Listen for RFID tag scans
+	client.OnTagRead(func(evt *libraryclient.TagReadEvent) {
 		fmt.Printf("RFID Tag Read: ItemID=%s UID=%s Secured=%v\n",
 			evt.Data.ItemID, evt.Data.UID, evt.Data.IsSecured())
 	})
 
-	if err := client.Connect(context.Background()); err != nil {
-		log.Fatal(err)
-	}
-	defer client.Close()
-
-	select {}
-}
-```
-
-### Barcode Client Usage Example
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/je4/Library-RFID-Apps/pkg/barcodeclient"
-	"github.com/je4/wsbrokerclient"
-)
-
-func main() {
-	cfg := wsbrokerclient.DefaultConfig()
-	cfg.Endpoint = "wss://localhost:8080/ws"
-
-	client, err := barcodeclient.NewFromConfig(cfg, barcodeclient.WithChannels("intern", "all"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	client.OnBarcodeRead(func(evt *barcodeclient.BarcodeReadEvent) {
-		fmt.Printf("Barcode Scanned: %s (Symbology: %s)\n",
-			evt.Data.Barcode, evt.Data.Symbology)
+	// Listen for Barcode scans
+	client.OnBarcodeRead(func(evt *libraryclient.BarcodeReadEvent) {
+		fmt.Printf("Barcode Scanned: %s (Symbology: %s, Reader: %s)\n",
+			evt.Data.Barcode, evt.Data.Symbology, evt.Data.ReaderID)
 	})
 
 	if err := client.Connect(context.Background()); err != nil {

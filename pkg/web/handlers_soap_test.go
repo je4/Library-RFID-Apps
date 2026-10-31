@@ -9,21 +9,21 @@ import (
 	"testing"
 
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/wsbrokerclient"
 )
 
-// mockSOAPRfidClient implements rfidclient.Client for testing SOAP Write operations.
+// mockSOAPRfidClient implements libraryclient.Client for testing SOAP Write operations.
 type mockSOAPRfidClient struct {
-	rfidclient.Client
-	lastWriteAFIReq *rfidclient.WriteAFIRequest
-	lastWriteTagReq *rfidclient.WriteTagRequest
+	libraryclient.Client
+	lastWriteAFIReq *libraryclient.WriteAFIRequest
+	lastWriteTagReq *libraryclient.WriteTagRequest
 }
 
-func (m *mockSOAPRfidClient) WriteAFI(ctx context.Context, target string, req rfidclient.WriteAFIRequest) (*rfidclient.WriteAFIResponse, error) {
+func (m *mockSOAPRfidClient) WriteAFI(ctx context.Context, target string, req libraryclient.WriteAFIRequest) (*libraryclient.WriteAFIResponse, error) {
 	m.lastWriteAFIReq = &req
-	return &rfidclient.WriteAFIResponse{
-		Data: rfidclient.WriteAFIResponseData{
+	return &libraryclient.WriteAFIResponse{
+		Data: libraryclient.WriteAFIResponseData{
 			Status:         "ok",
 			UID:            req.UID,
 			SuccessfulUIDs: req.UIDs,
@@ -32,20 +32,20 @@ func (m *mockSOAPRfidClient) WriteAFI(ctx context.Context, target string, req rf
 	}, nil
 }
 
-func (m *mockSOAPRfidClient) BroadcastAFI(ctx context.Context, channel string, req rfidclient.WriteAFIRequest) error {
+func (m *mockSOAPRfidClient) BroadcastAFI(ctx context.Context, channel string, req libraryclient.WriteAFIRequest) error {
 	m.lastWriteAFIReq = &req
 	return nil
 }
 
-func (m *mockSOAPRfidClient) SendAFI(ctx context.Context, target string, req rfidclient.WriteAFIRequest) error {
+func (m *mockSOAPRfidClient) SendAFI(ctx context.Context, target string, req libraryclient.WriteAFIRequest) error {
 	m.lastWriteAFIReq = &req
 	return nil
 }
 
-func (m *mockSOAPRfidClient) WriteTag(ctx context.Context, target string, req rfidclient.WriteTagRequest) (*rfidclient.WriteTagResponse, error) {
+func (m *mockSOAPRfidClient) WriteTag(ctx context.Context, target string, req libraryclient.WriteTagRequest) (*libraryclient.WriteTagResponse, error) {
 	m.lastWriteTagReq = &req
-	return &rfidclient.WriteTagResponse{
-		Data: rfidclient.WriteTagResponseData{
+	return &libraryclient.WriteTagResponse{
+		Data: libraryclient.WriteTagResponseData{
 			Status: "ok",
 			UID:    req.UID,
 			ItemID: req.ItemID,
@@ -174,25 +174,25 @@ func TestSOAP_GetItems_Alma3M896(t *testing.T) {
 	ctrl, hub, _ := setupTestSOAPController(t)
 
 	// Add active secured and unsecured tags to Hub
-	hub.AddTag(&rfidclient.TagReadEvent{
+	hub.AddTag(&libraryclient.TagReadEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel: "rfid",
 		},
-		Data: rfidclient.TagReadData{
+		Data: libraryclient.TagReadData{
 			UID:      "E004015099887766",
 			ItemID:   "ALMA-3M-ITEM-01",
-			AFI:      rfidclient.AFISecured,
+			AFI:      libraryclient.AFISecured,
 			ReaderID: "reader-01",
 		},
 	})
-	hub.AddTag(&rfidclient.TagReadEvent{
+	hub.AddTag(&libraryclient.TagReadEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel: "rfid",
 		},
-		Data: rfidclient.TagReadData{
+		Data: libraryclient.TagReadData{
 			UID:      "E004015099887767",
 			ItemID:   "ALMA-3M-ITEM-02",
-			AFI:      rfidclient.AFIUnsecured,
+			AFI:      libraryclient.AFIUnsecured,
 			ReaderID: "reader-01",
 		},
 	})
@@ -237,14 +237,14 @@ func TestSOAP_GetItems_Alma3M896(t *testing.T) {
 func TestSOAP_SetTagSecurity_Alma3M896(t *testing.T) {
 	ctrl, hub, mockClient := setupTestSOAPController(t)
 
-	hub.AddTag(&rfidclient.TagReadEvent{
+	hub.AddTag(&libraryclient.TagReadEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel: "rfid",
 		},
-		Data: rfidclient.TagReadData{
+		Data: libraryclient.TagReadData{
 			UID:      "E004015099887766",
 			ItemID:   "ALMA-3M-ITEM-01",
-			AFI:      rfidclient.AFISecured,
+			AFI:      libraryclient.AFISecured,
 			ReaderID: "reader-01",
 		},
 	})
@@ -274,22 +274,22 @@ func TestSOAP_SetTagSecurity_Alma3M896(t *testing.T) {
 		t.Errorf("expected SetTagSecurityResult true, got: %s", body)
 	}
 
-	if mockClient.lastWriteAFIReq == nil || mockClient.lastWriteAFIReq.AFI != rfidclient.AFIUnsecured || mockClient.lastWriteAFIReq.UID != "E004015099887766" {
-		t.Errorf("expected WriteAFI on UID E004015099887766 with AFI %s, got: %+v", rfidclient.AFIUnsecured, mockClient.lastWriteAFIReq)
+	if mockClient.lastWriteAFIReq == nil || mockClient.lastWriteAFIReq.AFI != libraryclient.AFIUnsecured || mockClient.lastWriteAFIReq.UID != "E004015099887766" {
+		t.Errorf("expected WriteAFI on UID E004015099887766 with AFI %s, got: %+v", libraryclient.AFIUnsecured, mockClient.lastWriteAFIReq)
 	}
 }
 
 func TestSOAP_WriteTag_Alma3M896(t *testing.T) {
 	ctrl, hub, mockClient := setupTestSOAPController(t)
 
-	hub.AddTag(&rfidclient.TagReadEvent{
+	hub.AddTag(&libraryclient.TagReadEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel: "rfid",
 		},
-		Data: rfidclient.TagReadData{
+		Data: libraryclient.TagReadData{
 			UID:      "E004015012345678",
 			ItemID:   "OLD-BARCODE",
-			AFI:      rfidclient.AFISecured,
+			AFI:      libraryclient.AFISecured,
 			ReaderID: "reader-01",
 		},
 	})
@@ -333,14 +333,14 @@ func TestSOAP_WriteTag_Alma3M896(t *testing.T) {
 func TestSOAP_GetTag_Alma(t *testing.T) {
 	ctrl, hub, _ := setupTestSOAPController(t)
 
-	hub.AddTag(&rfidclient.TagReadEvent{
+	hub.AddTag(&libraryclient.TagReadEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel: "rfid",
 		},
-		Data: rfidclient.TagReadData{
+		Data: libraryclient.TagReadData{
 			UID:      "E004015011223344",
 			ItemID:   "ALMA-BOOK-12345",
-			AFI:      rfidclient.AFISecured,
+			AFI:      libraryclient.AFISecured,
 			ReaderID: "reader-01",
 		},
 	})
@@ -371,14 +371,14 @@ func TestSOAP_ChannelScopedEndpoint(t *testing.T) {
 	ctrl, hub, _ := setupTestSOAPController(t)
 
 	// Add tag to channel "rfid"
-	hub.AddTag(&rfidclient.TagReadEvent{
+	hub.AddTag(&libraryclient.TagReadEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Channel: "rfid",
 		},
-		Data: rfidclient.TagReadData{
+		Data: libraryclient.TagReadData{
 			UID:      "E004015099887766",
 			ItemID:   "ITEM-RFID-CHANNEL",
-			AFI:      rfidclient.AFISecured,
+			AFI:      libraryclient.AFISecured,
 			ReaderID: "reader-01",
 		},
 	})

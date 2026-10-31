@@ -1,8 +1,8 @@
 addr = "localhost:5000"
 extaddr = "http://localhost:5000"
-name = "rfid:desk:01"
+name = "mediathek:desk:01"
 wsbroker = "https://localhost:8765"
-channels = ["mediathek01", "rfid"]
+channels = ["mediathek01"]
 default_reader = ""
 default_isil = "CH-001596-0 "
 default_afi = "07"
@@ -17,7 +17,7 @@ parenttoken = "%%PARENT_TOKEN%%"
 tokentype = "client_cert"
 tokenpolicies = ["wsbroker.client"]
 certtype = "client_cert"
-uris = ["wsbroker:client:rfid:desk:01", "wsbroker:channel:rfid"]
+uris = ["wsbroker:client:mediathek:desk:01", "wsbroker:channel:mediathek01"]
 ca = ["certs/minivault.ca.pem"]
 usesystempool = false
 

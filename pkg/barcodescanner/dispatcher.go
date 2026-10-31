@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/je4/Library-RFID-Apps/pkg/barcodeclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/je4/wsbrokerclient"
 	"github.com/je4/wsbrokerclient/pkg/event"
@@ -134,7 +134,7 @@ func (d *BarcodeWsBrokerDispatcher) ChannelsForReader(readerID string) []string 
 }
 
 // DispatchScan broadcasts a scanned barcode event to all target channels.
-func (d *BarcodeWsBrokerDispatcher) DispatchScan(ctx context.Context, scan *barcodeclient.BarcodeReadData) {
+func (d *BarcodeWsBrokerDispatcher) DispatchScan(ctx context.Context, scan *libraryclient.BarcodeReadData) {
 	if scan == nil || !d.broker.IsConnected() {
 		return
 	}
@@ -153,7 +153,7 @@ func (d *BarcodeWsBrokerDispatcher) DispatchScan(ctx context.Context, scan *barc
 
 	for _, ch := range targetChannels {
 		rawEvt, err := wsbrokerclient.NewRawEvent(
-			barcodeclient.EventBarcodeRead,
+			libraryclient.EventBarcodeRead,
 			d.clientName,
 			ch,
 			scan,
@@ -202,7 +202,7 @@ func (d *BarcodeWsBrokerDispatcher) handleIncomingEvent(raw *event.RawEvent) {
 	normalized := strings.TrimSpace(strings.ToLower(eventName))
 
 	switch normalized {
-	case barcodeclient.EventGetDeviceMetadata,
+	case libraryclient.EventBarcodeGetDeviceMetadata,
 		"barcode:get_device_metadata",
 		"rfid/get_device_metadata", "rfid:get_device_metadata":
 		d.handleMetadataQuery(raw)
@@ -210,7 +210,7 @@ func (d *BarcodeWsBrokerDispatcher) handleIncomingEvent(raw *event.RawEvent) {
 }
 
 func (d *BarcodeWsBrokerDispatcher) handleMetadataQuery(raw *event.RawEvent) {
-	var req barcodeclient.DeviceMetadataRequest
+	var req libraryclient.BarcodeDeviceMetadataRequest
 	_ = json.Unmarshal(raw.Data, &req)
 
 	targetReaderID := strings.TrimSpace(req.ReaderID)
@@ -236,7 +236,7 @@ func (d *BarcodeWsBrokerDispatcher) handleMetadataQuery(raw *event.RawEvent) {
 	}
 
 	if len(matchedReaders) == 0 {
-		respData := &barcodeclient.DeviceMetadataResponseData{
+		respData := &libraryclient.BarcodeDeviceMetadataResponseData{
 			ReaderID:   targetReaderID,
 			Status:     "disconnected",
 			DeviceID:   targetReaderID,
@@ -252,12 +252,12 @@ func (d *BarcodeWsBrokerDispatcher) handleMetadataQuery(raw *event.RawEvent) {
 	}
 }
 
-func (d *BarcodeWsBrokerDispatcher) sendMetadataResponse(orig *event.RawEvent, target string, data *barcodeclient.DeviceMetadataResponseData) {
+func (d *BarcodeWsBrokerDispatcher) sendMetadataResponse(orig *event.RawEvent, target string, data *libraryclient.BarcodeDeviceMetadataResponseData) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	respEvt, err := wsbrokerclient.NewRawEvent(
-		barcodeclient.EventDeviceMetadataResponse,
+		libraryclient.EventBarcodeDeviceMetadataResponse,
 		d.clientName,
 		target,
 		data,

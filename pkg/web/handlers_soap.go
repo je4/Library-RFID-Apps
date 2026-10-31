@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/alma"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 // sendSOAPResponse serializes and sends a SOAP envelope response with appropriate headers.
@@ -134,7 +134,7 @@ func (ctrl *Controller) handleSOAPGetItems(c *gin.Context) {
 		}
 		isSecuredStr := "No"
 		isTagSecuredStr := "false"
-		if alma.SecurityStatusToAFI(alma.AFIToSecurityStatus(tag.AFI)) == rfidclient.AFISecured {
+		if alma.SecurityStatusToAFI(alma.AFIToSecurityStatus(tag.AFI)) == libraryclient.AFISecured {
 			isSecuredStr = "Yes"
 			isTagSecuredStr = "true"
 		}
@@ -256,9 +256,9 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 		channel = c.Query("channel")
 	}
 
-	targetAFI := rfidclient.AFIUnsecured
+	targetAFI := libraryclient.AFIUnsecured
 	if req.IsSecured {
-		targetAFI = rfidclient.AFISecured
+		targetAFI = libraryclient.AFISecured
 	}
 
 	if ctrl.logger != nil {
@@ -314,7 +314,7 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 	if targetTag != nil {
 		targetUID := targetTag.UID
 		if ctrl.rfidClient != nil {
-			afiReq := rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
+			afiReq := libraryclient.NewWriteAFIRequest(targetAFI, targetUID)
 			afiReq.ReaderID = targetReaderID
 			if targetSource != "" && targetSource != "all" {
 				afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
@@ -340,11 +340,11 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 		}
 	} else if ctrl.rfidClient != nil {
 		targetUID := req.TagID
-		var afiReq rfidclient.WriteAFIRequest
+		var afiReq libraryclient.WriteAFIRequest
 		if targetUID != "" {
-			afiReq = rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
+			afiReq = libraryclient.NewWriteAFIRequest(targetAFI, targetUID)
 		} else {
-			afiReq = rfidclient.NewWriteAFIRequest(targetAFI)
+			afiReq = libraryclient.NewWriteAFIRequest(targetAFI)
 		}
 		afiReq.ReaderID = targetReaderID
 		if targetSource != "" && targetSource != "all" {
@@ -459,7 +459,7 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 		targetUID := targetTag.UID
 		if itemIdentifier != "" && !strings.EqualFold(targetTag.ItemID, itemIdentifier) {
 			if ctrl.rfidClient != nil {
-				writeReq := rfidclient.NewWriteTagRequest(itemIdentifier, targetUID)
+				writeReq := libraryclient.NewWriteTagRequest(itemIdentifier, targetUID)
 				writeReq.ReaderID = targetReaderID
 				if targetAFI != "" {
 					writeReq.AFI = targetAFI
@@ -491,7 +491,7 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 			}
 		} else if targetAFI != "" {
 			if ctrl.rfidClient != nil {
-				afiReq := rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
+				afiReq := libraryclient.NewWriteAFIRequest(targetAFI, targetUID)
 				afiReq.ReaderID = targetReaderID
 				if targetSource != "" && targetSource != "all" {
 					afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
@@ -520,7 +520,7 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 		}
 	} else if ctrl.rfidClient != nil {
 		if itemIdentifier != "" {
-			writeReq := rfidclient.NewWriteTagRequest(itemIdentifier, req.TagUID)
+			writeReq := libraryclient.NewWriteTagRequest(itemIdentifier, req.TagUID)
 			writeReq.ReaderID = targetReaderID
 			if targetAFI != "" {
 				writeReq.AFI = targetAFI
@@ -539,7 +539,7 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 				success = true
 			}
 		} else if targetAFI != "" {
-			afiReq := rfidclient.NewWriteAFIRequest(targetAFI, req.TagUID)
+			afiReq := libraryclient.NewWriteAFIRequest(targetAFI, req.TagUID)
 			afiReq.ReaderID = targetReaderID
 			if targetSource != "" && targetSource != "all" {
 				afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
@@ -625,7 +625,7 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 		// Case 1: ItemIdentifier is provided and differs from current tag ItemID -> full write tag
 		if itemIdentifier != "" && !strings.EqualFold(targetTag.ItemID, itemIdentifier) {
 			if ctrl.rfidClient != nil {
-				writeReq := rfidclient.NewWriteTagRequest(itemIdentifier, targetUID)
+				writeReq := libraryclient.NewWriteTagRequest(itemIdentifier, targetUID)
 				writeReq.ReaderID = targetReaderID
 				if targetAFI != "" {
 					writeReq.AFI = targetAFI
@@ -658,7 +658,7 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 		} else if targetAFI != "" {
 			// Case 2: Only AFI / Security status toggle
 			if ctrl.rfidClient != nil {
-				afiReq := rfidclient.NewWriteAFIRequest(targetAFI, targetUID)
+				afiReq := libraryclient.NewWriteAFIRequest(targetAFI, targetUID)
 				afiReq.ReaderID = targetReaderID
 				if targetSource != "" && targetSource != "all" {
 					afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)
@@ -687,7 +687,7 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 		}
 	} else if ctrl.rfidClient != nil && targetAFI != "" {
 		// Blind write to reader field when tag is not currently in memory
-		afiReq := rfidclient.NewWriteAFIRequest(targetAFI)
+		afiReq := libraryclient.NewWriteAFIRequest(targetAFI)
 		afiReq.ReaderID = targetReaderID
 		if targetSource != "" && targetSource != "all" {
 			afiResp, err := ctrl.rfidClient.WriteAFI(ctx, targetSource, afiReq)

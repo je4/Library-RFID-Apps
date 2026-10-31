@@ -10,7 +10,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 func getSkinFromCookie(c *gin.Context) string {
@@ -227,9 +227,9 @@ func (ctrl *Controller) getEncodeData(channel ...string) desk.EncodeData {
 
 	defaultAFI := ctrl.cfg.DefaultAFI
 	if defaultAFI == "" {
-		defaultAFI = rfidclient.AFISecured
+		defaultAFI = libraryclient.AFISecured
 	} else {
-		defaultAFI = rfidclient.NormalizeAFI(defaultAFI)
+		defaultAFI = libraryclient.NormalizeAFI(defaultAFI)
 	}
 
 	return desk.EncodeData{
@@ -327,14 +327,14 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 		afi = ctrl.cfg.DefaultAFI
 	}
 	if afi == "" {
-		afi = rfidclient.AFISecured
+		afi = libraryclient.AFISecured
 	}
 	if strings.EqualFold(afi, "gesichert") || strings.EqualFold(afi, "secure") {
-		afi = rfidclient.AFISecured
+		afi = libraryclient.AFISecured
 	} else if strings.EqualFold(afi, "ungesichert") || strings.EqualFold(afi, "unsecure") {
-		afi = rfidclient.AFIUnsecured
+		afi = libraryclient.AFIUnsecured
 	} else {
-		afi = rfidclient.NormalizeAFI(afi)
+		afi = libraryclient.NormalizeAFI(afi)
 	}
 
 	// Determine target reader and daemon
@@ -358,7 +358,7 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 		targetSource = targetReader
 	}
 
-	req := rfidclient.WriteTagRequest{
+	req := libraryclient.WriteTagRequest{
 		ReaderID:  targetReaderID,
 		UID:       uid,
 		ItemID:    itemID,
@@ -499,7 +499,7 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	if ctrl.logger != nil {
 		ctrl.logger.Info().
 			Str("afi", afi).
-			Str("status", rfidclient.AFISecurityStatus(afi)).
+			Str("status", libraryclient.AFISecurityStatus(afi)).
 			Int("targets", len(uids)).
 			Strs("uids", uids).
 			Msg("AFI security update triggered from web desk")
@@ -544,7 +544,7 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 				continue
 			}
 			hadSyncWrite = true
-			clusterReq := rfidclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
+			clusterReq := libraryclient.NewWriteAFIBatchRequest(afi, clusterUIDs)
 			clusterReq.ReaderID = key.readerID
 
 			resp, err := ctrl.rfidClient.WriteAFI(ctx, key.target, clusterReq)
@@ -575,7 +575,7 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 			}
 		}
 	} else if ctrl.rfidClient != nil && len(targets) == 0 && len(activeTags) == 0 {
-		req := rfidclient.NewWriteAFIRequest(afi)
+		req := libraryclient.NewWriteAFIRequest(afi)
 		if ctrl.cfg.DefaultReader != "" {
 			hadSyncWrite = true
 			resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
@@ -611,7 +611,7 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	data.WriteErrorCount = errorCount
 	data.FailedItems = failedItems
 
-	statusName := rfidclient.AFISecurityStatus(afi)
+	statusName := libraryclient.AFISecurityStatus(afi)
 	if hadSyncWrite {
 		if errorCount == 0 && successCount > 0 {
 			if targetUID != "" {
@@ -654,11 +654,11 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 }
 
 func (ctrl *Controller) handleLoanAFISecure(c *gin.Context) {
-	ctrl.setAFIAndRespond(c, rfidclient.AFISecured)
+	ctrl.setAFIAndRespond(c, libraryclient.AFISecured)
 }
 
 func (ctrl *Controller) handleLoanAFIUnsecure(c *gin.Context) {
-	ctrl.setAFIAndRespond(c, rfidclient.AFIUnsecured)
+	ctrl.setAFIAndRespond(c, libraryclient.AFIUnsecured)
 }
 
 func (ctrl *Controller) handleLoanAFISingle(c *gin.Context) {
@@ -672,9 +672,9 @@ func (ctrl *Controller) handleLoanAFISingle(c *gin.Context) {
 	}
 	if afi == "" {
 		if strings.EqualFold(action, "unsecure") || strings.EqualFold(action, "entsichern") {
-			afi = rfidclient.AFIUnsecured
+			afi = libraryclient.AFIUnsecured
 		} else {
-			afi = rfidclient.AFISecured
+			afi = libraryclient.AFISecured
 		}
 	}
 	ctrl.setAFIAndRespond(c, afi)

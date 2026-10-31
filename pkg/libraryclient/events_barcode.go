@@ -1,4 +1,4 @@
-package barcodeclient
+package libraryclient
 
 import (
 	"fmt"
@@ -10,16 +10,16 @@ import (
 
 // Standard Barcode event identifiers exchanged with barcode-headless.
 const (
-	EventBarcodeRead            = "barcode/read"
-	EventGetDeviceMetadata      = "barcode/get_device_metadata"
-	EventDeviceMetadataResponse = "barcode/device_metadata_response"
+	EventBarcodeRead                   = "barcode/read"
+	EventBarcodeGetDeviceMetadata      = "barcode/get_device_metadata"
+	EventBarcodeDeviceMetadataResponse = "barcode/device_metadata_response"
 )
 
 func init() {
 	// Register Barcode event payloads with wsbrokerclient global registry
 	wsbrokerclient.RegisterPayload[BarcodeReadData](EventBarcodeRead)
-	wsbrokerclient.RegisterPayload[DeviceMetadataRequest](EventGetDeviceMetadata)
-	wsbrokerclient.RegisterPayload[DeviceMetadataResponseData](EventDeviceMetadataResponse)
+	wsbrokerclient.RegisterPayload[BarcodeDeviceMetadataRequest](EventBarcodeGetDeviceMetadata)
+	wsbrokerclient.RegisterPayload[BarcodeDeviceMetadataResponseData](EventBarcodeDeviceMetadataResponse)
 }
 
 // BarcodeReadData represents a scanned barcode payload.
@@ -82,35 +82,40 @@ func (e *BarcodeReadData) Summary() string {
 // BarcodeReadEvent represents a typed wsbroker event containing BarcodeReadData.
 type BarcodeReadEvent = wsbrokerclient.Event[BarcodeReadData]
 
-// DeviceMetadataRequest represents a query for barcode reader hardware status and metadata.
-type DeviceMetadataRequest struct {
+// BarcodeDeviceMetadataRequest represents a query for barcode reader hardware status and metadata.
+type BarcodeDeviceMetadataRequest struct {
 	ReaderID string `json:"readerId,omitempty"`
 }
 
 // GetReaderID returns the target reader identifier.
-func (r *DeviceMetadataRequest) GetReaderID() string {
+func (r *BarcodeDeviceMetadataRequest) GetReaderID() string {
 	return r.ReaderID
 }
 
 // WithReaderID sets the target reader identifier on the request.
-func (r *DeviceMetadataRequest) WithReaderID(readerID string) *DeviceMetadataRequest {
+func (r *BarcodeDeviceMetadataRequest) WithReaderID(readerID string) *BarcodeDeviceMetadataRequest {
 	r.ReaderID = readerID
 	return r
 }
 
-// NewDeviceMetadataRequest creates a new query request for reader hardware metadata.
-func NewDeviceMetadataRequest(readerID ...string) DeviceMetadataRequest {
+// NewBarcodeDeviceMetadataRequest creates a new query request for reader hardware metadata.
+func NewBarcodeDeviceMetadataRequest(readerID ...string) BarcodeDeviceMetadataRequest {
 	var rID string
 	if len(readerID) > 0 {
 		rID = readerID[0]
 	}
-	req := DeviceMetadataRequest{}
+	req := BarcodeDeviceMetadataRequest{}
 	req.ReaderID = rID
 	return req
 }
 
-// DeviceMetadataResponseData represents barcode reader hardware metadata and status.
-type DeviceMetadataResponseData struct {
+// NewBarcodeDeviceMetadataRequestForReader creates a new query request for a specific reader hardware metadata.
+func NewBarcodeDeviceMetadataRequestForReader(readerID string) BarcodeDeviceMetadataRequest {
+	return NewBarcodeDeviceMetadataRequest(readerID)
+}
+
+// BarcodeDeviceMetadataResponseData represents barcode reader hardware metadata and status.
+type BarcodeDeviceMetadataResponseData struct {
 	ReaderID        string `json:"readerId,omitempty"`
 	Status          string `json:"status,omitempty"`
 	DeviceID        string `json:"deviceId,omitempty"`
@@ -124,20 +129,20 @@ type DeviceMetadataResponseData struct {
 }
 
 // GetReaderID returns the logical reader identifier.
-func (r *DeviceMetadataResponseData) GetReaderID() string {
+func (r *BarcodeDeviceMetadataResponseData) GetReaderID() string {
 	return r.ReaderID
 }
 
-// DeviceMetadataResponse represents a typed wsbroker event containing DeviceMetadataResponseData.
-type DeviceMetadataResponse = wsbrokerclient.Event[DeviceMetadataResponseData]
+// BarcodeDeviceMetadataResponse represents a typed wsbroker event containing BarcodeDeviceMetadataResponseData.
+type BarcodeDeviceMetadataResponse = wsbrokerclient.Event[BarcodeDeviceMetadataResponseData]
 
 // IsSuccess returns true if the status equals "ok" or "connected".
-func (r *DeviceMetadataResponseData) IsSuccess() bool {
+func (r *BarcodeDeviceMetadataResponseData) IsSuccess() bool {
 	return strings.EqualFold(r.Status, "ok") || strings.EqualFold(r.Status, "connected")
 }
 
 // GetDescription returns the device description.
-func (r *DeviceMetadataResponseData) GetDescription() string {
+func (r *BarcodeDeviceMetadataResponseData) GetDescription() string {
 	if r.Description != "" {
 		return r.Description
 	}
@@ -148,9 +153,9 @@ func (r *DeviceMetadataResponseData) GetDescription() string {
 }
 
 // Summary returns a concise human-readable description of the device metadata.
-func (r *DeviceMetadataResponseData) Summary() string {
+func (r *BarcodeDeviceMetadataResponseData) Summary() string {
 	readerStr := ""
-	if rID := eReaderID(r.ReaderID); rID != "" {
+	if rID := strings.TrimSpace(r.ReaderID); rID != "" {
 		readerStr = fmt.Sprintf(" | Reader: %s", rID)
 	}
 	portStr := ""
@@ -161,11 +166,19 @@ func (r *DeviceMetadataResponseData) Summary() string {
 		r.Status, r.DeviceID, r.DeviceType, readerStr, portStr)
 }
 
-func eReaderID(id string) string {
-	return strings.TrimSpace(id)
-}
-
 // FormatTime formats a time as RFC3339 for payload timestamp fields.
 func FormatTime(t time.Time) string {
 	return t.UTC().Format(time.RFC3339)
 }
+
+// Handler function signatures for Barcode events.
+type (
+	// BarcodeReadHandler receives barcode read scan events.
+	BarcodeReadHandler func(evt *BarcodeReadEvent)
+
+	// BarcodeDeviceMetadataHandler receives reader hardware metadata responses.
+	BarcodeDeviceMetadataHandler func(evt *BarcodeDeviceMetadataResponse)
+
+	// AnyBarcodeEventHandler receives any parsed Barcode event payload.
+	AnyBarcodeEventHandler func(barcodeEvt any)
+)

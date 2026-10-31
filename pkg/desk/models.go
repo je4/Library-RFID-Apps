@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 // TagItem represents a view-friendly RFID tag record for dashboard rendering.
@@ -43,7 +43,7 @@ type TagItem struct {
 }
 
 // NewTagItem converts a low-level TagReadEvent into a display-oriented TagItem.
-func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
+func NewTagItem(tag *libraryclient.TagReadEvent) *TagItem {
 	if tag == nil {
 		return &TagItem{}
 	}
@@ -74,9 +74,9 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 		}
 	}
 
-	afiSecured := rfidclient.IsAFISecured(afi)
-	afiUnsecured := rfidclient.IsAFIUnsecured(afi)
-	afiSecurityStatus := rfidclient.AFISecurityStatus(afi)
+	afiSecured := libraryclient.IsAFISecured(afi)
+	afiUnsecured := libraryclient.IsAFIUnsecured(afi)
+	afiSecurityStatus := libraryclient.AFISecurityStatus(afi)
 
 	// Create unique scan row ID
 	rowID := fmt.Sprintf("%s-%d", strings.ReplaceAll(tag.Data.UID, ":", ""), ts)
@@ -117,9 +117,9 @@ func NewTagItem(tag *rfidclient.TagReadEvent) *TagItem {
 // SetAFI updates the AFI security state and metadata on the TagItem.
 func (item *TagItem) SetAFI(afi string) {
 	item.AFI = afi
-	item.AFISecured = rfidclient.IsAFISecured(afi)
-	item.AFIUnsecured = rfidclient.IsAFIUnsecured(afi)
-	item.AFISecurityStatus = rfidclient.AFISecurityStatus(afi)
+	item.AFISecured = libraryclient.IsAFISecured(afi)
+	item.AFIUnsecured = libraryclient.IsAFIUnsecured(afi)
+	item.AFISecurityStatus = libraryclient.AFISecurityStatus(afi)
 }
 
 // SetAFIWriteSuccess records a successful AFI write operation.

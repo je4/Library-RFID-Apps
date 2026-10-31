@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 // SSEMessage represents an individual event payload streamed to HTTP SSE clients.
@@ -151,7 +151,7 @@ func (h *Hub) Unsubscribe(ch chan *SSEMessage) {
 
 // AddTag stores a new tag scan, prepends it to the in-memory history,
 // and updates the active media table.
-func (h *Hub) AddTag(tag *rfidclient.TagReadEvent) *TagItem {
+func (h *Hub) AddTag(tag *libraryclient.TagReadEvent) *TagItem {
 	item := NewTagItem(tag)
 
 	h.mu.Lock()

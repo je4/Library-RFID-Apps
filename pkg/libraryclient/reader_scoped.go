@@ -1,7 +1,8 @@
-package rfidclient
+package libraryclient
 
 import (
 	"context"
+	"strings"
 
 	"github.com/je4/wsbrokerclient"
 )
@@ -33,8 +34,13 @@ func (s *readerScopedClient) ForReader(readerID string) Client {
 }
 
 func (s *readerScopedClient) DefaultReaderID() string {
-	return s.readerID
+	if s.readerID != "" {
+		return s.readerID
+	}
+	return s.parent.DefaultReaderID()
 }
+
+// RFID Methods
 
 func (s *readerScopedClient) GetDeviceMetadata(ctx context.Context, target ...string) (*DeviceMetadataResponse, error) {
 	var targetAddr string
@@ -45,7 +51,11 @@ func (s *readerScopedClient) GetDeviceMetadata(ctx context.Context, target ...st
 }
 
 func (s *readerScopedClient) GetDeviceMetadataForReader(ctx context.Context, target string, readerID string) (*DeviceMetadataResponse, error) {
-	return s.parent.GetDeviceMetadataForReader(ctx, target, readerID)
+	targetReader := s.readerID
+	if readerID != "" {
+		targetReader = readerID
+	}
+	return s.parent.GetDeviceMetadataForReader(ctx, target, targetReader)
 }
 
 func (s *readerScopedClient) GetDeviceMetadataMulti(ctx context.Context, target string, expectedResponses int) ([]*DeviceMetadataResponse, error) {
@@ -70,7 +80,7 @@ func (s *readerScopedClient) WriteTagBatch(ctx context.Context, target string, t
 }
 
 func (s *readerScopedClient) WriteTagBatchStream(ctx context.Context, target string, tags []TagWriteItem, expectedResults int) (<-chan *WriteTagResponse, error) {
-	if c, ok := s.parent.(*RFIDClient); ok {
+	if c, ok := s.parent.(*LibraryClient); ok {
 		return c.writeTagBatchStreamWithReader(ctx, target, tags, s.readerID, expectedResults)
 	}
 	return s.parent.WriteTagBatchStream(ctx, target, tags, expectedResults)
@@ -81,14 +91,14 @@ func (s *readerScopedClient) WriteTags(ctx context.Context, target string, tags 
 }
 
 func (s *readerScopedClient) SendWriteTagBatch(ctx context.Context, target string, tags []TagWriteItem) error {
-	if c, ok := s.parent.(*RFIDClient); ok {
+	if c, ok := s.parent.(*LibraryClient); ok {
 		return c.sendWriteTagBatchWithReader(ctx, target, tags, s.readerID)
 	}
 	return s.parent.SendWriteTagBatch(ctx, target, tags)
 }
 
 func (s *readerScopedClient) BroadcastWriteTagBatch(ctx context.Context, channel string, tags []TagWriteItem) error {
-	if c, ok := s.parent.(*RFIDClient); ok {
+	if c, ok := s.parent.(*LibraryClient); ok {
 		return c.broadcastWriteTagBatchWithReader(ctx, channel, tags, s.readerID)
 	}
 	return s.parent.BroadcastWriteTagBatch(ctx, channel, tags)
@@ -118,21 +128,35 @@ func (s *readerScopedClient) WriteAFIBatch(ctx context.Context, target string, u
 }
 
 func (s *readerScopedClient) WriteAFIBatchStream(ctx context.Context, target string, req WriteAFIRequest, expectedResults int) (<-chan *WriteAFIResponse, error) {
-	if req.ReaderID == "" {
-		req.ReaderID = s.readerID
+	if c, ok := s.parent.(*LibraryClient); ok {
+		return c.writeAFIBatchStreamWithReader(ctx, target, req, s.readerID, expectedResults)
 	}
 	return s.parent.WriteAFIBatchStream(ctx, target, req, expectedResults)
 }
 
 func (s *readerScopedClient) SetAFISecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
-	req := NewWriteAFIRequest(AFISecured, uid...)
-	req.ReaderID = s.readerID
+	req := WriteAFIRequest{
+		ReaderID: s.readerID,
+		AFI:      AFISecured,
+	}
+	if len(uid) == 1 {
+		req.UID = strings.TrimSpace(uid[0])
+	} else if len(uid) > 1 {
+		req.UIDs = uid
+	}
 	return s.parent.WriteAFI(ctx, target, req)
 }
 
 func (s *readerScopedClient) SetAFIUnsecured(ctx context.Context, target string, uid ...string) (*WriteAFIResponse, error) {
-	req := NewWriteAFIRequest(AFIUnsecured, uid...)
-	req.ReaderID = s.readerID
+	req := WriteAFIRequest{
+		ReaderID: s.readerID,
+		AFI:      AFIUnsecured,
+	}
+	if len(uid) == 1 {
+		req.UID = strings.TrimSpace(uid[0])
+	} else if len(uid) > 1 {
+		req.UIDs = uid
+	}
 	return s.parent.WriteAFI(ctx, target, req)
 }
 
@@ -145,15 +169,15 @@ func (s *readerScopedClient) UnsecureTag(ctx context.Context, target string, uid
 }
 
 func (s *readerScopedClient) SendAFI(ctx context.Context, target string, req WriteAFIRequest) error {
-	if req.ReaderID == "" {
-		req.ReaderID = s.readerID
+	if c, ok := s.parent.(*LibraryClient); ok {
+		return c.sendAFIWithReader(ctx, target, req, s.readerID)
 	}
 	return s.parent.SendAFI(ctx, target, req)
 }
 
 func (s *readerScopedClient) BroadcastAFI(ctx context.Context, channel string, req WriteAFIRequest) error {
-	if req.ReaderID == "" {
-		req.ReaderID = s.readerID
+	if c, ok := s.parent.(*LibraryClient); ok {
+		return c.broadcastAFIWithReader(ctx, channel, req, s.readerID)
 	}
 	return s.parent.BroadcastAFI(ctx, channel, req)
 }
@@ -211,7 +235,83 @@ func (s *readerScopedClient) SubscribeTags(ctx context.Context, channel string) 
 }
 
 func (s *readerScopedClient) SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
-	return s.parent.SubscribeTagsForReader(ctx, channel, readerID)
+	targetReader := s.readerID
+	if strings.TrimSpace(readerID) != "" {
+		targetReader = readerID
+	}
+	return s.parent.SubscribeTagsForReader(ctx, channel, targetReader)
+}
+
+// Barcode Methods
+
+func (s *readerScopedClient) GetBarcodeDeviceMetadata(ctx context.Context, target ...string) (*BarcodeDeviceMetadataResponse, error) {
+	var tgt string
+	if len(target) > 0 {
+		tgt = target[0]
+	}
+	return s.parent.GetBarcodeDeviceMetadataForReader(ctx, tgt, s.readerID)
+}
+
+func (s *readerScopedClient) GetBarcodeDeviceMetadataForReader(ctx context.Context, target string, readerID string) (*BarcodeDeviceMetadataResponse, error) {
+	targetReader := s.readerID
+	if readerID != "" {
+		targetReader = readerID
+	}
+	return s.parent.GetBarcodeDeviceMetadataForReader(ctx, target, targetReader)
+}
+
+func (s *readerScopedClient) OnBarcodeRead(handler BarcodeReadHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnBarcodeReadForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnBarcodeReadForReader(readerID string, handler BarcodeReadHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnBarcodeReadForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnBarcodeDeviceMetadata(handler BarcodeDeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnBarcodeDeviceMetadataForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnBarcodeDeviceMetadataForReader(readerID string, handler BarcodeDeviceMetadataHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnBarcodeDeviceMetadataForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) OnAnyBarcodeEvent(handler AnyBarcodeEventHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnAnyBarcodeEventForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnAnyBarcodeEventForReader(readerID string, handler AnyBarcodeEventHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnAnyBarcodeEventForReader(readerID, handler)
+}
+
+func (s *readerScopedClient) SubscribeBarcodes(ctx context.Context, channel string) (<-chan *BarcodeReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	return s.parent.SubscribeBarcodesForReader(ctx, channel, s.readerID)
+}
+
+func (s *readerScopedClient) SubscribeBarcodesForReader(ctx context.Context, channel string, readerID string) (<-chan *BarcodeReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	targetReader := s.readerID
+	if strings.TrimSpace(readerID) != "" {
+		targetReader = readerID
+	}
+	return s.parent.SubscribeBarcodesForReader(ctx, channel, targetReader)
+}
+
+// Global Methods
+
+func (s *readerScopedClient) OnAnyEvent(handler AnyEventHandler) wsbrokerclient.UnsubscribeFunc {
+	if handler == nil {
+		return func() {}
+	}
+	trimmedID := strings.TrimSpace(s.readerID)
+	return s.parent.OnAnyEvent(func(evt any) {
+		if trimmedID == "" {
+			handler(evt)
+			return
+		}
+		if rID := extractReaderID(evt); rID == "" || strings.EqualFold(rID, trimmedID) {
+			handler(evt)
+		}
+	})
 }
 
 func (s *readerScopedClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {

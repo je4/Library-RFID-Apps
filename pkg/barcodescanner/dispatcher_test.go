@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"github.com/beevik/ntp"
-	"github.com/je4/Library-RFID-Apps/pkg/barcodeclient"
 	"github.com/je4/Library-RFID-Apps/pkg/barcodescanner"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/wsbrokerclient/pkg/client"
 	"github.com/je4/wsbrokerclient/pkg/event"
 	"github.com/stretchr/testify/assert"
@@ -165,7 +165,7 @@ func TestBarcodeWsBrokerDispatcher_DispatchScan(t *testing.T) {
 	defer dispatcher.Close()
 
 	// Dispatch scan for reader 1 (has dedicated channels)
-	scan1 := &barcodeclient.BarcodeReadData{
+	scan1 := &libraryclient.BarcodeReadData{
 		ReaderID:  "scanner-01",
 		Barcode:   "3012345678",
 		Symbology: "Code 128 / GS1-128",
@@ -178,7 +178,7 @@ func TestBarcodeWsBrokerDispatcher_DispatchScan(t *testing.T) {
 	assert.Equal(t, "barcode", sent[1].Channel)
 
 	// Dispatch scan for reader 2 (falls back to global channels)
-	scan2 := &barcodeclient.BarcodeReadData{
+	scan2 := &libraryclient.BarcodeReadData{
 		ReaderID:  "scanner-02",
 		Barcode:   "9988776655",
 		Symbology: "EAN-13",
@@ -212,14 +212,14 @@ func TestBarcodeWsBrokerDispatcher_MetadataQuery(t *testing.T) {
 	require.NoError(t, err)
 	defer dispatcher.Close()
 
-	reqPayload := barcodeclient.DeviceMetadataRequest{ReaderID: "scanner-01"}
+	reqPayload := libraryclient.BarcodeDeviceMetadataRequest{ReaderID: "scanner-01"}
 	reqBytes, _ := json.Marshal(reqPayload)
 	reqEvt := &event.RawEvent{
 		BaseEvent: event.BaseEvent{
 			ID:     "req-12345",
 			Source: "ui-client",
 			Target: "barcode-daemon",
-			Type:   event.EventType(barcodeclient.EventGetDeviceMetadata),
+			Type:   event.EventType(libraryclient.EventBarcodeGetDeviceMetadata),
 		},
 		Data: reqBytes,
 	}
@@ -231,7 +231,7 @@ func TestBarcodeWsBrokerDispatcher_MetadataQuery(t *testing.T) {
 	assert.Equal(t, "req-12345", sent[0].RefID)
 	assert.Equal(t, "ui-client", sent[0].Target)
 
-	var respData barcodeclient.DeviceMetadataResponseData
+	var respData libraryclient.BarcodeDeviceMetadataResponseData
 	err = json.Unmarshal(sent[0].Data, &respData)
 	require.NoError(t, err)
 	assert.Equal(t, "scanner-01", respData.ReaderID)

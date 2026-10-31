@@ -1,100 +1,82 @@
-// Package rfidclient provides a high-level, production-ready Go client library
-// for communicating with rfid-headless RFID reader/writer daemons via wsbrokerclient.
+// Package rfidclient provides backward-compatible re-exports and aliases
+// forwarding to the unified pkg/libraryclient package.
 //
-// # Generic Event Architecture
-//
-// The client implements a clean generic event architecture built on wsbrokerclient.Event[T]:
-//
-//  1. Transport Metadata (wsbrokerclient.BaseEvent): Embedded in each event, carrying routing metadata
-//     (Source, Target, Channel, Token, Type, Timestamp, ID, RefID).
-//  2. Domain Data (TagReadData, TagsClearedData, etc.): Strongly typed RFID data structures
-//     with ISO 28560-2 library metadata, AFI security flags, and domain helper methods.
-//
-// # Single-Envelope Handler Signatures
-//
-// All event listener callbacks (OnTagRead, OnTagsCleared, OnWriteTagResponse, OnWriteAFIResponse)
-// receive strongly typed *wsbrokerclient.Event[T] envelopes:
-//
-//	client.OnTagRead(func(evt *rfidclient.TagReadEvent) {
-//	    // Access typed domain fields:
-//	    fmt.Printf("Scanned Item ID: %s, UID: %s\n", evt.Data.ItemID, evt.Data.UID)
-//	    // Access envelope routing metadata directly:
-//	    fmt.Printf("Received from source: %s on channel: %s\n", evt.Source, evt.Channel)
-//	})
+// Deprecated: Direct use of rfidclient is deprecated. Use github.com/je4/Library-RFID-Apps/pkg/libraryclient instead.
 package rfidclient
 
 import (
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/wsbrokerclient"
 )
 
-// Re-exported types from pkg/rfidclient for streamlined root import.
+// Re-exported types from pkg/libraryclient for backward compatibility.
 type (
-	Client                     = rfidclient.Client
-	RFIDClient                 = rfidclient.RFIDClient
-	Option                     = rfidclient.Option
-	TagReadData                = rfidclient.TagReadData
-	TagReadEvent               = rfidclient.TagReadEvent
-	TagsClearedData            = rfidclient.TagsClearedData
-	TagsClearedEvent           = rfidclient.TagsClearedEvent
-	DeviceMetadataRequest      = rfidclient.DeviceMetadataRequest
-	DeviceMetadataResponseData = rfidclient.DeviceMetadataResponseData
-	DeviceMetadataResponse     = rfidclient.DeviceMetadataResponse
-	WriteTagRequest            = rfidclient.WriteTagRequest
-	WriteTagResponseData       = rfidclient.WriteTagResponseData
-	WriteTagResponse           = rfidclient.WriteTagResponse
-	TagWriteItem               = rfidclient.TagWriteItem
-	TagWriteResult             = rfidclient.TagWriteResult
-	WriteAFIRequest            = rfidclient.WriteAFIRequest
-	WriteAFIResponseData       = rfidclient.WriteAFIResponseData
-	WriteAFIResponse           = rfidclient.WriteAFIResponse
-	TagAFIResult               = rfidclient.TagAFIResult
+	Client                     = libraryclient.Client
+	LibraryClient              = libraryclient.LibraryClient
+	RFIDClient                 = libraryclient.LibraryClient
+	Option                     = libraryclient.Option
+	TagReadData                = libraryclient.TagReadData
+	TagReadEvent               = libraryclient.TagReadEvent
+	TagsClearedData            = libraryclient.TagsClearedData
+	TagsClearedEvent           = libraryclient.TagsClearedEvent
+	DeviceMetadataRequest      = libraryclient.DeviceMetadataRequest
+	DeviceMetadataResponseData = libraryclient.DeviceMetadataResponseData
+	DeviceMetadataResponse     = libraryclient.DeviceMetadataResponse
+	WriteTagRequest            = libraryclient.WriteTagRequest
+	WriteTagResponseData       = libraryclient.WriteTagResponseData
+	WriteTagResponse           = libraryclient.WriteTagResponse
+	TagWriteItem               = libraryclient.TagWriteItem
+	TagWriteResult             = libraryclient.TagWriteResult
+	WriteAFIRequest            = libraryclient.WriteAFIRequest
+	WriteAFIResponseData       = libraryclient.WriteAFIResponseData
+	WriteAFIResponse           = libraryclient.WriteAFIResponse
+	TagAFIResult               = libraryclient.TagAFIResult
 
-	TagReadHandler          = rfidclient.TagReadHandler
-	TagsClearedHandler      = rfidclient.TagsClearedHandler
-	DeviceMetadataHandler   = rfidclient.DeviceMetadataHandler
-	WriteTagResponseHandler = rfidclient.WriteTagResponseHandler
-	WriteAFIResponseHandler = rfidclient.WriteAFIResponseHandler
-	AnyRFIDEventHandler     = rfidclient.AnyRFIDEventHandler
+	TagReadHandler          = libraryclient.TagReadHandler
+	TagsClearedHandler      = libraryclient.TagsClearedHandler
+	DeviceMetadataHandler   = libraryclient.DeviceMetadataHandler
+	WriteTagResponseHandler = libraryclient.WriteTagResponseHandler
+	WriteAFIResponseHandler = libraryclient.WriteAFIResponseHandler
+	AnyRFIDEventHandler     = libraryclient.AnyRFIDEventHandler
 )
 
 // Re-exported event constants and AFI security constants.
 const (
-	EventTagRead                = rfidclient.EventTagRead
-	EventTagsCleared            = rfidclient.EventTagsCleared
-	EventGetDeviceMetadata      = rfidclient.EventGetDeviceMetadata
-	EventDeviceMetadataResponse = rfidclient.EventDeviceMetadataResponse
-	EventWriteTag               = rfidclient.EventWriteTag
-	EventWriteTagResponse       = rfidclient.EventWriteTagResponse
-	EventWriteAFI               = rfidclient.EventWriteAFI
-	EventWriteAFIResponse       = rfidclient.EventWriteAFIResponse
+	EventTagRead                = libraryclient.EventTagRead
+	EventTagsCleared            = libraryclient.EventTagsCleared
+	EventGetDeviceMetadata      = libraryclient.EventGetDeviceMetadata
+	EventDeviceMetadataResponse = libraryclient.EventDeviceMetadataResponse
+	EventWriteTag               = libraryclient.EventWriteTag
+	EventWriteTagResponse       = libraryclient.EventWriteTagResponse
+	EventWriteAFI               = libraryclient.EventWriteAFI
+	EventWriteAFIResponse       = libraryclient.EventWriteAFIResponse
 
-	AFISecured   = rfidclient.AFISecured
-	AFIUnsecured = rfidclient.AFIUnsecured
-	AFIUnlocked  = rfidclient.AFIUnlocked
+	AFISecured   = libraryclient.AFISecured
+	AFIUnsecured = libraryclient.AFIUnsecured
+	AFIUnlocked  = libraryclient.AFIUnlocked
 )
 
 // Re-exported constructors, helpers and options.
 var (
-	New                               = rfidclient.New
-	NewFromConfig                     = rfidclient.NewFromConfig
-	WithDefaultTarget                 = rfidclient.WithDefaultTarget
-	WithDefaultReaderID               = rfidclient.WithDefaultReaderID
-	WithDefaultTimeout                = rfidclient.WithDefaultTimeout
-	WithLogger                        = rfidclient.WithLogger
-	WithChannels                      = rfidclient.WithChannels
-	WithClientName                    = rfidclient.WithClientName
-	NewDeviceMetadataRequest          = rfidclient.NewDeviceMetadataRequest
-	NewDeviceMetadataRequestForReader = rfidclient.NewDeviceMetadataRequestForReader
-	NewWriteTagRequest                = rfidclient.NewWriteTagRequest
-	NewWriteTagBatchRequest           = rfidclient.NewWriteTagBatchRequest
-	NewWriteTagBatchRequestFromMap    = rfidclient.NewWriteTagBatchRequestFromMap
-	NewWriteAFIRequest                = rfidclient.NewWriteAFIRequest
-	NewWriteAFIBatchRequest           = rfidclient.NewWriteAFIBatchRequest
-	NormalizeAFI                      = rfidclient.NormalizeAFI
-	IsAFISecured                      = rfidclient.IsAFISecured
-	IsAFIUnsecured                    = rfidclient.IsAFIUnsecured
-	AFISecurityStatus                 = rfidclient.AFISecurityStatus
+	New                               = libraryclient.New
+	NewFromConfig                     = libraryclient.NewFromConfig
+	WithDefaultTarget                 = libraryclient.WithDefaultTarget
+	WithDefaultReaderID               = libraryclient.WithDefaultReaderID
+	WithDefaultTimeout                = libraryclient.WithDefaultTimeout
+	WithLogger                        = libraryclient.WithLogger
+	WithChannels                      = libraryclient.WithChannels
+	WithClientName                    = libraryclient.WithClientName
+	NewDeviceMetadataRequest          = libraryclient.NewDeviceMetadataRequest
+	NewDeviceMetadataRequestForReader = libraryclient.NewDeviceMetadataRequestForReader
+	NewWriteTagRequest                = libraryclient.NewWriteTagRequest
+	NewWriteTagBatchRequest           = libraryclient.NewWriteTagBatchRequest
+	NewWriteTagBatchRequestFromMap    = libraryclient.NewWriteTagBatchRequestFromMap
+	NewWriteAFIRequest                = libraryclient.NewWriteAFIRequest
+	NewWriteAFIBatchRequest           = libraryclient.NewWriteAFIBatchRequest
+	NormalizeAFI                      = libraryclient.NormalizeAFI
+	IsAFISecured                      = libraryclient.IsAFISecured
+	IsAFIUnsecured                    = libraryclient.IsAFIUnsecured
+	AFISecurityStatus                 = libraryclient.AFISecurityStatus
 )
 
 // DefaultWSBrokerConfig returns standard WSBroker configuration with defaults.

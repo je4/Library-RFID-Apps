@@ -1,4 +1,4 @@
-package rfidclient
+package libraryclient
 
 import (
 	"context"
@@ -237,7 +237,17 @@ func (f *fakeBrokerClient) OnEvent(handler client.EventHandler) client.Unsubscri
 	f.mu.Lock()
 	f.msgHandlers = append(f.msgHandlers, handler)
 	f.mu.Unlock()
-	return func() {}
+	return func() {
+		f.mu.Lock()
+		defer f.mu.Unlock()
+		for i, h := range f.msgHandlers {
+			if strings.EqualFold(f.clientName, f.clientName) && i < len(f.msgHandlers) {
+				_ = h
+				f.msgHandlers = append(f.msgHandlers[:i], f.msgHandlers[i+1:]...)
+				break
+			}
+		}
+	}
 }
 func (f *fakeBrokerClient) OnMessage(handler client.EventHandler) client.UnsubscribeFunc {
 	f.mu.Lock()
@@ -267,11 +277,7 @@ func (f *fakeBrokerClient) OnError(callback func(error)) client.UnsubscribeFunc 
 	return func() {}
 }
 
-func (f *fakeBrokerClient) simulateIncomingEvent(eventType event.EventType, data any, target, source string) {
-	evt, err := event.NewRawEvent(eventType, source, target, data)
-	if err != nil {
-		return
-	}
+func (f *fakeBrokerClient) emitIncomingEvent(evt *event.RawEvent) {
 	f.mu.RLock()
 	handlers := append([]client.EventHandler(nil), f.msgHandlers...)
 	f.mu.RUnlock()
@@ -279,8 +285,4 @@ func (f *fakeBrokerClient) simulateIncomingEvent(eventType event.EventType, data
 	for _, h := range handlers {
 		h(evt)
 	}
-}
-
-func (f *fakeBrokerClient) simulateIncomingMessage(data any, target, source string) {
-	f.simulateIncomingEvent(event.TypeMessage, data, target, source)
 }

@@ -14,7 +14,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/data"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/utils/v2/pkg/zLogger"
 )
 
@@ -29,7 +29,7 @@ type Config struct {
 	DefaultISIL   string
 	DefaultAFI    string
 	Hub           *desk.Hub
-	RFIDClient    rfidclient.Client
+	RFIDClient    libraryclient.Client
 	ISILList      map[string]*desk.ISILEntry
 	Logger        zLogger.ZLogger
 	StartTime     time.Time
@@ -43,7 +43,7 @@ type Controller struct {
 	templates  *template.Template
 	logger     zLogger.ZLogger
 	hub        *desk.Hub
-	rfidClient rfidclient.Client
+	rfidClient libraryclient.Client
 	startTime  time.Time
 }
 
@@ -84,8 +84,8 @@ func NewController(cfg Config) (*Controller, error) {
 	return ctrl, nil
 }
 
-// SetRFIDClient configures or updates the RFID client used for sending AFI commands.
-func (ctrl *Controller) SetRFIDClient(client rfidclient.Client) {
+// SetRFIDClient configures or updates the RFID/Library client used for sending AFI commands.
+func (ctrl *Controller) SetRFIDClient(client libraryclient.Client) {
 	ctrl.rfidClient = client
 }
 

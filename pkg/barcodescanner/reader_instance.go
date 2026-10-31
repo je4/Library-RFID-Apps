@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"emperror.dev/errors"
-	"github.com/je4/Library-RFID-Apps/pkg/barcodeclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/rs/zerolog"
 )
 
 // ScanCallback is called whenever a new barcode is scanned and validated.
-type ScanCallback func(data *barcodeclient.BarcodeReadData)
+type ScanCallback func(data *libraryclient.BarcodeReadData)
 
 // BarcodeReaderInstance manages the serial communication and scan processing for a single barcode scanner.
 type BarcodeReaderInstance struct {
@@ -289,13 +289,13 @@ func (r *BarcodeReaderInstance) handleScannedRaw(raw string, onScan ScanCallback
 		Int64("totalScans", scansCount).
 		Msg("scanned barcode")
 
-	payload := &barcodeclient.BarcodeReadData{
+	payload := &libraryclient.BarcodeReadData{
 		ReaderID:   r.config.ID,
 		Barcode:    cleanCode,
 		ItemID:     cleanCode,
 		Symbology:  symbology,
 		Raw:        raw,
-		Timestamp:  barcodeclient.FormatTime(now),
+		Timestamp:  libraryclient.FormatTime(now),
 		DeviceID:   r.config.DeviceID,
 		DeviceType: r.config.DeviceType,
 	}
@@ -322,19 +322,19 @@ func (r *BarcodeReaderInstance) setDisconnectedStatus(reason string) {
 }
 
 // GetMetadata returns current device metadata and diagnostic status.
-func (r *BarcodeReaderInstance) GetMetadata() *barcodeclient.DeviceMetadataResponseData {
+func (r *BarcodeReaderInstance) GetMetadata() *libraryclient.BarcodeDeviceMetadataResponseData {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	lastScanStr := ""
 	if !r.lastScanTime.IsZero() {
-		lastScanStr = barcodeclient.FormatTime(r.lastScanTime)
+		lastScanStr = libraryclient.FormatTime(r.lastScanTime)
 	}
 
 	desc := fmt.Sprintf("%s on %s (%d baud, %d data bits, %s parity)",
 		r.config.DeviceType, r.config.Port, r.config.BaudRate, r.config.DataBits, r.config.Parity)
 
-	return &barcodeclient.DeviceMetadataResponseData{
+	return &libraryclient.BarcodeDeviceMetadataResponseData{
 		ReaderID:     r.config.ID,
 		Status:       r.status,
 		DeviceID:     r.config.DeviceID,

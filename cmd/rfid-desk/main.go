@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/Library-RFID-Apps/pkg/web"
 	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/je4/wsbrokerclient"
@@ -98,21 +98,21 @@ func main() {
 		brokerCfg.TLSCertLoader = &conf.ClientTLS
 	}
 
-	rfidOpts := []rfidclient.Option{
-		rfidclient.WithLogger(logger),
+	rfidOpts := []libraryclient.Option{
+		libraryclient.WithLogger(logger),
 	}
 	if conf.DefaultReader != "" {
-		rfidOpts = append(rfidOpts, rfidclient.WithDefaultTarget(conf.DefaultReader))
+		rfidOpts = append(rfidOpts, libraryclient.WithDefaultTarget(conf.DefaultReader))
 	}
 
-	rfidCli, err := rfidclient.NewFromConfig(brokerCfg, rfidOpts...)
+	rfidCli, err := libraryclient.NewFromConfig(brokerCfg, rfidOpts...)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("cannot initialize rfid client")
 	}
 	webCtrl.SetRFIDClient(rfidCli)
 
 	// 6. Register event listeners for tag scans and antenna field events
-	rfidCli.OnTagRead(func(tag *rfidclient.TagReadEvent) {
+	rfidCli.OnTagRead(func(tag *libraryclient.TagReadEvent) {
 		logger.Info().
 			Str("id", tag.ID).
 			Str("refId", tag.RefID).
@@ -129,7 +129,7 @@ func main() {
 		webCtrl.HandleTagRead(tag)
 	})
 
-	rfidCli.OnTagsCleared(func(cleared *rfidclient.TagsClearedEvent) {
+	rfidCli.OnTagsCleared(func(cleared *libraryclient.TagsClearedEvent) {
 		logger.Info().
 			Str("id", cleared.ID).
 			Str("refId", cleared.RefID).
@@ -137,7 +137,7 @@ func main() {
 		webCtrl.HandleTagsCleared()
 	})
 
-	rfidCli.OnWriteTagResponse(func(resp *rfidclient.WriteTagResponse) {
+	rfidCli.OnWriteTagResponse(func(resp *libraryclient.WriteTagResponse) {
 		if resp.Data.IsSuccess() {
 			logger.Info().
 				Str("id", resp.ID).
@@ -158,8 +158,8 @@ func main() {
 		}
 	})
 
-	rfidCli.OnWriteAFIResponse(func(resp *rfidclient.WriteAFIResponse) {
-		secStatus := rfidclient.AFISecurityStatus(resp.Data.AFI)
+	rfidCli.OnWriteAFIResponse(func(resp *libraryclient.WriteAFIResponse) {
+		secStatus := libraryclient.AFISecurityStatus(resp.Data.AFI)
 		if secStatus == "" {
 			secStatus = resp.Data.AFI
 		}

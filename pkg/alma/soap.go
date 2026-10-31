@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"strings"
 
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 // Standard namespaces for SOAP 1.1 and Alma TagService.
@@ -196,9 +196,9 @@ func SecurityStatusToAFI(status string) string {
 	s := strings.TrimSpace(strings.ToLower(status))
 	switch s {
 	case "protected", "secured", "gesichert", "true", "yes", "1", "07", "7":
-		return rfidclient.AFISecured
+		return libraryclient.AFISecured
 	case "unprotected", "unsecured", "entsichert", "false", "no", "0", "c2":
-		return rfidclient.AFIUnsecured
+		return libraryclient.AFIUnsecured
 	default:
 		return ""
 	}
@@ -206,11 +206,11 @@ func SecurityStatusToAFI(status string) string {
 
 // AFIToSecurityStatus converts an ISO 28560 AFI hex string into an Alma security status string.
 func AFIToSecurityStatus(afi string) string {
-	norm := rfidclient.NormalizeAFI(afi)
+	norm := libraryclient.NormalizeAFI(afi)
 	switch norm {
-	case rfidclient.AFISecured:
+	case libraryclient.AFISecured:
 		return SecurityStatusProtected
-	case rfidclient.AFIUnsecured:
+	case libraryclient.AFIUnsecured:
 		return SecurityStatusUnprotected
 	default:
 		return SecurityStatusUndefined

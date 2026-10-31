@@ -3,7 +3,7 @@ package desk
 import (
 	"testing"
 
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/rs/zerolog"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -65,8 +65,8 @@ func TestFindISILEntry_And_TagItemEnrich(t *testing.T) {
 
 	// Test Hub integration
 	hub := NewHub(10, list)
-	item := hub.AddTag(&rfidclient.TagReadEvent{
-		Data: rfidclient.TagReadData{
+	item := hub.AddTag(&libraryclient.TagReadEvent{
+		Data: libraryclient.TagReadData{
 			UID:     "E004015011223344",
 			ItemID:  "ITEM-001",
 			ISIL:    "CH-000050-X",

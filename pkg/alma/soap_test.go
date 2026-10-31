@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
 
 func TestSecurityStatusConversion(t *testing.T) {
@@ -13,20 +13,20 @@ func TestSecurityStatusConversion(t *testing.T) {
 		status   string
 		expected string
 	}{
-		{"Protected", rfidclient.AFISecured},
-		{"protected", rfidclient.AFISecured},
-		{"Secured", rfidclient.AFISecured},
-		{"Gesichert", rfidclient.AFISecured},
-		{"07", rfidclient.AFISecured},
-		{"true", rfidclient.AFISecured},
-		{"yes", rfidclient.AFISecured},
-		{"Unprotected", rfidclient.AFIUnsecured},
-		{"unprotected", rfidclient.AFIUnsecured},
-		{"Unsecured", rfidclient.AFIUnsecured},
-		{"Entsichert", rfidclient.AFIUnsecured},
-		{"C2", rfidclient.AFIUnsecured},
-		{"false", rfidclient.AFIUnsecured},
-		{"no", rfidclient.AFIUnsecured},
+		{"Protected", libraryclient.AFISecured},
+		{"protected", libraryclient.AFISecured},
+		{"Secured", libraryclient.AFISecured},
+		{"Gesichert", libraryclient.AFISecured},
+		{"07", libraryclient.AFISecured},
+		{"true", libraryclient.AFISecured},
+		{"yes", libraryclient.AFISecured},
+		{"Unprotected", libraryclient.AFIUnsecured},
+		{"unprotected", libraryclient.AFIUnsecured},
+		{"Unsecured", libraryclient.AFIUnsecured},
+		{"Entsichert", libraryclient.AFIUnsecured},
+		{"C2", libraryclient.AFIUnsecured},
+		{"false", libraryclient.AFIUnsecured},
+		{"no", libraryclient.AFIUnsecured},
 		{"unknown", ""},
 		{"", ""},
 	}

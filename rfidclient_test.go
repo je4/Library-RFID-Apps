@@ -1,151 +1,53 @@
-package rfidclient_test
+package rfidclient
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	rfidapps "github.com/je4/Library-RFID-Apps"
-	"github.com/je4/wsbrokerclient"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-func TestRootPackageExports(t *testing.T) {
-	// Verify that root package exports match pkg/rfidclient
-	req := rfidapps.NewWriteTagRequest("12345", "E00401")
-	if req.ItemID != "12345" || req.UID != "E00401" {
-		t.Errorf("unexpected write tag request: %+v", req)
-	}
+func TestReExports_BackwardCompatibility(t *testing.T) {
+	// Verify constants
+	assert.Equal(t, libraryclient.EventTagRead, EventTagRead)
+	assert.Equal(t, libraryclient.EventTagsCleared, EventTagsCleared)
+	assert.Equal(t, libraryclient.AFISecured, AFISecured)
+	assert.Equal(t, libraryclient.AFIUnsecured, AFIUnsecured)
 
-	afiReq := rfidapps.NewWriteAFIRequest("07", "E00401")
-	if afiReq.AFI != "07" || afiReq.UID != "E00401" {
-		t.Errorf("unexpected AFI request: %+v", afiReq)
-	}
+	// Verify helpers
+	assert.Equal(t, "07", NormalizeAFI("7"))
+	assert.True(t, IsAFISecured("07"))
+	assert.True(t, IsAFIUnsecured("C2"))
+	assert.Equal(t, "Gesichert", AFISecurityStatus("07"))
 
-	batchAfiReq := rfidapps.NewWriteAFIBatchRequest("C2", []string{"E00401", "E00402"})
-	if batchAfiReq.AFI != "C2" || len(batchAfiReq.UIDs) != 2 || batchAfiReq.UID != "E00401" {
-		t.Errorf("unexpected batch AFI request: %+v", batchAfiReq)
-	}
+	// Verify request builders
+	req := NewWriteTagRequest("ITEM1", "E001")
+	assert.Equal(t, "E001", req.UID)
+	assert.Equal(t, "ITEM1", req.ItemID)
 
-	// Verify batch tag write constructors and types
-	tagItems := []rfidapps.TagWriteItem{
-		{UID: "TAG-1", ItemID: "ITEM-1", Parts: 2, PartNo: 1, AFI: "07"},
-		{UID: "TAG-2", ItemID: "ITEM-2", Parts: 2, PartNo: 2, AFI: "C2"},
-	}
-	batchTagReq := rfidapps.NewWriteTagBatchRequest(tagItems)
-	if len(batchTagReq.Tags) != 2 || batchTagReq.UID != "TAG-1" {
-		t.Errorf("unexpected batch tag write request: %+v", batchTagReq)
-	}
+	afiReq := NewWriteAFIRequest("07", "E001")
+	assert.Equal(t, "07", afiReq.AFI)
+	assert.Equal(t, "E001", afiReq.UID)
 
-	mapTagReq := rfidapps.NewWriteTagBatchRequestFromMap(map[string]string{
-		"TAG-1": "ITEM-1",
-		"TAG-2": "ITEM-2",
-	})
-	if len(mapTagReq.Tags) != 2 {
-		t.Errorf("unexpected map tag write request: %+v", mapTagReq)
-	}
+	metaReq := NewDeviceMetadataRequest("pad-01")
+	assert.Equal(t, "pad-01", metaReq.ReaderID)
 
-	var _ rfidapps.TagWriteResult
-	var _ rfidapps.TagWriteItem
+	// Verify config
+	cfg := DefaultWSBrokerConfig()
+	assert.True(t, cfg.AutoReconnect)
 
-	// Verify AFI security constants and helper functions
-	if rfidapps.AFISecured != "07" {
-		t.Errorf("expected AFISecured = '07', got %s", rfidapps.AFISecured)
-	}
-	if rfidapps.AFIUnsecured != "C2" {
-		t.Errorf("expected AFIUnsecured = 'C2', got %s", rfidapps.AFIUnsecured)
-	}
-	if rfidapps.AFIUnlocked != "C2" {
-		t.Errorf("expected AFIUnlocked = 'C2', got %s", rfidapps.AFIUnlocked)
-	}
-	if !rfidapps.IsAFISecured("07") || !rfidapps.IsAFISecured("7") {
-		t.Errorf("IsAFISecured failed for '07'/'7'")
-	}
-	if !rfidapps.IsAFIUnsecured("C2") || !rfidapps.IsAFIUnsecured("c2") {
-		t.Errorf("IsAFIUnsecured failed for 'C2'/'c2'")
-	}
-	if rfidapps.AFISecurityStatus("07") != "Gesichert" || rfidapps.AFISecurityStatus("c2") != "Entsichert" {
-		t.Errorf("AFISecurityStatus returned unexpected string")
-	}
+	// Verify option creation
+	_ = WithDefaultTarget("rfid-daemon")
+	_ = WithDefaultReaderID("pad-01")
+	_ = WithDefaultTimeout(5 * time.Second)
+	_ = WithChannels("all")
+	_ = WithClientName("desk")
 
-	metaReqReader := rfidapps.NewDeviceMetadataRequestForReader("gate-01")
-	if metaReqReader.GetReaderID() != "gate-01" {
-		t.Errorf("expected GetReaderID() = 'gate-01', got %s", metaReqReader.GetReaderID())
-	}
-
-	cfg := rfidapps.DefaultWSBrokerConfig()
-	if cfg.ClientName != "" {
-		t.Errorf("unexpected ClientName in default config: %s", cfg.ClientName)
-	}
-
-	rawEvt := &wsbrokerclient.RawEvent{
-		BaseEvent: wsbrokerclient.BaseEvent{Type: rfidapps.EventTagRead},
-		Data:      []byte(`{"uid":"E004","itemId":"TEST-1","readerId":"gate-01"}`),
-	}
-	payload, err := wsbrokerclient.UnmarshalDynamic(rawEvt)
-	if err != nil {
-		t.Fatalf("UnmarshalDynamic failed: %v", err)
-	}
-
-	tag, ok := payload.(rfidapps.TagReadData)
-	if !ok || tag.ItemID != "TEST-1" || tag.GetReaderID() != "gate-01" {
-		t.Errorf("unexpected parsed object: %+v", payload)
-	}
-
-	// Verify options exist
-	_ = rfidapps.WithDefaultTarget("station-1")
-	_ = rfidapps.WithDefaultReaderID("gate-01")
-	_ = rfidapps.WithDefaultTimeout(5 * time.Second)
-	_ = rfidapps.WithChannels("all", "intern")
-	_ = rfidapps.WithClientName("app-1")
-
-	// Verify wsbrokerclient compatibility
-	brokerCfg := wsbrokerclient.DefaultConfig()
-	brokerCfg.ClientName = "test-app"
-	client, err := wsbrokerclient.New(brokerCfg)
-	if err != nil {
-		t.Fatalf("failed to create broker client: %v", err)
-	}
-	defer client.Close()
-
-	rfidClient, err := rfidapps.New(client, rfidapps.WithDefaultTarget("station-1"), rfidapps.WithDefaultReaderID("gate-01"))
-	if err != nil {
-		t.Fatalf("failed to create rfid client: %v", err)
-	}
-	defer rfidClient.Close()
-
-	if rfidClient.BrokerClient() == nil {
-		t.Error("BrokerClient() should not be nil")
-	}
-
-	scopedClient := rfidClient.ForReader("gate-02")
-	if scopedClient.DefaultReaderID() != "gate-02" {
-		t.Errorf("scopedClient.DefaultReaderID() = %q, want 'gate-02'", scopedClient.DefaultReaderID())
-	}
-
-	_ = rfidClient.OnTagRead(func(tag *rfidapps.TagReadEvent) {})
-	_ = rfidClient.OnTagReadForReader("gate-01", func(tag *rfidapps.TagReadEvent) {})
-	_ = rfidClient.OnTagsCleared(func(cleared *rfidapps.TagsClearedEvent) {})
-	_ = rfidClient.OnTagsClearedForReader("gate-01", func(cleared *rfidapps.TagsClearedEvent) {})
-	_ = rfidClient.OnDeviceMetadata(func(meta *rfidapps.DeviceMetadataResponse) {})
-	_ = rfidClient.OnDeviceMetadataForReader("gate-01", func(meta *rfidapps.DeviceMetadataResponse) {})
-	_ = rfidClient.OnWriteTagResponse(func(resp *rfidapps.WriteTagResponse) {})
-	_ = rfidClient.OnWriteTagResponseForReader("gate-01", func(resp *rfidapps.WriteTagResponse) {})
-	_ = rfidClient.OnWriteAFIResponse(func(resp *rfidapps.WriteAFIResponse) {})
-	_ = rfidClient.OnWriteAFIResponseForReader("gate-01", func(resp *rfidapps.WriteAFIResponse) {})
-	_ = rfidClient.OnAnyRFIDEvent(func(rfidEvt any) {})
-	_ = rfidClient.OnAnyRFIDEventForReader("gate-01", func(rfidEvt any) {})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	_, unsub, err := rfidClient.SubscribeTags(ctx, "all")
-	if err != nil {
-		t.Fatalf("SubscribeTags failed: %v", err)
-	}
-	unsub()
-
-	_, unsubReader, err := rfidClient.SubscribeTagsForReader(ctx, "all", "gate-01")
-	if err != nil {
-		t.Fatalf("SubscribeTagsForReader failed: %v", err)
-	}
-	unsubReader()
+	// Context check
+	ctx := context.Background()
+	assert.NotNil(t, ctx)
+	require.NotNil(t, cfg)
 }

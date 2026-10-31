@@ -1,6 +1,6 @@
-name = "barcode:headless:01"
+name = "mediathek:barcodereader:01"
 wsbroker = "https://localhost:8765"
-channels = ["rfid"]
+channels = ["mediathek01"]
 
 [clienttls]
 type = "minivault"
@@ -11,7 +11,7 @@ parenttoken = "%%PARENT_TOKEN%%"
 tokentype = "client_cert"
 tokenpolicies = ["wsbroker.client"]
 certtype = "client_cert"
-uris = ["wsbroker:client:barcode:headless:01", "wsbroker:channel:rfid"]
+uris = ["wsbroker:client:mediathek:barcodereader:01", "wsbroker:channel:mediathek01"]
 ca = ["certs/minivault.ca.pem"]
 usesystempool = false
 
@@ -29,7 +29,7 @@ delimiter = "\r"                   # Honeywell line terminator (\r or \r\n)
 trim_whitespace = true             # Strip whitespace and control characters
 strip_aim_id = true                # Strip AIM symbology prefix (e.g. ]C1)
 debounce_ms = 300                  # Suppress rapid duplicate scans within 300ms
-channels = ["rfid"]   # Optional per-reader channel routing
+channels = ["mediathek01"]   # Optional per-reader channel routing
 read_only = true
 enabled = true
 reconnect_sec = 3                  # Reconnect retry interval in seconds

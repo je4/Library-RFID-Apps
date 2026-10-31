@@ -9,8 +9,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/je4/Library-RFID-Apps/pkg/barcodeclient"
 	"github.com/je4/Library-RFID-Apps/pkg/barcodescanner"
+	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/je4/wsbrokerclient"
 	"github.com/rs/zerolog"
@@ -101,7 +101,7 @@ func main() {
 	scanCtx, scanCancel := context.WithCancel(context.Background())
 	defer scanCancel()
 
-	err = registry.StartAll(scanCtx, func(scan *barcodeclient.BarcodeReadData) {
+	err = registry.StartAll(scanCtx, func(scan *libraryclient.BarcodeReadData) {
 		dispatcher.DispatchScan(context.Background(), scan)
 	})
 	if err != nil {
