@@ -19,11 +19,11 @@
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-8">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
 
         <!-- Form & Controls Panel for Encoding -->
         <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden">
-            <div class="p-4 sm:p-5 border-b border-base-200">
+            <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-base-200">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
                         <span class="app-icon icon-tag w-5 h-5 text-primary" aria-hidden="true"></span>
@@ -37,7 +37,7 @@
 
             <!-- Encoding Input Grid -->
             <div class="p-5 sm:p-6 lg:p-7">
-                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4 sm:gap-6 items-end">
                     <!-- Barcode / ItemID Input -->
                     <div class="md:col-span-6 flex flex-col gap-1.5">
                         <label for="encode-item-id" class="text-xs font-semibold flex items-center justify-between">
@@ -84,7 +84,7 @@
             </div>
 
             <!-- Parts Selection & Start Action Bar -->
-            <div class="p-4 sm:p-5 bg-base-200/40 border-t border-base-200 flex flex-wrap items-center justify-between gap-4">
+            <div class="px-5 sm:px-6 py-3.5 sm:py-4 bg-base-200/40 border-t border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <!-- Multi-part selector -->
                 <div class="flex items-center flex-wrap gap-3">
                     <span class="text-xs font-semibold mr-1">Teile (Multi-Part):</span>
@@ -126,7 +126,7 @@
         <!-- Active Media Table & Control Panel -->
         <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden flex-1 flex flex-col">
             <!-- Action Toolbar -->
-            <div class="p-4 sm:p-5 border-b border-base-200 flex flex-wrap items-center justify-between gap-3">
+            <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
                         <h2 class="text-base font-semibold">Aktuell aufliegende Medien auf Reader</h2>
@@ -149,14 +149,14 @@
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 bg-base-200 text-base-content/80 font-bold">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
-                            <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
-                            <th scope="col" class="py-3 px-4 whitespace-nowrap">Transponder UID</th>
-                            <th scope="col" class="py-3 px-4 whitespace-nowrap">Teile (Multi-Part)</th>
-                            <th scope="col" class="py-3 px-4 whitespace-nowrap">Bibliothek / ISIL</th>
-                            <th scope="col" class="py-3 px-4 whitespace-nowrap">CRC Prüfsumme</th>
-                            <th scope="col" class="py-3 px-4">AFI Sicherheitsstatus</th>
-                            <th scope="col" class="py-3 px-4 whitespace-nowrap">Aktionen</th>
-                            <th scope="col" class="py-3 px-4 text-right whitespace-nowrap">Zuletzt erfasst</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Item ID (Medium)</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Transponder UID</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Teile (Multi-Part)</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Bibliothek / ISIL</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">CRC Prüfsumme</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5">AFI Sicherheitsstatus</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Aktionen</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Zuletzt erfasst</th>
                         </tr>
                     </thead>
                     <tbody id="loan-table-body" sse-swap="loan_tags" data-sse-swap="loan_tags" hx-swap="innerHTML">

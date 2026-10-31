@@ -1,5 +1,5 @@
 <!-- Header Bar with Navigation -->
-<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-8 bg-base-100 border border-base-200 shadow-sm rounded-2xl px-5 py-3 gap-4 min-h-0 text-base-content">
+<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 bg-base-100 border border-base-200 shadow-sm rounded-2xl px-5 sm:px-6 py-3 sm:py-3.5 gap-4 min-h-0 text-base-content">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
@@ -33,13 +33,257 @@
 
     <!-- Top Right Actions & Theme Selector -->
     <div class="flex items-center space-x-3">
-        <!-- Theme & Appearance Dialog Trigger Button -->
-        <button id="theme-dialog-btn" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Themes)" aria-haspopup="dialog" aria-controls="theme-modal-dialog">
-            <span class="app-icon icon-palette w-4 h-4 shrink-0" aria-hidden="true"></span>
-            <span class="hidden sm:inline text-xs font-semibold">Design</span>
-            <span id="theme-mode-indicator" class="badge badge-xs badge-outline font-mono text-[10px] uppercase">Auto</span>
-            <span id="theme-name-indicator" class="badge badge-xs badge-primary font-mono text-[10px]">corporate</span>
-        </button>
+        <!-- DaisyUI Theme Controller Dropdown -->
+        <div class="dropdown dropdown-end" id="theme-dropdown">
+            <div tabindex="0" role="button" id="theme-dialog-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Theme Controller)" aria-label="Theme Controller" aria-haspopup="true">
+                <span class="app-icon icon-palette w-4 h-4 shrink-0" aria-hidden="true"></span>
+                <span class="hidden sm:inline text-xs font-semibold">Theme</span>
+                <span id="theme-name-indicator" class="badge badge-xs badge-primary font-mono text-[10px]">corporate</span>
+                <svg class="w-3.5 h-3.5 opacity-60 inline-block fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1799 647l-775 775L249 647l64-64 711 711 711-711z"/></svg>
+            </div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-200 text-base-content rounded-2xl z-50 w-60 p-2 shadow-2xl max-h-[75vh] overflow-y-auto border border-base-300 space-y-1 transponder-stream-scroll" id="theme-dropdown-menu">
+                <li class="menu-title text-xs font-bold px-2 py-1.5 opacity-70">Farbpalette</li>
+                <!-- Theme Controller Radio Items -->
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="light" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">light</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="light" aria-label="light" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="dark" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">dark</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="dark" aria-label="dark" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="cupcake" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">cupcake</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="cupcake" aria-label="cupcake" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="bumblebee" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">bumblebee</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="bumblebee" aria-label="bumblebee" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="emerald" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">emerald</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="emerald" aria-label="emerald" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="corporate" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">corporate</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="corporate" aria-label="corporate" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="synthwave" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">synthwave</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="synthwave" aria-label="synthwave" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="retro" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">retro</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="retro" aria-label="retro" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="cyberpunk" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">cyberpunk</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="cyberpunk" aria-label="cyberpunk" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="valentine" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">valentine</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="valentine" aria-label="valentine" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="halloween" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">halloween</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="halloween" aria-label="halloween" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="garden" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">garden</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="garden" aria-label="garden" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="forest" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">forest</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="forest" aria-label="forest" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2.5">
+                            <span data-theme="nord" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-neutral inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">nord</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-check-icon hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-dropdown" class="theme-controller hidden" value="nord" aria-label="nord" />
+                        </div>
+                    </label>
+                </li>
+            </ul>
+        </div>
 
         {{if .Channel}}
         <!-- Back to Channels Selection Button -->
@@ -72,5 +316,3 @@
         {{end}}
     </div>
 </header>
-
-{{template "theme_modal.gohtml" .}}

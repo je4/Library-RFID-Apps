@@ -1,18 +1,19 @@
 // ==========================================================================
 // RFID Desk SCSS Variables & Ambient Background System
+// DaisyUI 5 Compatible Variables
 // ==========================================================================
 
 :root {
-    --color-bg-body: hsl(var(--b1));
+    --color-bg-body: var(--color-base-100);
     --color-bg-image: url('../img/background.jpg');
     --color-bg-overlay: linear-gradient(135deg, rgba(248, 250, 252, 0.75) 0%, rgba(241, 245, 249, 0.88) 100%);
 
-    --scrollbar-track: hsla(var(--b2) / 0.6);
-    --scrollbar-thumb: hsla(var(--bc) / 0.25);
-    --scrollbar-thumb-hover: hsla(var(--bc) / 0.40);
+    --scrollbar-track: color-mix(in oklab, var(--color-base-200) 60%, transparent);
+    --scrollbar-thumb: color-mix(in oklab, var(--color-base-content) 25%, transparent);
+    --scrollbar-thumb-hover: color-mix(in oklab, var(--color-base-content) 40%, transparent);
 
-    --scan-flash-bg: hsla(var(--p) / 0.20);
-    --scan-flash-shadow: hsla(var(--p) / 0.35);
+    --scan-flash-bg: color-mix(in oklab, var(--color-primary) 20%, transparent);
+    --scan-flash-shadow: color-mix(in oklab, var(--color-primary) 35%, transparent);
 }
 
 .dark,

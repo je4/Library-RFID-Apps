@@ -2002,7 +2002,7 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 		t.Fatalf("failed to create web controller: %v", err)
 	}
 
-	// 1. Requesting index, desk, and loan -> contains #theme-dialog-btn and #theme-modal-dialog
+	// 1. Requesting index, desk, and loan -> contains #theme-dialog-btn and #theme-dropdown-menu with .theme-controller
 	for _, path := range []string{"/", "/channel-1/", "/channel-1/loan"} {
 		req := httptest.NewRequest(http.MethodGet, path, nil)
 		rec := httptest.NewRecorder()
@@ -2014,11 +2014,11 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 		if !strings.Contains(body, `id="theme-dialog-btn"`) {
 			t.Errorf("expected %s to contain #theme-dialog-btn trigger button", path)
 		}
-		if !strings.Contains(body, `id="theme-modal-dialog"`) {
-			t.Errorf("expected %s to contain #theme-modal-dialog", path)
+		if !strings.Contains(body, `id="theme-dropdown-menu"`) {
+			t.Errorf("expected %s to contain #theme-dropdown-menu", path)
 		}
-		if !strings.Contains(body, `id="theme-live-preview-box"`) {
-			t.Errorf("expected %s to contain #theme-live-preview-box", path)
+		if !strings.Contains(body, `class="theme-controller`) {
+			t.Errorf("expected %s to contain .theme-controller", path)
 		}
 		if strings.Contains(body, `id="skin-select"`) {
 			t.Errorf("expected %s not to contain obsolete #skin-select dropdown", path)
@@ -2210,7 +2210,7 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 		t.Fatalf("failed to create web controller: %v", err)
 	}
 
-	// 1. Test Theme Dialog & Mode Controls
+	// 1. Test Theme Dropdown Trigger & Controller Presence
 	testCases := []struct {
 		modeCookie string
 	}{
@@ -2234,8 +2234,11 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 		if !strings.Contains(body, `id="theme-dialog-btn"`) {
 			t.Errorf("expected theme-dialog-btn element in header, got: %s", body)
 		}
-		if !strings.Contains(body, `id="theme-mode-radios"`) {
-			t.Errorf("expected theme-mode-radios element in theme modal, got: %s", body)
+		if !strings.Contains(body, `id="theme-dropdown-menu"`) {
+			t.Errorf("expected theme-dropdown-menu element in header, got: %s", body)
+		}
+		if !strings.Contains(body, `class="theme-controller`) {
+			t.Errorf("expected theme-controller element in header, got: %s", body)
 		}
 	}
 
