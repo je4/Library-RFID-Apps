@@ -2391,3 +2391,77 @@ func TestReaderIDRenderingInDeskTable(t *testing.T) {
 		t.Errorf("expected body to contain title attribute for ReaderID, got: %s", body2)
 	}
 }
+
+func TestController_BarcodeReadAndAFIToggle(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		DefaultISIL:   "CH-000001",
+		DefaultAFI:    "07",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	// 1. Test /:channel/encode page contains toggle for AFI
+	reqEncode := httptest.NewRequest(http.MethodGet, "/channel-1/encode", nil)
+	recEncode := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recEncode, reqEncode)
+	if recEncode.Code != http.StatusOK {
+		t.Errorf("expected 200 for /channel-1/encode, got %d", recEncode.Code)
+	}
+	bodyEncode := recEncode.Body.String()
+	if !strings.Contains(bodyEncode, `id="encode-afi-checkbox"`) {
+		t.Errorf("expected encode page to contain AFI toggle checkbox, got: %s", bodyEncode)
+	}
+	if !strings.Contains(bodyEncode, `id="encode-afi-label-text"`) {
+		t.Errorf("expected encode page to contain AFI toggle label text, got: %s", bodyEncode)
+	}
+	if !strings.Contains(bodyEncode, `Gesichert (07)`) {
+		t.Errorf("expected encode page with DefaultAFI=07 to display 'Gesichert (07)', got: %s", bodyEncode)
+	}
+
+	// 2. Test HandleBarcodeRead broadcasting SSE event
+	subChan := hub.Subscribe("channel-1")
+	defer hub.Unsubscribe(subChan)
+
+	barcodeEvt := &libraryclient.BarcodeReadEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{
+			ID:      "evt-barcode-123",
+			Channel: "channel-1",
+		},
+		Data: libraryclient.BarcodeReadData{
+			Barcode:   "BARCODE-998877",
+			ReaderID:  "honeywell-01",
+			Symbology: "Code128",
+		},
+	}
+
+	ctrl.HandleBarcodeRead(barcodeEvt)
+
+	select {
+	case msg := <-subChan:
+		if msg == nil {
+			t.Fatal("received nil SSE message")
+		}
+		if msg.Event != "barcode_read" {
+			t.Errorf("expected SSE event 'barcode_read', got '%s'", msg.Event)
+		}
+		if msg.Data != "BARCODE-998877" {
+			t.Errorf("expected SSE data 'BARCODE-998877', got '%s'", msg.Data)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for barcode_read SSE message")
+	}
+}

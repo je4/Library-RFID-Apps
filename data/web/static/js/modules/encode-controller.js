@@ -80,11 +80,14 @@ export function updatePartsSelection(partsCount, isManual = true) {
 export function setAFIStatus(afiValue) {
     const afiInput = getElement('encode-afi-input');
     const afiCheckbox = getElement('encode-afi-checkbox');
+    const afiIcon = getElement('encode-afi-icon');
+    const afiLabelText = getElement('encode-afi-label-text');
     const unsecureBtn = getElement('encode-afi-btn-unsecure');
     const secureBtn = getElement('encode-afi-btn-secure');
     const statusBadge = getElement('encode-afi-status-badge');
 
-    const normalized = (afiValue === '07' || afiValue === 'secure' || afiValue === 'gesichert' || afiValue === true) ? '07' : 'C2';
+    const isSecure = (afiValue === '07' || afiValue === 'secure' || afiValue === 'gesichert' || afiValue === true || afiValue === 'true');
+    const normalized = isSecure ? '07' : 'C2';
     currentAFI = normalized;
 
     if (afiInput) {
@@ -102,7 +105,21 @@ export function setAFIStatus(afiValue) {
     }
 
     if (afiCheckbox) {
-        afiCheckbox.checked = (normalized === '07');
+        afiCheckbox.checked = isSecure;
+    }
+
+    if (afiLabelText) {
+        afiLabelText.textContent = isSecure ? 'Gesichert (07)' : 'Entsichert (C2)';
+    }
+
+    if (afiIcon) {
+        if (isSecure) {
+            afiIcon.classList.add('icon-lock-closed', 'text-primary');
+            afiIcon.classList.remove('icon-lock-open', 'text-warning');
+        } else {
+            afiIcon.classList.add('icon-lock-open', 'text-warning');
+            afiIcon.classList.remove('icon-lock-closed', 'text-primary');
+        }
     }
 
     if (unsecureBtn) {

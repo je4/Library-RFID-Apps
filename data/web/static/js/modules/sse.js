@@ -113,6 +113,25 @@ export function onLoanTagsReceived() {
     updateLoanCounters();
 }
 
+export function onBarcodeReceived(rawBarcode) {
+    if (!rawBarcode) return;
+    const barcode = String(rawBarcode).trim();
+    if (!barcode) return;
+
+    playBeep();
+
+    const encodeItemInput = document.getElementById('encode-item-id');
+    if (encodeItemInput) {
+        encodeItemInput.value = barcode;
+        encodeItemInput.dispatchEvent(new Event('input', { bubbles: true }));
+        encodeItemInput.dispatchEvent(new Event('change', { bubbles: true }));
+        encodeItemInput.focus();
+        if (typeof encodeItemInput.select === 'function') {
+            encodeItemInput.select();
+        }
+    }
+}
+
 export function handleSSEMessage(evt) {
     const eventName = evt.detail?.eventName;
     if (!eventName) return;
@@ -134,6 +153,8 @@ export function handleSSEMessage(evt) {
         lastLoanTagCount = 0;
     } else if (eventName === 'loan_tags' || eventName === 'loan_updated') {
         onLoanTagsReceived();
+    } else if (eventName === 'barcode_read') {
+        onBarcodeReceived(evt.detail?.data);
     }
 }
 

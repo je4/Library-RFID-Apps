@@ -53,7 +53,7 @@
                         </div>
                     </div>
 
-                    <!-- ISIL Identifier & AFI Switch -->
+                    <!-- ISIL Identifier & AFI Toggle Switch -->
                     <div class="md:col-span-6 flex flex-col gap-1.5">
                         <div class="flex items-center justify-between">
                             <label for="encode-isil" class="text-xs font-semibold">
@@ -64,20 +64,11 @@
                         <div class="flex items-center gap-3">
                             <input id="encode-isil" type="text" value="{{.DefaultISIL}}" placeholder="CH-000001"
                                    class="input input-bordered flex-1 font-mono text-sm">
-                            <div class="join shrink-0" id="encode-afi-toggle-group" role="radiogroup" aria-label="AFI Sicherheitsstatus">
-                                <button type="button" id="encode-afi-btn-secure" data-afi="07"
-                                        class="btn btn-sm join-item {{if eq .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
-                                        role="radio" aria-checked="{{if eq .DefaultAFI "07"}}true{{else}}false{{end}}" title="AFI 07: Gesichert / EAS aktiv">
-                                    <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
-                                    <span>Gesichert (07)</span>
-                                </button>
-                                <button type="button" id="encode-afi-btn-unsecure" data-afi="C2"
-                                        class="btn btn-sm join-item {{if ne .DefaultAFI "07"}}btn-primary{{else}}btn-ghost{{end}}"
-                                        role="radio" aria-checked="{{if ne .DefaultAFI "07"}}true{{else}}false{{end}}" title="AFI C2: Entsichert / EAS deaktiviert">
-                                    <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
-                                    <span>Entsichert (C2)</span>
-                                </button>
-                            </div>
+                            <label class="label cursor-pointer flex items-center gap-2 border border-base-200 rounded-lg px-3 py-1.5 bg-base-100 hover:bg-base-200/50 transition-colors shrink-0" for="encode-afi-checkbox" title="AFI Sicherheitsstatus umschalten">
+                                <span id="encode-afi-icon" class="app-icon {{if eq .DefaultAFI "07"}}icon-lock-closed text-primary{{else}}icon-lock-open text-warning{{end}} w-4 h-4 shrink-0" aria-hidden="true"></span>
+                                <span id="encode-afi-label-text" class="text-xs font-semibold select-none whitespace-nowrap">{{if eq .DefaultAFI "07"}}Gesichert (07){{else}}Entsichert (C2){{end}}</span>
+                                <input type="checkbox" id="encode-afi-checkbox" class="toggle toggle-primary toggle-sm" {{if eq .DefaultAFI "07"}}checked{{end}} aria-label="AFI Sicherheitsstatus (Gesichert / Entsichert)">
+                            </label>
                             <input type="hidden" id="encode-afi-input" value="{{if .DefaultAFI}}{{.DefaultAFI}}{{else}}07{{end}}">
                         </div>
                     </div>

@@ -137,6 +137,19 @@ func main() {
 		webCtrl.HandleTagsCleared()
 	})
 
+	rfidCli.OnBarcodeRead(func(barcodeEvt *libraryclient.BarcodeReadEvent) {
+		logger.Info().
+			Str("id", barcodeEvt.ID).
+			Str("barcode", barcodeEvt.Data.Barcode).
+			Str("itemId", barcodeEvt.Data.ItemID).
+			Str("reader", barcodeEvt.Data.ReaderID).
+			Str("symbology", barcodeEvt.Data.Symbology).
+			Str("channel", barcodeEvt.Channel).
+			Msg("Barcode scanned via barcode-headless")
+
+		webCtrl.HandleBarcodeRead(barcodeEvt)
+	})
+
 	rfidCli.OnWriteTagResponse(func(resp *libraryclient.WriteTagResponse) {
 		if resp.Data.IsSuccess() {
 			logger.Info().

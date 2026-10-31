@@ -4,7 +4,7 @@ name = "mediathek:desk:01"
 wsbroker = "https://localhost:8765"
 channels = ["mediathek01"]
 default_reader = ""
-default_isil = "CH-001596-0 "
+default_isil = "CH-001596-0"
 default_afi = "07"
 max_tags = 100
 

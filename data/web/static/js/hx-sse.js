@@ -57,6 +57,20 @@
                 container.dispatchEvent(new CustomEvent('htmx:sseError', { bubbles: true, detail }));
             });
 
+            // Bind global events on EventSource to forward to container event bus
+            const globalEventNames = ['message', 'tag_read', 'tags_cleared', 'loan_tags', 'loan_updated', 'barcode_read'];
+            globalEventNames.forEach((evtName) => {
+                source.addEventListener(evtName, (evt) => {
+                    let detail = { eventName: evtName, data: evt.data, source };
+                    if (api && api.triggerHtmxEvent) {
+                        api.triggerHtmxEvent(container, 'htmx:sse:message', detail);
+                        api.triggerHtmxEvent(container, 'htmx:sseMessage', detail);
+                    }
+                    container.dispatchEvent(new CustomEvent('htmx:sse:message', { bubbles: true, detail }));
+                    container.dispatchEvent(new CustomEvent('htmx:sseMessage', { bubbles: true, detail }));
+                });
+            });
+
             bindSSEElements(container, source);
         } catch (err) {
             console.error('[htmx 4 sse] Error initializing EventSource for:', connectUrl, err);

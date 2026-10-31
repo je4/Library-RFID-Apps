@@ -53,6 +53,39 @@ func (ctrl *Controller) HandleTagsCleared() {
 	ctrl.broadcastLoanTable()
 }
 
+// HandleBarcodeRead processes an incoming barcode scan event from barcode-headless
+// and broadcasts the barcode string via SSE to web clients.
+func (ctrl *Controller) HandleBarcodeRead(evt *libraryclient.BarcodeReadEvent) {
+	if evt == nil {
+		return
+	}
+	barcode := strings.TrimSpace(evt.Data.GetBarcode())
+	if barcode == "" {
+		barcode = strings.TrimSpace(evt.Data.ItemID)
+	}
+	if barcode == "" {
+		return
+	}
+
+	ch := evt.Channel
+	if ch == "" && len(ctrl.cfg.Channels) == 1 {
+		ch = ctrl.cfg.Channels[0]
+	}
+
+	ctrl.hub.Broadcast(&desk.SSEMessage{
+		Event: "barcode_read",
+		Data:  barcode,
+		ID:    evt.ID,
+	}, ch)
+	if ch != "" {
+		ctrl.hub.Broadcast(&desk.SSEMessage{
+			Event: "barcode_read",
+			Data:  barcode,
+			ID:    evt.ID,
+		}, "")
+	}
+}
+
 // HandleWriteAFIResponse processes an incoming AFI write response event from an RFID reader daemon.
 func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIResponse) {
 	if resp == nil {
