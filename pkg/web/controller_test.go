@@ -56,6 +56,16 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected daisyui.min.css to contain component rules and data-theme definitions, got %s", recDaisy.Body.String())
 	}
 
+	reqDaisyThemes := httptest.NewRequest(http.MethodGet, "/static/css/daisyui-themes.min.css", nil)
+	recDaisyThemes := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDaisyThemes, reqDaisyThemes)
+	if recDaisyThemes.Code != http.StatusOK {
+		t.Errorf("expected 200 for daisyui-themes CSS, got %d", recDaisyThemes.Code)
+	}
+	if !strings.Contains(recDaisyThemes.Body.String(), "[data-theme=halloween]") || !strings.Contains(recDaisyThemes.Body.String(), "[data-theme=cupcake]") {
+		t.Errorf("expected daisyui-themes.min.css to contain theme definitions, got %s", recDaisyThemes.Body.String())
+	}
+
 	reqDeskCSS := httptest.NewRequest(http.MethodGet, "/static/scss/desk.css", nil)
 	recDeskCSS := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recDeskCSS, reqDeskCSS)
