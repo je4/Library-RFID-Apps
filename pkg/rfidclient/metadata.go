@@ -10,7 +10,6 @@ import (
 // Hardware metadata event identifiers.
 const (
 	EventGetDeviceMetadata      = "rfid/get_device_metadata"
-	EventDeviceMetadata         = "rfid/device_metadata"
 	EventDeviceMetadataResponse = "rfid/device_metadata_response"
 )
 

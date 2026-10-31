@@ -177,7 +177,7 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 		}
 		parsed = typed
 
-	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared:
+	case EventTagsCleared:
 		typed, terr := wsbrokerclient.ToTyped[TagsClearedData](evt)
 		if terr != nil {
 			err = terr
@@ -188,7 +188,7 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 		}
 		parsed = typed
 
-	case EventDeviceMetadataResponse, EventDeviceMetadata:
+	case EventDeviceMetadataResponse:
 		typed, terr := wsbrokerclient.ToTyped[DeviceMetadataResponseData](evt)
 		if terr != nil {
 			err = terr

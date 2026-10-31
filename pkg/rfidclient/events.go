@@ -9,10 +9,8 @@ import (
 
 // Standard RFID event identifiers exchanged with rfid-headless.
 const (
-	EventTagRead             = "rfid/tag_read"
-	EventTagsCleared         = "rfid/tags_cleared"
-	EventTagsRemoved         = "rfid/tags_removed"
-	EventAntennaFieldCleared = "rfid/antenna_field_cleared"
+	EventTagRead     = "rfid/tag_read"
+	EventTagsCleared = "rfid/tags_cleared"
 )
 
 func init() {
@@ -20,7 +18,6 @@ func init() {
 	wsbrokerclient.RegisterPayload[TagReadData](EventTagRead)
 	wsbrokerclient.RegisterPayload[TagsClearedData](EventTagsCleared)
 	wsbrokerclient.RegisterPayload[DeviceMetadataResponseData](EventDeviceMetadataResponse)
-	wsbrokerclient.RegisterPayload[DeviceMetadataResponseData](EventDeviceMetadata)
 	wsbrokerclient.RegisterPayload[DeviceMetadataRequest](EventGetDeviceMetadata)
 	wsbrokerclient.RegisterPayload[WriteTagResponseData](EventWriteTagResponse)
 	wsbrokerclient.RegisterPayload[WriteTagRequest](EventWriteTag)

@@ -63,7 +63,6 @@ const (
 	EventTagRead                = rfidclient.EventTagRead
 	EventTagsCleared            = rfidclient.EventTagsCleared
 	EventGetDeviceMetadata      = rfidclient.EventGetDeviceMetadata
-	EventDeviceMetadata         = rfidclient.EventDeviceMetadata
 	EventDeviceMetadataResponse = rfidclient.EventDeviceMetadataResponse
 	EventWriteTag               = rfidclient.EventWriteTag
 	EventWriteTagResponse       = rfidclient.EventWriteTagResponse
