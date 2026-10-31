@@ -2,6 +2,7 @@ package rfidclient
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -160,7 +161,130 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 		return nil, nil
 	}
 
-	parsed, err := ParseEvent(evt)
+	var parsed any
+	var err error
+
+	eventType := string(evt.Type)
+	switch eventType {
+	case EventTagRead:
+		typed, terr := wsbrokerclient.ToTyped[TagReadData](evt)
+		if terr != nil {
+			err = terr
+			break
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		parsed = typed
+
+	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared:
+		typed, terr := wsbrokerclient.ToTyped[TagsClearedData](evt)
+		if terr != nil {
+			err = terr
+			break
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		parsed = typed
+
+	case EventDeviceMetadataResponse, EventDeviceMetadata:
+		typed, terr := wsbrokerclient.ToTyped[DeviceMetadataResponseData](evt)
+		if terr != nil {
+			err = terr
+			break
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		parsed = typed
+
+	case EventGetDeviceMetadata:
+		typed, terr := wsbrokerclient.ToTyped[DeviceMetadataRequest](evt)
+		if terr != nil {
+			err = terr
+			break
+		}
+		parsed = &typed.Data
+
+	case EventWriteTagResponse:
+		typed, terr := wsbrokerclient.ToTyped[WriteTagResponseData](evt)
+		if terr != nil {
+			err = terr
+			break
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		parsed = typed
+
+	case EventWriteTag:
+		var statusCheck struct {
+			Status string `json:"status"`
+		}
+		_ = json.Unmarshal(evt.Data, &statusCheck)
+		if statusCheck.Status != "" {
+			typed, terr := wsbrokerclient.ToTyped[WriteTagResponseData](evt)
+			if terr != nil {
+				err = terr
+				break
+			}
+			if typed.Data.ReaderID == "" && evt.Source != "" {
+				typed.Data.ReaderID = evt.Source
+			}
+			parsed = typed
+		} else {
+			typed, terr := wsbrokerclient.ToTyped[WriteTagRequest](evt)
+			if terr != nil {
+				err = terr
+				break
+			}
+			parsed = &typed.Data
+		}
+
+	case EventWriteAFIResponse:
+		typed, terr := wsbrokerclient.ToTyped[WriteAFIResponseData](evt)
+		if terr != nil {
+			err = terr
+			break
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		parsed = typed
+
+	case EventWriteAFI:
+		var statusCheck struct {
+			Status string `json:"status"`
+		}
+		_ = json.Unmarshal(evt.Data, &statusCheck)
+		if statusCheck.Status != "" {
+			typed, terr := wsbrokerclient.ToTyped[WriteAFIResponseData](evt)
+			if terr != nil {
+				err = terr
+				break
+			}
+			if typed.Data.ReaderID == "" && evt.Source != "" {
+				typed.Data.ReaderID = evt.Source
+			}
+			parsed = typed
+		} else {
+			typed, terr := wsbrokerclient.ToTyped[WriteAFIRequest](evt)
+			if terr != nil {
+				err = terr
+				break
+			}
+			parsed = &typed.Data
+		}
+
+	default:
+		if dyn, dErr := wsbrokerclient.UnmarshalDynamic(evt); dErr == nil && dyn != nil {
+			parsed = dyn
+		} else {
+			err = errors.Errorf("unrecognized rfid event type: %q", eventType)
+		}
+	}
+
 	if err != nil {
 		if c.logger != nil {
 			c.logger.Debug().

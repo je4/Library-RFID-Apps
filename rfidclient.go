@@ -92,8 +92,6 @@ var (
 	NewWriteTagBatchRequestFromMap    = rfidclient.NewWriteTagBatchRequestFromMap
 	NewWriteAFIRequest                = rfidclient.NewWriteAFIRequest
 	NewWriteAFIBatchRequest           = rfidclient.NewWriteAFIBatchRequest
-	ParseRFIDPayload                  = rfidclient.ParseRFIDPayload
-	ParseEvent                        = rfidclient.ParseEvent
 	NormalizeAFI                      = rfidclient.NormalizeAFI
 	IsAFISecured                      = rfidclient.IsAFISecured
 	IsAFIUnsecured                    = rfidclient.IsAFIUnsecured

@@ -392,12 +392,15 @@ func TestWriteAFIRequestAndResponse(t *testing.T) {
 	}
 }
 
-func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
+func TestDynamicUnmarshalAndHandleEvent(t *testing.T) {
 	// 1. TagRead
-	rawTag := []byte(`{"event":"rfid/tag_read","uid":"E00401","itemId":"12345"}`)
-	payload, err := ParseRFIDPayload(rawTag)
+	rawTag := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventTagRead},
+		Data:      []byte(`{"uid":"E00401","itemId":"12345"}`),
+	}
+	payload, err := wsbrokerclient.UnmarshalDynamic(rawTag)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	tag, ok := payload.(TagReadData)
 	if !ok || tag.ItemID != "12345" {
@@ -405,10 +408,13 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 	}
 
 	// 2. TagsCleared
-	rawCleared := []byte(`{"event":"rfid/tags_cleared","status":"cleared","totalTags":0}`)
-	payload, err = ParseRFIDPayload(rawCleared)
+	rawCleared := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventTagsCleared},
+		Data:      []byte(`{"status":"cleared","totalTags":0}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawCleared)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	cleared, ok := payload.(TagsClearedData)
 	if !ok || cleared.Status != "cleared" {
@@ -416,10 +422,13 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 	}
 
 	// 3. DeviceMetadataResponse
-	rawMeta := []byte(`{"event":"rfid/device_metadata_response","status":"ok","deviceId":"DEV-1"}`)
-	payload, err = ParseRFIDPayload(rawMeta)
+	rawMeta := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventDeviceMetadataResponse},
+		Data:      []byte(`{"status":"ok","deviceId":"DEV-1"}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawMeta)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	meta, ok := payload.(DeviceMetadataResponseData)
 	if !ok || meta.DeviceID != "DEV-1" {
@@ -427,78 +436,86 @@ func TestParseRFIDPayloadAndParseEvent(t *testing.T) {
 	}
 
 	// 4. DeviceMetadataRequest
-	rawMetaReq := []byte(`{"event":"rfid/get_device_metadata"}`)
-	payload, err = ParseRFIDPayload(rawMetaReq)
+	rawMetaReq := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventGetDeviceMetadata},
+		Data:      []byte(`{"readerId":"DEV-REQ-1"}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawMetaReq)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	if _, ok := payload.(DeviceMetadataRequest); !ok {
 		t.Fatalf("expected DeviceMetadataRequest, got %T", payload)
 	}
 
 	// 5. WriteTagResponse
-	rawWriteResp := []byte(`{"event":"rfid/write_tag_response","status":"ok","uid":"E004"}`)
-	payload, err = ParseRFIDPayload(rawWriteResp)
+	rawWriteResp := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventWriteTagResponse},
+		Data:      []byte(`{"status":"ok","uid":"E004"}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawWriteResp)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	if _, ok := payload.(WriteTagResponseData); !ok {
 		t.Fatalf("expected WriteTagResponseData, got %T", payload)
 	}
 
 	// 6. WriteTagRequest
-	rawWriteReq := []byte(`{"event":"rfid/write_tag","itemId":"ITEM-1","uid":"E004"}`)
-	payload, err = ParseRFIDPayload(rawWriteReq)
+	rawWriteReq := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventWriteTag},
+		Data:      []byte(`{"itemId":"ITEM-1","uid":"E004"}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawWriteReq)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	if _, ok := payload.(WriteTagRequest); !ok {
 		t.Fatalf("expected WriteTagRequest, got %T", payload)
 	}
 
 	// 7. WriteAFIResponse
-	rawAFIResp := []byte(`{"event":"rfid/write_afi_response","status":"ok","afi":"07"}`)
-	payload, err = ParseRFIDPayload(rawAFIResp)
+	rawAFIResp := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventWriteAFIResponse},
+		Data:      []byte(`{"status":"ok","afi":"07"}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawAFIResp)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	if _, ok := payload.(WriteAFIResponseData); !ok {
 		t.Fatalf("expected WriteAFIResponseData, got %T", payload)
 	}
 
 	// 8. WriteAFIRequest
-	rawAFIReq := []byte(`{"event":"rfid/write_afi","uid":"E004","afi":"07"}`)
-	payload, err = ParseRFIDPayload(rawAFIReq)
+	rawAFIReq := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventWriteAFI},
+		Data:      []byte(`{"uid":"E004","afi":"07"}`),
+	}
+	payload, err = wsbrokerclient.UnmarshalDynamic(rawAFIReq)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	if _, ok := payload.(WriteAFIRequest); !ok {
 		t.Fatalf("expected WriteAFIRequest, got %T", payload)
 	}
 
-	// 9. Quoted JSON string payload
-	quotedTag := []byte(`"{\"event\":\"rfid/tag_read\",\"uid\":\"E00402\",\"itemId\":\"67890\"}"`)
-	payload, err = ParseRFIDPayload(quotedTag)
+	// 9. HandleEvent with wsbroker Event envelope and source as reader name
+	client, err := New(&fakeBrokerClient{})
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed for quoted JSON: %v", err)
+		t.Fatalf("New client failed: %v", err)
 	}
-	tagQuoted, ok := payload.(TagReadData)
-	if !ok || tagQuoted.ItemID != "67890" {
-		t.Fatalf("expected TagReadData from quoted JSON, got %T", payload)
-	}
-
-	// 10. ParseEvent with wsbroker Event envelope and source as reader name
 	evt := &wsbrokerclient.RawEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			Source:  "rfid:reader:desk01",
 			Channel: "rfid",
 			Type:    EventTagRead,
 		},
-		Data: rawTag,
+		Data: []byte(`{"uid":"E00401","itemId":"12345"}`),
 	}
-	parsedEvt, err := ParseEvent(evt)
+	parsedEvt, err := client.HandleEvent(evt)
 	if err != nil {
-		t.Fatalf("ParseEvent failed: %v", err)
+		t.Fatalf("HandleEvent failed: %v", err)
 	}
 	tagFromEvt, ok := parsedEvt.(*TagReadEvent)
 	if !ok {
@@ -648,7 +665,11 @@ func TestIDAndRefID_JSONSerialization(t *testing.T) {
 	}
 }
 
-func TestParseEvent_IDAndRefID_Propagation(t *testing.T) {
+func TestHandleEvent_IDAndRefID_Propagation(t *testing.T) {
+	client, err := New(&fakeBrokerClient{})
+	if err != nil {
+		t.Fatalf("New client failed: %v", err)
+	}
 	evt := &wsbrokerclient.RawEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
 			ID:      "env-evt-001",
@@ -659,9 +680,9 @@ func TestParseEvent_IDAndRefID_Propagation(t *testing.T) {
 		},
 		Data: []byte(`{"uid":"E0040100","itemId":"ITEM-99"}`),
 	}
-	parsed, err := ParseEvent(evt)
+	parsed, err := client.HandleEvent(evt)
 	if err != nil {
-		t.Fatalf("ParseEvent failed: %v", err)
+		t.Fatalf("HandleEvent failed: %v", err)
 	}
 	tag, ok := parsed.(*TagReadEvent)
 	if !ok {
@@ -842,16 +863,18 @@ func TestWriteTagResponse_BatchPartialFailure(t *testing.T) {
 	}
 }
 
-func TestParseRFIDPayload_WriteTagBatch(t *testing.T) {
-	payloadBytes := []byte(`{
-		"event": "rfid/write_tag",
-		"tags": [
-			{"uid": "TAG-1", "itemId": "BOOK-1"}
-		]
-	}`)
-	payload, err := ParseRFIDPayload(payloadBytes)
+func TestDynamicUnmarshal_WriteTagBatch(t *testing.T) {
+	payloadRaw := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventWriteTag},
+		Data: []byte(`{
+			"tags": [
+				{"uid": "TAG-1", "itemId": "BOOK-1"}
+			]
+		}`),
+	}
+	payload, err := wsbrokerclient.UnmarshalDynamic(payloadRaw)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	req, ok := payload.(WriteTagRequest)
 	if !ok {
@@ -861,14 +884,16 @@ func TestParseRFIDPayload_WriteTagBatch(t *testing.T) {
 		t.Errorf("unexpected parsed request: %+v", req)
 	}
 
-	respBytes := []byte(`{
-		"event": "rfid/write_tag_response",
-		"status": "ok",
-		"successfulUids": ["TAG-1"]
-	}`)
-	respPayload, err := ParseRFIDPayload(respBytes)
+	respRaw := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: EventWriteTagResponse},
+		Data: []byte(`{
+			"status": "ok",
+			"successfulUids": ["TAG-1"]
+		}`),
+	}
+	respPayload, err := wsbrokerclient.UnmarshalDynamic(respRaw)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 	resp, ok := respPayload.(WriteTagResponseData)
 	if !ok {
@@ -882,7 +907,6 @@ func TestParseRFIDPayload_WriteTagBatch(t *testing.T) {
 func TestMultiReaderPayloadModels(t *testing.T) {
 	// 1. TagReadEvent with readerId
 	tagJSON := `{
-		"event": "rfid/tag_read",
 		"readerId": "gate-01",
 		"uid": "E00401509200B02A",
 		"itemId": "12345678",
@@ -894,13 +918,9 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 		"afi": "07"
 	}`
 
-	parsedTag, err := ParseRFIDPayload([]byte(tagJSON))
-	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed for tag: %v", err)
-	}
-	tagEvent, ok := parsedTag.(TagReadData)
-	if !ok {
-		t.Fatalf("expected TagReadData, got %T", parsedTag)
+	var tagEvent TagReadData
+	if err := json.Unmarshal([]byte(tagJSON), &tagEvent); err != nil {
+		t.Fatalf("json.Unmarshal failed for tag: %v", err)
 	}
 	if tagEvent.GetReaderID() != "gate-01" {
 		t.Errorf("GetReaderID() = %q, want 'gate-01'", tagEvent.GetReaderID())
@@ -911,17 +931,12 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 
 	// 2. TagsClearedEvent with readerId
 	clearedJSON := `{
-		"event": "rfid/tags_cleared",
 		"readerId": "gate-02",
 		"status": "cleared"
 	}`
-	parsedCleared, err := ParseRFIDPayload([]byte(clearedJSON))
-	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed for cleared: %v", err)
-	}
-	clearedEvent, ok := parsedCleared.(TagsClearedData)
-	if !ok {
-		t.Fatalf("expected TagsClearedData, got %T", parsedCleared)
+	var clearedEvent TagsClearedData
+	if err := json.Unmarshal([]byte(clearedJSON), &clearedEvent); err != nil {
+		t.Fatalf("json.Unmarshal failed for cleared: %v", err)
 	}
 	if clearedEvent.GetReaderID() != "gate-02" {
 		t.Errorf("GetReaderID() = %q, want 'gate-02'", clearedEvent.GetReaderID())
@@ -946,20 +961,15 @@ func TestMultiReaderPayloadModels(t *testing.T) {
 
 	// 4. DeviceMetadataResponse with readerId
 	metaJSON := `{
-		"event": "rfid/device_metadata",
 		"readerId": "gate-01",
 		"status": "ok",
 		"deviceId": "OBID-LRU1002-01",
 		"deviceType": "FEIG LRU1002",
 		"initDescription": "Firmware v04.01"
 	}`
-	parsedMeta, err := ParseRFIDPayload([]byte(metaJSON))
-	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed for metadata: %v", err)
-	}
-	metaResp, ok := parsedMeta.(DeviceMetadataResponseData)
-	if !ok {
-		t.Fatalf("expected DeviceMetadataResponseData, got %T", parsedMeta)
+	var metaResp DeviceMetadataResponseData
+	if err := json.Unmarshal([]byte(metaJSON), &metaResp); err != nil {
+		t.Fatalf("json.Unmarshal failed for metadata: %v", err)
 	}
 	if metaResp.GetReaderID() != "gate-01" {
 		t.Errorf("GetReaderID() = %q, want 'gate-01'", metaResp.GetReaderID())

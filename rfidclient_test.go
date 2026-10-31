@@ -77,9 +77,13 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("unexpected ClientName in default config: %s", cfg.ClientName)
 	}
 
-	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid/tag_read","uid":"E004","itemId":"TEST-1","readerId":"gate-01"}`))
+	rawEvt := &wsbrokerclient.RawEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Type: rfidapps.EventTagRead},
+		Data:      []byte(`{"uid":"E004","itemId":"TEST-1","readerId":"gate-01"}`),
+	}
+	payload, err := wsbrokerclient.UnmarshalDynamic(rawEvt)
 	if err != nil {
-		t.Fatalf("ParseRFIDPayload failed: %v", err)
+		t.Fatalf("UnmarshalDynamic failed: %v", err)
 	}
 
 	tag, ok := payload.(rfidapps.TagReadData)
