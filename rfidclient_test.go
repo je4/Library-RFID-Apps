@@ -12,17 +12,17 @@ import (
 func TestRootPackageExports(t *testing.T) {
 	// Verify that root package exports match pkg/rfidclient
 	req := rfidapps.NewWriteTagRequest("12345", "E00401")
-	if req.Event != rfidapps.EventWriteTag {
-		t.Errorf("expected EventWriteTag, got %s", req.Event)
+	if req.ItemID != "12345" || req.UID != "E00401" {
+		t.Errorf("unexpected write tag request: %+v", req)
 	}
 
 	afiReq := rfidapps.NewWriteAFIRequest("07", "E00401")
-	if afiReq.Event != rfidapps.EventWriteAFI {
-		t.Errorf("expected EventWriteAFI, got %s", afiReq.Event)
+	if afiReq.AFI != "07" || afiReq.UID != "E00401" {
+		t.Errorf("unexpected AFI request: %+v", afiReq)
 	}
 
 	batchAfiReq := rfidapps.NewWriteAFIBatchRequest("C2", []string{"E00401", "E00402"})
-	if batchAfiReq.Event != rfidapps.EventWriteAFI || len(batchAfiReq.UIDs) != 2 || batchAfiReq.UID != "E00401" {
+	if batchAfiReq.AFI != "C2" || len(batchAfiReq.UIDs) != 2 || batchAfiReq.UID != "E00401" {
 		t.Errorf("unexpected batch AFI request: %+v", batchAfiReq)
 	}
 
@@ -32,7 +32,7 @@ func TestRootPackageExports(t *testing.T) {
 		{UID: "TAG-2", ItemID: "ITEM-2", Parts: 2, PartNo: 2, AFI: "C2"},
 	}
 	batchTagReq := rfidapps.NewWriteTagBatchRequest(tagItems)
-	if batchTagReq.Event != rfidapps.EventWriteTag || len(batchTagReq.Tags) != 2 || batchTagReq.UID != "TAG-1" {
+	if len(batchTagReq.Tags) != 2 || batchTagReq.UID != "TAG-1" {
 		t.Errorf("unexpected batch tag write request: %+v", batchTagReq)
 	}
 
@@ -40,7 +40,7 @@ func TestRootPackageExports(t *testing.T) {
 		"TAG-1": "ITEM-1",
 		"TAG-2": "ITEM-2",
 	})
-	if mapTagReq.Event != rfidapps.EventWriteTag || len(mapTagReq.Tags) != 2 {
+	if len(mapTagReq.Tags) != 2 {
 		t.Errorf("unexpected map tag write request: %+v", mapTagReq)
 	}
 
@@ -67,11 +67,6 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("AFISecurityStatus returned unexpected string")
 	}
 
-	metaReq := rfidapps.NewDeviceMetadataRequest()
-	if metaReq.Event != rfidapps.EventGetDeviceMetadata {
-		t.Errorf("expected EventGetDeviceMetadata, got %s", metaReq.Event)
-	}
-
 	metaReqReader := rfidapps.NewDeviceMetadataRequestForReader("gate-01")
 	if metaReqReader.GetReaderID() != "gate-01" {
 		t.Errorf("expected GetReaderID() = 'gate-01', got %s", metaReqReader.GetReaderID())
@@ -82,12 +77,12 @@ func TestRootPackageExports(t *testing.T) {
 		t.Errorf("unexpected ClientName in default config: %s", cfg.ClientName)
 	}
 
-	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid:tag_read","uid":"E004","itemId":"TEST-1","readerId":"gate-01"}`))
+	payload, err := rfidapps.ParseRFIDPayload([]byte(`{"event":"rfid/tag_read","uid":"E004","itemId":"TEST-1","readerId":"gate-01"}`))
 	if err != nil {
 		t.Fatalf("ParseRFIDPayload failed: %v", err)
 	}
 
-	tag, ok := payload.(*rfidapps.TagReadData)
+	tag, ok := payload.(rfidapps.TagReadData)
 	if !ok || tag.ItemID != "TEST-1" || tag.GetReaderID() != "gate-01" {
 		t.Errorf("unexpected parsed object: %+v", payload)
 	}

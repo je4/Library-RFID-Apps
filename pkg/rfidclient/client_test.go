@@ -95,6 +95,14 @@ func (f *fakeBrokerClient) ReplyType(ctx context.Context, originalEvt *event.Raw
 	replyEvt.Source = f.clientName
 	return f.Send(ctx, replyEvt)
 }
+func (f *fakeBrokerClient) CreateReply(original *event.RawEvent, replyType event.EventType, data any) (*event.RawEvent, error) {
+	replyEvt, err := event.NewReplyEvent(original, replyType, data)
+	if err != nil {
+		return nil, err
+	}
+	replyEvt.Source = f.clientName
+	return replyEvt, nil
+}
 func (f *fakeBrokerClient) Request(ctx context.Context, evt *event.RawEvent) (*event.RawEvent, error) {
 	f.mu.Lock()
 	f.lastSent = evt
@@ -170,8 +178,46 @@ func (f *fakeBrokerClient) Detach(ctx context.Context, channels ...string) error
 	}
 	return nil
 }
+
+type fakeSubscription struct {
+	channel string
+	events  chan *event.RawEvent
+	unsub   func()
+	once    sync.Once
+}
+
+func (s *fakeSubscription) Channel() string                { return s.channel }
+func (s *fakeSubscription) Events() <-chan *event.RawEvent { return s.events }
+func (s *fakeSubscription) Unsubscribe() error {
+	s.once.Do(func() {
+		if s.unsub != nil {
+			s.unsub()
+		}
+	})
+	return nil
+}
+
 func (f *fakeBrokerClient) Subscribe(ctx context.Context, channel string) (client.Subscription, error) {
-	return nil, nil
+	eventsCh := make(chan *event.RawEvent, 64)
+	unsub := f.OnEvent(func(evt *event.RawEvent) {
+		if channel != "" && evt.Target != "" && !strings.EqualFold(evt.Target, channel) && !strings.EqualFold(evt.Target, "all") && !strings.EqualFold(evt.Channel, channel) && !strings.EqualFold(evt.Channel, "all") {
+			return
+		}
+		select {
+		case eventsCh <- evt:
+		default:
+		}
+	})
+
+	sub := &fakeSubscription{
+		channel: channel,
+		events:  eventsCh,
+		unsub: func() {
+			unsub()
+			close(eventsCh)
+		},
+	}
+	return sub, nil
 }
 func (f *fakeBrokerClient) Ping(ctx context.Context) error { return nil }
 func (f *fakeBrokerClient) QueryNTP(ctx context.Context, data []byte) ([]byte, error) {
@@ -226,8 +272,8 @@ func (f *fakeBrokerClient) OnError(callback func(error)) client.UnsubscribeFunc 
 	return func() {}
 }
 
-func (f *fakeBrokerClient) simulateIncomingMessage(data any, target, source string) {
-	evt, err := event.NewMessageEvent(source, target, data)
+func (f *fakeBrokerClient) simulateIncomingEvent(eventType event.EventType, data any, target, source string) {
+	evt, err := event.NewRawEvent(eventType, source, target, data)
 	if err != nil {
 		return
 	}
@@ -240,6 +286,10 @@ func (f *fakeBrokerClient) simulateIncomingMessage(data any, target, source stri
 	}
 }
 
+func (f *fakeBrokerClient) simulateIncomingMessage(data any, target, source string) {
+	f.simulateIncomingEvent(event.TypeMessage, data, target, source)
+}
+
 func TestRFIDClient_GetDeviceMetadata(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	fake.requestFunc = func(ctx context.Context, evt *event.RawEvent) (*event.RawEvent, error) {
@@ -247,10 +297,7 @@ func TestRFIDClient_GetDeviceMetadata(t *testing.T) {
 			t.Errorf("expected target 'rfid-reader-station-01', got %q", evt.Target)
 		}
 		respData := DeviceMetadataResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event:    EventDeviceMetadataResponse,
-				ReaderID: "rfid-reader-station-01",
-			},
+			ReaderID:        "rfid-reader-station-01",
 			Status:          "ok",
 			DeviceID:        "0052E688",
 			DeviceType:      "ISC.MR102-USB",
@@ -259,7 +306,7 @@ func TestRFIDClient_GetDeviceMetadata(t *testing.T) {
 		raw, _ := json.Marshal(respData)
 		return &event.RawEvent{
 			BaseEvent: event.BaseEvent{
-				Type:    event.TypeMessage,
+				Type:    EventDeviceMetadataResponse,
 				Source:  "rfid-reader-station-01",
 				Target:  "controller-app",
 				Session: evt.Session,
@@ -299,9 +346,6 @@ func TestRFIDClient_WriteTag(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	fake.requestFunc = func(ctx context.Context, evt *event.RawEvent) (*event.RawEvent, error) {
 		respData := WriteTagResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteTagResponse,
-			},
 			Status:    "ok",
 			UID:       "E004015099887766",
 			ItemID:    "3012345678",
@@ -316,7 +360,7 @@ func TestRFIDClient_WriteTag(t *testing.T) {
 		raw, _ := json.Marshal(respData)
 		return &event.RawEvent{
 			BaseEvent: event.BaseEvent{
-				Type:    event.TypeMessage,
+				Type:    EventWriteTagResponse,
 				Source:  evt.Target,
 				Target:  evt.Source,
 				Session: evt.Session,
@@ -358,9 +402,6 @@ func TestRFIDClient_WriteAFI(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	fake.requestFunc = func(ctx context.Context, evt *event.RawEvent) (*event.RawEvent, error) {
 		respData := WriteAFIResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteAFIResponse,
-			},
 			Status:  "ok",
 			UID:     "E004015099887766",
 			AFI:     "C2",
@@ -369,7 +410,7 @@ func TestRFIDClient_WriteAFI(t *testing.T) {
 		raw, _ := json.Marshal(respData)
 		return &event.RawEvent{
 			BaseEvent: event.BaseEvent{
-				Type:    event.TypeMessage,
+				Type:    EventWriteAFIResponse,
 				Source:  evt.Target,
 				Target:  evt.Source,
 				Session: evt.Session,
@@ -413,9 +454,6 @@ func TestRFIDClient_AFIConvenienceMethods(t *testing.T) {
 		lastReq = req
 
 		respData := WriteAFIResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteAFIResponse,
-			},
 			Status: "ok",
 			UID:    req.UID,
 			AFI:    req.AFI,
@@ -423,7 +461,7 @@ func TestRFIDClient_AFIConvenienceMethods(t *testing.T) {
 		raw, _ := json.Marshal(respData)
 		return &event.RawEvent{
 			BaseEvent: event.BaseEvent{
-				Type:    event.TypeMessage,
+				Type:    EventWriteAFIResponse,
 				Source:  evt.Target,
 				Target:  evt.Source,
 				Session: evt.Session,
@@ -517,19 +555,13 @@ func TestRFIDClient_EventHandlers(t *testing.T) {
 	})
 
 	// Trigger incoming tag scan
-	fake.simulateIncomingMessage(TagReadData{
-		BaseRFIDPayload: BaseRFIDPayload{
-			Event: EventTagRead,
-		},
+	fake.simulateIncomingEvent(EventTagRead, TagReadData{
 		UID:    "E0040111223344",
 		ItemID: "ITEM-777",
 	}, "all", "rfid-reader-station-01")
 
 	// Trigger incoming tags cleared
-	fake.simulateIncomingMessage(TagsClearedData{
-		BaseRFIDPayload: BaseRFIDPayload{
-			Event: EventTagsCleared,
-		},
+	fake.simulateIncomingEvent(EventTagsCleared, TagsClearedData{
 		Status: "empty",
 	}, "all", "rfid-reader-station-01")
 
@@ -568,10 +600,7 @@ func TestRFIDClient_SubscribeTags(t *testing.T) {
 	defer unsub()
 
 	// Simulate event for matching channel "intern"
-	fake.simulateIncomingMessage(TagReadData{
-		BaseRFIDPayload: BaseRFIDPayload{
-			Event: EventTagRead,
-		},
+	fake.simulateIncomingEvent(EventTagRead, TagReadData{
 		UID:    "E004019999",
 		ItemID: "BOOK-101",
 	}, "intern", "rfid-station-01")
@@ -602,9 +631,9 @@ func TestRFIDClient_IgnoreNonMessageEvents(t *testing.T) {
 	})
 
 	// 1. Direct HandleEvent call with pong event
-	pongEvt, err := wsbrokerclient.NewPongEvent("wsbroker", "rfid:desk:01", "pong")
+	pongEvt, err := event.NewRawEvent(event.TypePong, "wsbroker", "rfid:desk:01", "pong")
 	if err != nil {
-		t.Fatalf("NewPongEvent failed: %v", err)
+		t.Fatalf("NewRawEvent pong failed: %v", err)
 	}
 
 	res, err := rfid.HandleEvent(pongEvt)
@@ -616,9 +645,9 @@ func TestRFIDClient_IgnoreNonMessageEvents(t *testing.T) {
 	}
 
 	// 2. Direct HandleEvent call with ping event
-	pingEvt, err := wsbrokerclient.NewPingEvent("rfid:desk:01")
+	pingEvt, err := event.NewRawEvent(event.TypePing, "rfid:desk:01", "", nil)
 	if err != nil {
-		t.Fatalf("NewPingEvent failed: %v", err)
+		t.Fatalf("NewRawEvent ping failed: %v", err)
 	}
 
 	res, err = rfid.HandleEvent(pingEvt)
@@ -630,9 +659,9 @@ func TestRFIDClient_IgnoreNonMessageEvents(t *testing.T) {
 	}
 
 	// 3. Attach event
-	attachEvt, err := wsbrokerclient.NewAttachEvent("rfid:desk:01", "all")
+	attachEvt, err := event.NewRawEvent(event.TypeAttach, "rfid:desk:01", "all", nil)
 	if err != nil {
-		t.Fatalf("NewAttachEvent failed: %v", err)
+		t.Fatalf("NewRawEvent attach failed: %v", err)
 	}
 
 	res, err = rfid.HandleEvent(attachEvt)
@@ -675,10 +704,10 @@ func TestRFIDClient_HandleWriteAFIAndWriteTagEvents(t *testing.T) {
 	})
 
 	// 1. Simulate self-echoed WriteAFIRequest
-	rawReq := []byte(`{"event":"rfid:write_afi","uid":"E004015099887766","afi":"07"}`)
+	rawReq := []byte(`{"uid":"E004015099887766","afi":"07"}`)
 	evt1 := &wsbrokerclient.RawEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
-			Type:   event.TypeMessage,
+			Type:   EventWriteAFI,
 			Source: "rfid:desk:01",
 			Target: "rfid",
 		},
@@ -693,10 +722,10 @@ func TestRFIDClient_HandleWriteAFIAndWriteTagEvents(t *testing.T) {
 	}
 
 	// 2. Simulate WriteAFIResponse
-	rawAFIResp := []byte(`{"event":"rfid:write_afi_response","status":"ok","uid":"E004015099887766","afi":"07"}`)
+	rawAFIResp := []byte(`{"status":"ok","uid":"E004015099887766","afi":"07"}`)
 	evt2 := &wsbrokerclient.RawEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
-			Type:   event.TypeMessage,
+			Type:   EventWriteAFIResponse,
 			Source: "rfid:reader:01",
 			Target: "rfid:desk:01",
 		},
@@ -711,10 +740,10 @@ func TestRFIDClient_HandleWriteAFIAndWriteTagEvents(t *testing.T) {
 	}
 
 	// 3. Simulate WriteTagResponse
-	rawTagResp := []byte(`{"event":"rfid:write_tag_response","status":"ok","uid":"E004015099887766","itemId":"12345"}`)
+	rawTagResp := []byte(`{"status":"ok","uid":"E004015099887766","itemId":"12345"}`)
 	evt3 := &wsbrokerclient.RawEvent{
 		BaseEvent: wsbrokerclient.BaseEvent{
-			Type:   event.TypeMessage,
+			Type:   EventWriteTagResponse,
 			Source: "rfid:reader:01",
 			Target: "rfid:desk:01",
 		},
@@ -912,9 +941,6 @@ func TestRFIDClient_WriteTag_IDAndRefID_Correlation(t *testing.T) {
 		}
 		// Create correlated response with RefID = reqEvt.ID
 		respData := WriteTagResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteTagResponse,
-			},
 			Status: "ok",
 			UID:    "E004010000001234",
 			ItemID: "ITEM-WRITE-TEST",
@@ -927,7 +953,7 @@ func TestRFIDClient_WriteTag_IDAndRefID_Correlation(t *testing.T) {
 				Source:  "reader-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventWriteTagResponse,
 			},
 			Data: dataBytes,
 		}
@@ -935,13 +961,12 @@ func TestRFIDClient_WriteTag_IDAndRefID_Correlation(t *testing.T) {
 	}
 
 	req := NewWriteTagRequest("ITEM-WRITE-TEST", "E004010000001234")
-	origReqID := req.ID
 	resp, err := rfid.WriteTag(context.Background(), "reader-01", req)
 	if err != nil {
 		t.Fatalf("WriteTag failed: %v", err)
 	}
-	if resp.RefID != origReqID {
-		t.Errorf("resp.RefID = %q, want request ID %q", resp.RefID, origReqID)
+	if resp.RefID == "" {
+		t.Error("expected non-empty resp.RefID")
 	}
 	if resp.ID != "resp-evt-id-999" {
 		t.Errorf("resp.ID = %q, want resp-evt-id-999", resp.ID)
@@ -960,9 +985,6 @@ func TestRFIDClient_WriteAFI_IDAndRefID_Correlation(t *testing.T) {
 			t.Errorf("expected reqEvt.ID to be non-empty")
 		}
 		respData := WriteAFIResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteAFIResponse,
-			},
 			Status: "ok",
 			UID:    "E004010000001234",
 			AFI:    "07",
@@ -975,7 +997,7 @@ func TestRFIDClient_WriteAFI_IDAndRefID_Correlation(t *testing.T) {
 				Source:  "reader-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventWriteAFIResponse,
 			},
 			Data: dataBytes,
 		}
@@ -983,13 +1005,12 @@ func TestRFIDClient_WriteAFI_IDAndRefID_Correlation(t *testing.T) {
 	}
 
 	req := NewWriteAFIRequest("07", "E004010000001234")
-	origReqID := req.ID
 	resp, err := rfid.WriteAFI(context.Background(), "reader-01", req)
 	if err != nil {
 		t.Fatalf("WriteAFI failed: %v", err)
 	}
-	if resp.RefID != origReqID {
-		t.Errorf("resp.RefID = %q, want request ID %q", resp.RefID, origReqID)
+	if resp.RefID == "" {
+		t.Error("expected non-empty resp.RefID")
 	}
 	if resp.ID != "resp-afi-id-888" {
 		t.Errorf("resp.ID = %q, want resp-afi-id-888", resp.ID)
@@ -1008,9 +1029,6 @@ func TestRFIDClient_GetDeviceMetadata_IDAndRefID_Correlation(t *testing.T) {
 			t.Errorf("expected reqEvt.ID to be non-empty")
 		}
 		respData := DeviceMetadataResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventDeviceMetadataResponse,
-			},
 			Status:   "ok",
 			DeviceID: "DEV-FEIG-01",
 		}
@@ -1022,7 +1040,7 @@ func TestRFIDClient_GetDeviceMetadata_IDAndRefID_Correlation(t *testing.T) {
 				Source:  "reader-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventDeviceMetadataResponse,
 			},
 			Data: dataBytes,
 		}
@@ -1050,28 +1068,26 @@ func TestRFIDClient_SendAFI_And_BroadcastAFI_IDPropagation(t *testing.T) {
 
 	// 1. SendAFI
 	reqSend := NewWriteAFIRequest("07", "E00401")
-	reqSendID := reqSend.ID
 	if err := rfid.SendAFI(context.Background(), "reader-01", reqSend); err != nil {
 		t.Fatalf("SendAFI failed: %v", err)
 	}
 	fake.mu.Lock()
 	sentEvt := fake.lastSent
 	fake.mu.Unlock()
-	if sentEvt.ID != reqSendID {
-		t.Errorf("sentEvt.ID = %q, want reqSendID %q", sentEvt.ID, reqSendID)
+	if sentEvt.ID == "" {
+		t.Errorf("expected sentEvt.ID to be non-empty")
 	}
 
 	// 2. BroadcastAFI
 	reqBcast := NewWriteAFIRequest("C2", "E00402")
-	reqBcastID := reqBcast.ID
 	if err := rfid.BroadcastAFI(context.Background(), "chan1", reqBcast); err != nil {
 		t.Fatalf("BroadcastAFI failed: %v", err)
 	}
 	fake.mu.Lock()
 	bcastEvt := fake.lastSent
 	fake.mu.Unlock()
-	if bcastEvt.ID != reqBcastID {
-		t.Errorf("bcastEvt.ID = %q, want reqBcastID %q", bcastEvt.ID, reqBcastID)
+	if bcastEvt.ID == "" {
+		t.Errorf("expected bcastEvt.ID to be non-empty")
 	}
 }
 
@@ -1092,9 +1108,6 @@ func TestRFIDClient_WriteAFIBatch(t *testing.T) {
 		}
 
 		respData := WriteAFIResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteAFIResponse,
-			},
 			Status:         "ok",
 			UIDs:           req.UIDs,
 			SuccessfulUIDs: req.UIDs,
@@ -1112,7 +1125,7 @@ func TestRFIDClient_WriteAFIBatch(t *testing.T) {
 				Source:  "reader-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventWriteAFIResponse,
 			},
 			Data: dataBytes,
 		}
@@ -1161,9 +1174,6 @@ func TestRFIDClient_WriteTagBatch_And_WriteTags(t *testing.T) {
 		}
 
 		respData := WriteTagResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event: EventWriteTagResponse,
-			},
 			Status:         "ok",
 			SuccessfulUIDs: []string{"TAG-1", "TAG-2"},
 			Results: []TagWriteResult{
@@ -1180,7 +1190,7 @@ func TestRFIDClient_WriteTagBatch_And_WriteTags(t *testing.T) {
 				Source:  "reader-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventWriteTagResponse,
 			},
 			Data: dataBytes,
 		}
@@ -1292,10 +1302,7 @@ func TestRFIDClient_MultiReader_ForReader(t *testing.T) {
 		}
 
 		respData := DeviceMetadataResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event:    EventDeviceMetadataResponse,
-				ReaderID: req.ReaderID,
-			},
+			ReaderID:        req.ReaderID,
 			Status:          "ok",
 			DeviceID:        "FEIG-01",
 			DeviceType:      "LRU1002",
@@ -1309,7 +1316,7 @@ func TestRFIDClient_MultiReader_ForReader(t *testing.T) {
 				Source:  "daemon-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventDeviceMetadataResponse,
 			},
 			Data: dataBytes,
 		}, nil
@@ -1337,13 +1344,10 @@ func TestRFIDClient_MultiReader_ForReader(t *testing.T) {
 		}
 
 		respData := WriteTagResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event:    EventWriteTagResponse,
-				ReaderID: req.ReaderID,
-			},
-			Status: "ok",
-			UID:    req.UID,
-			ItemID: req.ItemID,
+			ReaderID: req.ReaderID,
+			Status:   "ok",
+			UID:      req.UID,
+			ItemID:   req.ItemID,
 		}
 		dataBytes, _ := json.Marshal(respData)
 		return &event.RawEvent{
@@ -1353,7 +1357,7 @@ func TestRFIDClient_MultiReader_ForReader(t *testing.T) {
 				Source:  "daemon-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventWriteTagResponse,
 			},
 			Data: dataBytes,
 		}, nil
@@ -1382,13 +1386,10 @@ func TestRFIDClient_MultiReader_ForReader(t *testing.T) {
 		}
 
 		respData := WriteAFIResponseData{
-			BaseRFIDPayload: BaseRFIDPayload{
-				Event:    EventWriteAFIResponse,
-				ReaderID: req.ReaderID,
-			},
-			Status: "ok",
-			UID:    req.UID,
-			AFI:    req.AFI,
+			ReaderID: req.ReaderID,
+			Status:   "ok",
+			UID:      req.UID,
+			AFI:      req.AFI,
 		}
 		dataBytes, _ := json.Marshal(respData)
 		return &event.RawEvent{
@@ -1398,7 +1399,7 @@ func TestRFIDClient_MultiReader_ForReader(t *testing.T) {
 				Source:  "daemon-01",
 				Target:  "controller-app",
 				Session: reqEvt.Session,
-				Type:    event.TypeMessage,
+				Type:    EventWriteAFIResponse,
 			},
 			Data: dataBytes,
 		}, nil
@@ -1444,10 +1445,9 @@ func TestRFIDClient_MultiReader_EventFiltering(t *testing.T) {
 			ID:     "evt-1",
 			Source: "daemon-01",
 			Target: "all",
-			Type:   event.TypeMessage,
+			Type:   EventTagRead,
 		},
 		Data: []byte(`{
-			"event": "rfid:tag_read",
 			"readerId": "gate-01",
 			"uid": "UID-G1",
 			"itemId": "BOOK-G1"
@@ -1464,10 +1464,9 @@ func TestRFIDClient_MultiReader_EventFiltering(t *testing.T) {
 			ID:     "evt-2",
 			Source: "daemon-01",
 			Target: "all",
-			Type:   event.TypeMessage,
+			Type:   EventTagRead,
 		},
 		Data: []byte(`{
-			"event": "rfid:tag_read",
 			"readerId": "gate-02",
 			"uid": "UID-G2",
 			"itemId": "BOOK-G2"
@@ -1513,10 +1512,9 @@ func TestRFIDClient_MultiReader_SubscribeTagsForReader(t *testing.T) {
 			ID:     "evt-g2",
 			Source: "daemon-01",
 			Target: "all",
-			Type:   event.TypeMessage,
+			Type:   EventTagRead,
 		},
 		Data: []byte(`{
-			"event": "rfid:tag_read",
 			"readerId": "gate-02",
 			"uid": "UID-G2",
 			"itemId": "BOOK-G2"
@@ -1529,10 +1527,9 @@ func TestRFIDClient_MultiReader_SubscribeTagsForReader(t *testing.T) {
 			ID:     "evt-g1",
 			Source: "daemon-01",
 			Target: "all",
-			Type:   event.TypeMessage,
+			Type:   EventTagRead,
 		},
 		Data: []byte(`{
-			"event": "rfid:tag_read",
 			"readerId": "gate-01",
 			"uid": "UID-G1",
 			"itemId": "BOOK-G1"
@@ -1610,13 +1607,11 @@ func TestRFIDClient_WriteTag_TimeoutError(t *testing.T) {
 func TestRFIDClient_GetDeviceMetadataMulti(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	fake.requestNFunc = func(ctx context.Context, evt *event.RawEvent, numResults int, ch chan *event.RawEvent) error {
-		resp1, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":    "rfid:device_metadata_response",
+		resp1, _ := event.NewReplyEvent(evt, EventDeviceMetadataResponse, map[string]any{
 			"readerId": "reader-1",
 			"device":   "Simulated Reader 1",
 		})
-		resp2, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":    "rfid:device_metadata_response",
+		resp2, _ := event.NewReplyEvent(evt, EventDeviceMetadataResponse, map[string]any{
 			"readerId": "reader-2",
 			"device":   "Simulated Reader 2",
 		})
@@ -1656,15 +1651,13 @@ func TestRFIDClient_GetDeviceMetadataMulti(t *testing.T) {
 func TestRFIDClient_WriteTagBatchStream(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	fake.requestNFunc = func(ctx context.Context, evt *event.RawEvent, numResults int, ch chan *event.RawEvent) error {
-		resp1, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":   "rfid:write_tag_response",
+		resp1, _ := event.NewReplyEvent(evt, EventWriteTagResponse, map[string]any{
 			"status":  "ok",
 			"uid":     "UID-1",
 			"itemId":  "ITEM-1",
 			"message": "written 1",
 		})
-		resp2, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":   "rfid:write_tag_response",
+		resp2, _ := event.NewReplyEvent(evt, EventWriteTagResponse, map[string]any{
 			"status":  "ok",
 			"uid":     "UID-2",
 			"itemId":  "ITEM-2",
@@ -1704,8 +1697,7 @@ func TestRFIDClient_WriteTagBatchStream(t *testing.T) {
 	// Test scoped view
 	scoped := rfid.ForReader("gate-01")
 	fake.requestNFunc = func(ctx context.Context, evt *event.RawEvent, numResults int, ch chan *event.RawEvent) error {
-		resp, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":    "rfid:write_tag_response",
+		resp, _ := event.NewReplyEvent(evt, EventWriteTagResponse, map[string]any{
 			"status":   "ok",
 			"uid":      "UID-1",
 			"readerId": "gate-01",
@@ -1730,15 +1722,13 @@ func TestRFIDClient_WriteTagBatchStream(t *testing.T) {
 func TestRFIDClient_WriteAFIBatchStream(t *testing.T) {
 	fake := newFakeBroker("controller-app")
 	fake.requestNFunc = func(ctx context.Context, evt *event.RawEvent, numResults int, ch chan *event.RawEvent) error {
-		resp1, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":   "rfid:write_afi_response",
+		resp1, _ := event.NewReplyEvent(evt, EventWriteAFIResponse, map[string]any{
 			"status":  "ok",
 			"uid":     "UID-1",
 			"afi":     "07",
 			"message": "secured 1",
 		})
-		resp2, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":   "rfid:write_afi_response",
+		resp2, _ := event.NewReplyEvent(evt, EventWriteAFIResponse, map[string]any{
 			"status":  "ok",
 			"uid":     "UID-2",
 			"afi":     "07",
@@ -1775,8 +1765,7 @@ func TestRFIDClient_WriteAFIBatchStream(t *testing.T) {
 	// Test scoped view
 	scoped := rfid.ForReader("gate-01")
 	fake.requestNFunc = func(ctx context.Context, evt *event.RawEvent, numResults int, ch chan *event.RawEvent) error {
-		resp, _ := event.NewReplyEvent(evt, event.TypeMessage, map[string]any{
-			"event":    "rfid:write_afi_response",
+		resp, _ := event.NewReplyEvent(evt, EventWriteAFIResponse, map[string]any{
 			"status":   "ok",
 			"uid":      "UID-1",
 			"readerId": "gate-01",

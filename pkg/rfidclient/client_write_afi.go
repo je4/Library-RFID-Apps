@@ -2,7 +2,6 @@ package rfidclient
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -25,21 +24,17 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		return nil, err
 	}
 
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
-	}
-	req.Event = EventWriteAFI
 	session, err := wsbrokerclient.GenerateSessionID()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteAFI, c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write afi request event")
 	}
 	reqEvt.Session = session
-	reqEvt.ID = req.ID
+	reqID := reqEvt.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -59,7 +54,7 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 
 	if c.logger != nil {
 		logEvt := c.logger.Info().
-			Str("id", req.ID).
+			Str("id", reqID).
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
 			Str("target", targetAddr)
@@ -85,33 +80,29 @@ func (c *RFIDClient) WriteAFI(ctx context.Context, target string, req WriteAFIRe
 		return nil, errors.New("empty response received for write afi request")
 	}
 
-	var afiData WriteAFIResponseData
-	if err := json.Unmarshal(respEvt.Data, &afiData); err != nil {
+	afiResp, err := wsbrokerclient.ToTyped[WriteAFIResponseData](respEvt)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode write afi response")
 	}
 
-	if afiData.ReaderID == "" && respEvt.Source != "" {
-		afiData.ReaderID = respEvt.Source
+	if afiResp.Data.ReaderID == "" && respEvt.Source != "" {
+		afiResp.Data.ReaderID = respEvt.Source
 	}
-	if afiData.AFI == "" && req.AFI != "" {
-		afiData.AFI = req.AFI
+	if afiResp.Data.AFI == "" && req.AFI != "" {
+		afiResp.Data.AFI = req.AFI
 	}
-	if len(afiData.UIDs) == 0 && len(req.UIDs) > 0 {
-		afiData.UIDs = req.UIDs
+	if len(afiResp.Data.UIDs) == 0 && len(req.UIDs) > 0 {
+		afiResp.Data.UIDs = req.UIDs
 	}
-	if afiData.UID == "" && req.UID != "" {
-		afiData.UID = req.UID
-	}
-
-	baseEvt := respEvt.BaseEvent
-	if baseEvt.RefID == "" {
-		baseEvt.RefID = req.ID
+	if afiResp.Data.UID == "" && req.UID != "" {
+		afiResp.Data.UID = req.UID
 	}
 
-	afiResp := &WriteAFIResponse{
-		BaseEvent: baseEvt,
-		Data:      afiData,
+	if afiResp.RefID == "" {
+		afiResp.RefID = reqID
 	}
+
+	afiData := afiResp.Data
 
 	if c.logger != nil {
 		if afiData.IsSuccess() {
@@ -196,16 +187,13 @@ func (c *RFIDClient) WriteAFIBatchStream(ctx context.Context, target string, req
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
-	}
-	req.Event = EventWriteAFI
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteAFI, c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write AFI request event")
 	}
 	reqEvt.Session = session
-	reqEvt.ID = req.ID
+	reqID := reqEvt.ID
 
 	rawCh := make(chan *event.RawEvent, expectedResults)
 	outCh := make(chan *WriteAFIResponse, expectedResults)
@@ -216,27 +204,23 @@ func (c *RFIDClient) WriteAFIBatchStream(ctx context.Context, target string, req
 			if raw == nil || len(raw.Data) == 0 {
 				continue
 			}
-			var data WriteAFIResponseData
-			if err := json.Unmarshal(raw.Data, &data); err != nil {
+			typed, err := wsbrokerclient.ToTyped[WriteAFIResponseData](raw)
+			if err != nil {
 				if c.logger != nil {
 					c.logger.Warn().Err(err).Msg("failed to decode streaming write AFI response item")
 				}
 				continue
 			}
-			if data.ReaderID == "" && raw.Source != "" {
-				data.ReaderID = raw.Source
+			if typed.Data.ReaderID == "" && raw.Source != "" {
+				typed.Data.ReaderID = raw.Source
 			}
-			if data.AFI == "" && req.AFI != "" {
-				data.AFI = req.AFI
+			if typed.Data.AFI == "" && req.AFI != "" {
+				typed.Data.AFI = req.AFI
 			}
-			baseEvt := raw.BaseEvent
-			if baseEvt.RefID == "" {
-				baseEvt.RefID = req.ID
+			if typed.RefID == "" {
+				typed.RefID = reqID
 			}
-			outCh <- &WriteAFIResponse{
-				BaseEvent: baseEvt,
-				Data:      data,
-			}
+			outCh <- typed
 		}
 	}()
 
@@ -281,14 +265,14 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 		return err
 	}
 
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteAFI, c.broker.ClientName(), targetAddr, req)
+	if err != nil {
+		return errors.Wrap(err, "failed to create AFI write request event")
 	}
-	req.Event = EventWriteAFI
 
 	if c.logger != nil {
 		logEvt := c.logger.Info().
-			Str("id", req.ID).
+			Str("id", reqEvt.ID).
 			Str("afi", req.AFI).
 			Str("status", AFISecurityStatus(req.AFI)).
 			Str("target", targetAddr)
@@ -303,16 +287,10 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 		logEvt.Msg("sending RFID AFI write command")
 	}
 
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
-	if err != nil {
-		return errors.Wrap(err, "failed to create AFI write request event")
-	}
-	reqEvt.ID = req.ID
-
 	if err := c.broker.Request0(ctx, reqEvt); err != nil {
 		c.logger.Warn().
 			Err(err).
-			Str("id", req.ID).
+			Str("id", reqEvt.ID).
 			Str("afi", req.AFI).
 			Str("target", targetAddr).
 			Str("uid", req.UID).
@@ -321,7 +299,7 @@ func (c *RFIDClient) SendAFI(ctx context.Context, target string, req WriteAFIReq
 	}
 
 	c.logger.Info().
-		Str("id", req.ID).
+		Str("id", reqEvt.ID).
 		Str("afi", req.AFI).
 		Str("status", AFISecurityStatus(req.AFI)).
 		Str("target", targetAddr).
@@ -340,11 +318,6 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 		return err
 	}
 
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
-	}
-	req.Event = EventWriteAFI
-
 	channels := make([]string, 0)
 	if strings.TrimSpace(channel) != "" {
 		channels = append(channels, strings.TrimSpace(channel))
@@ -360,15 +333,7 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 
 	var firstErr error
 	for _, ch := range channels {
-		c.logger.Info().
-			Str("id", req.ID).
-			Str("afi", req.AFI).
-			Str("status", AFISecurityStatus(req.AFI)).
-			Str("channel", ch).
-			Str("uid", req.UID).
-			Msg("broadcasting RFID AFI write command")
-
-		reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), ch, req)
+		reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteAFI, c.broker.ClientName(), ch, req)
 		if err != nil {
 			if firstErr == nil {
 				firstErr = errors.Wrap(err, "failed to create AFI broadcast event")
@@ -376,12 +341,19 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 			continue
 		}
 		reqEvt.Channel = ch
-		reqEvt.ID = req.ID
+
+		c.logger.Info().
+			Str("id", reqEvt.ID).
+			Str("afi", req.AFI).
+			Str("status", AFISecurityStatus(req.AFI)).
+			Str("channel", ch).
+			Str("uid", req.UID).
+			Msg("broadcasting RFID AFI write command")
 
 		if err := c.broker.Request0(ctx, reqEvt); err != nil {
 			c.logger.Warn().
 				Err(err).
-				Str("id", req.ID).
+				Str("id", reqEvt.ID).
 				Str("afi", req.AFI).
 				Str("channel", ch).
 				Str("uid", req.UID).
@@ -391,7 +363,7 @@ func (c *RFIDClient) BroadcastAFI(ctx context.Context, channel string, req Write
 			}
 		} else {
 			c.logger.Info().
-				Str("id", req.ID).
+				Str("id", reqEvt.ID).
 				Str("afi", req.AFI).
 				Str("status", AFISecurityStatus(req.AFI)).
 				Str("channel", ch).

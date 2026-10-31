@@ -9,33 +9,28 @@ import (
 
 // Standard RFID event identifiers exchanged with rfid-headless.
 const (
-	EventTagRead             = "rfid:tag_read"
-	EventTagsCleared         = "rfid:tags_cleared"
-	EventTagsRemoved         = "rfid:tags_removed"
-	EventAntennaFieldCleared = "rfid:antenna_field_cleared"
+	EventTagRead             = "rfid/tag_read"
+	EventTagsCleared         = "rfid/tags_cleared"
+	EventTagsRemoved         = "rfid/tags_removed"
+	EventAntennaFieldCleared = "rfid/antenna_field_cleared"
 )
 
-// BaseRFIDPayload represents common fields included in RFID event data payloads.
-type BaseRFIDPayload struct {
-	Event    string `json:"event"`
-	ReaderID string `json:"readerId,omitempty"`
-	Session  string `json:"session,omitempty"`
-}
-
-// GetReaderID returns the logical reader identifier.
-func (p *BaseRFIDPayload) GetReaderID() string {
-	return p.ReaderID
-}
-
-// WithReaderID sets the logical reader identifier on the payload.
-func (p *BaseRFIDPayload) WithReaderID(readerID string) *BaseRFIDPayload {
-	p.ReaderID = readerID
-	return p
+func init() {
+	// Register RFID event payloads with wsbrokerclient global registry
+	wsbrokerclient.RegisterPayload[TagReadData](EventTagRead)
+	wsbrokerclient.RegisterPayload[TagsClearedData](EventTagsCleared)
+	wsbrokerclient.RegisterPayload[DeviceMetadataResponseData](EventDeviceMetadataResponse)
+	wsbrokerclient.RegisterPayload[DeviceMetadataResponseData](EventDeviceMetadata)
+	wsbrokerclient.RegisterPayload[DeviceMetadataRequest](EventGetDeviceMetadata)
+	wsbrokerclient.RegisterPayload[WriteTagResponseData](EventWriteTagResponse)
+	wsbrokerclient.RegisterPayload[WriteTagRequest](EventWriteTag)
+	wsbrokerclient.RegisterPayload[WriteAFIResponseData](EventWriteAFIResponse)
+	wsbrokerclient.RegisterPayload[WriteAFIRequest](EventWriteAFI)
 }
 
 // TagReadData represents the RFID transponder payload (ISO 15693 / ISO 28560-2).
 type TagReadData struct {
-	BaseRFIDPayload
+	ReaderID   string `json:"readerId,omitempty"`
 	UID        string `json:"uid"`
 	ItemID     string `json:"itemId"`
 	ISIL       string `json:"isil,omitempty"`
@@ -50,6 +45,17 @@ type TagReadData struct {
 	UsageType  *int   `json:"usageType,omitempty"`
 	Version    *int   `json:"version,omitempty"`
 	AFI        string `json:"afi,omitempty"`
+}
+
+// GetReaderID returns the logical reader identifier.
+func (e *TagReadData) GetReaderID() string {
+	return e.ReaderID
+}
+
+// WithReaderID sets the logical reader identifier on the payload.
+func (e *TagReadData) WithReaderID(readerID string) *TagReadData {
+	e.ReaderID = readerID
+	return e
 }
 
 // TagReadEvent represents a typed wsbroker event containing TagReadData.
@@ -127,9 +133,20 @@ func (e *TagReadData) Summary() string {
 
 // TagsClearedData represents the payload of a reader cleared event (all RFID tags removed from reader field).
 type TagsClearedData struct {
-	BaseRFIDPayload
-	Status    string `json:"status"`
-	TotalTags int    `json:"totalTags"`
+	ReaderID  string `json:"readerId,omitempty"`
+	Status    string `json:"status,omitempty"`
+	TotalTags int    `json:"totalTags,omitempty"`
+}
+
+// GetReaderID returns the logical reader identifier.
+func (e *TagsClearedData) GetReaderID() string {
+	return e.ReaderID
+}
+
+// WithReaderID sets the logical reader identifier on the payload.
+func (e *TagsClearedData) WithReaderID(readerID string) *TagsClearedData {
+	e.ReaderID = readerID
+	return e
 }
 
 // TagsClearedEvent represents a typed wsbroker event containing TagsClearedData.

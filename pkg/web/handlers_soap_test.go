@@ -179,12 +179,10 @@ func TestSOAP_GetItems_Alma3M896(t *testing.T) {
 			Channel: "rfid",
 		},
 		Data: rfidclient.TagReadData{
-			UID:    "E004015099887766",
-			ItemID: "ALMA-3M-ITEM-01",
-			AFI:    rfidclient.AFISecured,
-			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-				ReaderID: "reader-01",
-			},
+			UID:      "E004015099887766",
+			ItemID:   "ALMA-3M-ITEM-01",
+			AFI:      rfidclient.AFISecured,
+			ReaderID: "reader-01",
 		},
 	})
 	hub.AddTag(&rfidclient.TagReadEvent{
@@ -192,12 +190,10 @@ func TestSOAP_GetItems_Alma3M896(t *testing.T) {
 			Channel: "rfid",
 		},
 		Data: rfidclient.TagReadData{
-			UID:    "E004015099887767",
-			ItemID: "ALMA-3M-ITEM-02",
-			AFI:    rfidclient.AFIUnsecured,
-			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-				ReaderID: "reader-01",
-			},
+			UID:      "E004015099887767",
+			ItemID:   "ALMA-3M-ITEM-02",
+			AFI:      rfidclient.AFIUnsecured,
+			ReaderID: "reader-01",
 		},
 	})
 
@@ -246,12 +242,10 @@ func TestSOAP_SetTagSecurity_Alma3M896(t *testing.T) {
 			Channel: "rfid",
 		},
 		Data: rfidclient.TagReadData{
-			UID:    "E004015099887766",
-			ItemID: "ALMA-3M-ITEM-01",
-			AFI:    rfidclient.AFISecured,
-			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-				ReaderID: "reader-01",
-			},
+			UID:      "E004015099887766",
+			ItemID:   "ALMA-3M-ITEM-01",
+			AFI:      rfidclient.AFISecured,
+			ReaderID: "reader-01",
 		},
 	})
 
@@ -293,12 +287,10 @@ func TestSOAP_WriteTag_Alma3M896(t *testing.T) {
 			Channel: "rfid",
 		},
 		Data: rfidclient.TagReadData{
-			UID:    "E004015012345678",
-			ItemID: "OLD-BARCODE",
-			AFI:    rfidclient.AFISecured,
-			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-				ReaderID: "reader-01",
-			},
+			UID:      "E004015012345678",
+			ItemID:   "OLD-BARCODE",
+			AFI:      rfidclient.AFISecured,
+			ReaderID: "reader-01",
 		},
 	})
 
@@ -346,12 +338,10 @@ func TestSOAP_GetTag_Alma(t *testing.T) {
 			Channel: "rfid",
 		},
 		Data: rfidclient.TagReadData{
-			UID:    "E004015011223344",
-			ItemID: "ALMA-BOOK-12345",
-			AFI:    rfidclient.AFISecured,
-			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-				ReaderID: "reader-01",
-			},
+			UID:      "E004015011223344",
+			ItemID:   "ALMA-BOOK-12345",
+			AFI:      rfidclient.AFISecured,
+			ReaderID: "reader-01",
 		},
 	})
 
@@ -386,12 +376,10 @@ func TestSOAP_ChannelScopedEndpoint(t *testing.T) {
 			Channel: "rfid",
 		},
 		Data: rfidclient.TagReadData{
-			UID:    "E004015099887766",
-			ItemID: "ITEM-RFID-CHANNEL",
-			AFI:    rfidclient.AFISecured,
-			BaseRFIDPayload: rfidclient.BaseRFIDPayload{
-				ReaderID: "reader-01",
-			},
+			UID:      "E004015099887766",
+			ItemID:   "ITEM-RFID-CHANNEL",
+			AFI:      rfidclient.AFISecured,
+			ReaderID: "reader-01",
 		},
 	})
 

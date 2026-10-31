@@ -8,7 +8,7 @@
 //  1. Transport Metadata (wsbrokerclient.BaseEvent): Embedded in each event, carrying routing metadata
 //     (Source, Target, Channel, Token, Type, Timestamp, ID, RefID).
 //  2. Domain Data (TagReadData, TagsClearedData, etc.): Strongly typed RFID data structures
-//     embedding BaseRFIDPayload with ISO 28560-2 library metadata, AFI security flags, and domain helper methods.
+//     with ISO 28560-2 library metadata, AFI security flags, and domain helper methods.
 //
 // # Single-Envelope Handler Signatures
 //
@@ -33,7 +33,6 @@ type (
 	Client                     = rfidclient.Client
 	RFIDClient                 = rfidclient.RFIDClient
 	Option                     = rfidclient.Option
-	BaseRFIDPayload            = rfidclient.BaseRFIDPayload
 	TagReadData                = rfidclient.TagReadData
 	TagReadEvent               = rfidclient.TagReadEvent
 	TagsClearedData            = rfidclient.TagsClearedData

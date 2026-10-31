@@ -11,7 +11,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/rfidclient"
-	"github.com/je4/wsbrokerclient"
 )
 
 func getSkinFromCookie(c *gin.Context) string {
@@ -360,8 +359,6 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 	}
 
 	req := rfidclient.WriteTagRequest{
-		Event:     rfidclient.EventWriteTag,
-		ID:        wsbrokerclient.GenerateEventID(),
 		ReaderID:  targetReaderID,
 		UID:       uid,
 		ItemID:    itemID,

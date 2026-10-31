@@ -207,8 +207,8 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*RFIDClie
 		logger: logger,
 	}
 
-	// Register listener for incoming message events from WSBroker
-	c.brokerUnsub = c.broker.OnMessage(func(evt *event.RawEvent) {
+	// Register listener for incoming events from WSBroker
+	c.brokerUnsub = c.broker.OnEvent(func(evt *event.RawEvent) {
 		_, _ = c.HandleEvent(evt)
 	})
 

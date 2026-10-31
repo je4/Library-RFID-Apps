@@ -2,7 +2,6 @@ package rfidclient
 
 import (
 	"context"
-	"encoding/json"
 
 	"emperror.dev/errors"
 	"github.com/je4/wsbrokerclient"
@@ -31,12 +30,12 @@ func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target stri
 		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, reqPayload)
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventGetDeviceMetadata, c.broker.ClientName(), targetAddr, reqPayload)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create device metadata request event")
 	}
 	reqEvt.Session = session
-	reqEvt.ID = reqPayload.ID
+	reqID := reqEvt.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -45,7 +44,7 @@ func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target stri
 		defer cancel()
 	}
 
-	c.logger.Debug().Msgf("sending device metadata request to %s (id: %s, reader: %s, session: %s)", targetAddr, reqPayload.ID, readerID, session)
+	c.logger.Debug().Msgf("sending device metadata request to %s (id: %s, reader: %s, session: %s)", targetAddr, reqID, readerID, session)
 	respEvt, err := c.broker.Request(reqCtx, reqEvt)
 	if err != nil {
 		return nil, errors.Wrapf(err, "device metadata request failed for target %s", targetAddr)
@@ -55,24 +54,20 @@ func (c *RFIDClient) GetDeviceMetadataForReader(ctx context.Context, target stri
 		return nil, errors.New("empty response received for device metadata request")
 	}
 
-	var metaData DeviceMetadataResponseData
-	if err := json.Unmarshal(respEvt.Data, &metaData); err != nil {
+	metaResp, err := wsbrokerclient.ToTyped[DeviceMetadataResponseData](respEvt)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode device metadata response")
 	}
 
-	if metaData.ReaderID == "" && respEvt.Source != "" {
-		metaData.ReaderID = respEvt.Source
+	if metaResp.Data.ReaderID == "" && respEvt.Source != "" {
+		metaResp.Data.ReaderID = respEvt.Source
 	}
 
-	baseEvt := respEvt.BaseEvent
-	if baseEvt.RefID == "" {
-		baseEvt.RefID = reqPayload.ID
+	if metaResp.RefID == "" {
+		metaResp.RefID = reqID
 	}
 
-	return &DeviceMetadataResponse{
-		BaseEvent: baseEvt,
-		Data:      metaData,
-	}, nil
+	return metaResp, nil
 }
 
 // GetDeviceMetadataMulti queries hardware metadata from multiple readers or broadcast channels concurrently using RequestN.
@@ -91,12 +86,12 @@ func (c *RFIDClient) GetDeviceMetadataMulti(ctx context.Context, target string, 
 		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, reqPayload)
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventGetDeviceMetadata, c.broker.ClientName(), targetAddr, reqPayload)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create device metadata request event")
 	}
 	reqEvt.Session = session
-	reqEvt.ID = reqPayload.ID
+	reqID := reqEvt.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -115,24 +110,20 @@ func (c *RFIDClient) GetDeviceMetadataMulti(ctx context.Context, target string, 
 		if respEvt == nil || len(respEvt.Data) == 0 {
 			continue
 		}
-		var metaData DeviceMetadataResponseData
-		if err := json.Unmarshal(respEvt.Data, &metaData); err != nil {
+		typed, err := wsbrokerclient.ToTyped[DeviceMetadataResponseData](respEvt)
+		if err != nil {
 			if c.logger != nil {
 				c.logger.Warn().Err(err).Msg("failed to decode device metadata response item")
 			}
 			continue
 		}
-		if metaData.ReaderID == "" && respEvt.Source != "" {
-			metaData.ReaderID = respEvt.Source
+		if typed.Data.ReaderID == "" && respEvt.Source != "" {
+			typed.Data.ReaderID = respEvt.Source
 		}
-		baseEvt := respEvt.BaseEvent
-		if baseEvt.RefID == "" {
-			baseEvt.RefID = reqPayload.ID
+		if typed.RefID == "" {
+			typed.RefID = reqID
 		}
-		results = append(results, &DeviceMetadataResponse{
-			BaseEvent: baseEvt,
-			Data:      metaData,
-		})
+		results = append(results, typed)
 	}
 
 	return results, nil

@@ -24,87 +24,17 @@ func ParseRFIDPayload(data []byte) (any, error) {
 	}
 
 	var header struct {
-		Event  string `json:"event"`
-		Status string `json:"status"`
+		Event string `json:"event"`
 	}
-	if err := json.Unmarshal(data, &header); err != nil {
-		return nil, errors.Wrap(err, "failed to decode json header")
+	if err := json.Unmarshal(data, &header); err == nil && header.Event != "" {
+		raw := &wsbrokerclient.RawEvent{
+			BaseEvent: wsbrokerclient.BaseEvent{Type: wsbrokerclient.EventType(header.Event)},
+			Data:      data,
+		}
+		return raw.GetData()
 	}
 
-	switch header.Event {
-	case EventTagRead:
-		var tag TagReadData
-		if err := json.Unmarshal(data, &tag); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal TagReadData")
-		}
-		return &tag, nil
-
-	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared:
-		var cleared TagsClearedData
-		if err := json.Unmarshal(data, &cleared); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal TagsClearedData")
-		}
-		return &cleared, nil
-
-	case EventDeviceMetadataResponse, EventDeviceMetadata:
-		var meta DeviceMetadataResponseData
-		if err := json.Unmarshal(data, &meta); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataResponseData")
-		}
-		return &meta, nil
-
-	case EventGetDeviceMetadata:
-		var req DeviceMetadataRequest
-		if err := json.Unmarshal(data, &req); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal DeviceMetadataRequest")
-		}
-		return &req, nil
-
-	case EventWriteTagResponse:
-		var writeResp WriteTagResponseData
-		if err := json.Unmarshal(data, &writeResp); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponseData")
-		}
-		return &writeResp, nil
-
-	case EventWriteTag:
-		if header.Status != "" {
-			var writeResp WriteTagResponseData
-			if err := json.Unmarshal(data, &writeResp); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal WriteTagResponseData")
-			}
-			return &writeResp, nil
-		}
-		var writeReq WriteTagRequest
-		if err := json.Unmarshal(data, &writeReq); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal WriteTagRequest")
-		}
-		return &writeReq, nil
-
-	case EventWriteAFIResponse:
-		var afiResp WriteAFIResponseData
-		if err := json.Unmarshal(data, &afiResp); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponseData")
-		}
-		return &afiResp, nil
-
-	case EventWriteAFI:
-		if header.Status != "" {
-			var afiResp WriteAFIResponseData
-			if err := json.Unmarshal(data, &afiResp); err != nil {
-				return nil, errors.Wrap(err, "failed to unmarshal WriteAFIResponseData")
-			}
-			return &afiResp, nil
-		}
-		var afiReq WriteAFIRequest
-		if err := json.Unmarshal(data, &afiReq); err != nil {
-			return nil, errors.Wrap(err, "failed to unmarshal WriteAFIRequest")
-		}
-		return &afiReq, nil
-
-	default:
-		return nil, errors.Errorf("unrecognized rfid event type: %q", header.Event)
-	}
+	return nil, errors.New("failed to identify payload event type")
 }
 
 // ParseEvent extracts and parses the RFID payload from a wsbroker event envelope.
@@ -112,82 +42,112 @@ func ParseEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 	if evt == nil {
 		return nil, errors.New("event envelope is nil")
 	}
-	if evt.Type != "" && evt.Type != wsbrokerclient.TypeMessage {
-		return nil, errors.Errorf("event type %q is not %q", evt.Type, wsbrokerclient.TypeMessage)
-	}
 	if len(evt.Data) == 0 {
 		return nil, errors.New("event data is empty")
 	}
-	payload, err := ParseRFIDPayload(evt.Data)
-	if err != nil {
-		return nil, err
-	}
-	switch v := payload.(type) {
-	case *TagReadData:
-		if v.ReaderID == "" && evt.Source != "" {
-			v.ReaderID = evt.Source
+
+	eventType := string(evt.Type)
+	switch eventType {
+	case EventTagRead:
+		typed, err := wsbrokerclient.ToTyped[TagReadData](evt)
+		if err != nil {
+			return nil, err
 		}
-		return &TagReadEvent{
-			BaseEvent: evt.BaseEvent,
-			Data:      *v,
-		}, nil
-	case *TagsClearedData:
-		if v.ReaderID == "" && evt.Source != "" {
-			v.ReaderID = evt.Source
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
 		}
-		return &TagsClearedEvent{
-			BaseEvent: evt.BaseEvent,
-			Data:      *v,
-		}, nil
-	case *DeviceMetadataResponseData:
-		if v.ReaderID == "" && evt.Source != "" {
-			v.ReaderID = evt.Source
+		return typed, nil
+
+	case EventTagsCleared, EventTagsRemoved, EventAntennaFieldCleared:
+		typed, err := wsbrokerclient.ToTyped[TagsClearedData](evt)
+		if err != nil {
+			return nil, err
 		}
-		return &DeviceMetadataResponse{
-			BaseEvent: evt.BaseEvent,
-			Data:      *v,
-		}, nil
-	case *DeviceMetadataRequest:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
 		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
+		return typed, nil
+
+	case EventDeviceMetadataResponse, EventDeviceMetadata:
+		typed, err := wsbrokerclient.ToTyped[DeviceMetadataResponseData](evt)
+		if err != nil {
+			return nil, err
 		}
-		return v, nil
-	case *WriteTagResponseData:
-		if v.ReaderID == "" && evt.Source != "" {
-			v.ReaderID = evt.Source
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
 		}
-		return &WriteTagResponse{
-			BaseEvent: evt.BaseEvent,
-			Data:      *v,
-		}, nil
-	case *WriteTagRequest:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
+		return typed, nil
+
+	case EventGetDeviceMetadata:
+		typed, err := wsbrokerclient.ToTyped[DeviceMetadataRequest](evt)
+		if err != nil {
+			return nil, err
 		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
+		return &typed.Data, nil
+
+	case EventWriteTagResponse:
+		typed, err := wsbrokerclient.ToTyped[WriteTagResponseData](evt)
+		if err != nil {
+			return nil, err
 		}
-		return v, nil
-	case *WriteAFIResponseData:
-		if v.ReaderID == "" && evt.Source != "" {
-			v.ReaderID = evt.Source
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
 		}
-		return &WriteAFIResponse{
-			BaseEvent: evt.BaseEvent,
-			Data:      *v,
-		}, nil
-	case *WriteAFIRequest:
-		if v.ID == "" && evt.ID != "" {
-			v.ID = evt.ID
+		return typed, nil
+
+	case EventWriteTag:
+		var statusCheck struct {
+			Status string `json:"status"`
 		}
-		if v.RefID == "" && evt.RefID != "" {
-			v.RefID = evt.RefID
+		_ = json.Unmarshal(evt.Data, &statusCheck)
+		if statusCheck.Status != "" {
+			typed, err := wsbrokerclient.ToTyped[WriteTagResponseData](evt)
+			if err != nil {
+				return nil, err
+			}
+			if typed.Data.ReaderID == "" && evt.Source != "" {
+				typed.Data.ReaderID = evt.Source
+			}
+			return typed, nil
 		}
-		return v, nil
+		typed, err := wsbrokerclient.ToTyped[WriteTagRequest](evt)
+		if err != nil {
+			return nil, err
+		}
+		return &typed.Data, nil
+
+	case EventWriteAFIResponse:
+		typed, err := wsbrokerclient.ToTyped[WriteAFIResponseData](evt)
+		if err != nil {
+			return nil, err
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		return typed, nil
+
+	case EventWriteAFI:
+		var statusCheck struct {
+			Status string `json:"status"`
+		}
+		_ = json.Unmarshal(evt.Data, &statusCheck)
+		if statusCheck.Status != "" {
+			typed, err := wsbrokerclient.ToTyped[WriteAFIResponseData](evt)
+			if err != nil {
+				return nil, err
+			}
+			if typed.Data.ReaderID == "" && evt.Source != "" {
+				typed.Data.ReaderID = evt.Source
+			}
+			return typed, nil
+		}
+		typed, err := wsbrokerclient.ToTyped[WriteAFIRequest](evt)
+		if err != nil {
+			return nil, err
+		}
+		return &typed.Data, nil
+
 	default:
-		return payload, nil
+		return nil, errors.Errorf("unrecognized rfid event type: %q", eventType)
 	}
 }

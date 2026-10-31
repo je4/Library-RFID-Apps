@@ -9,16 +9,13 @@ import (
 
 // Hardware metadata event identifiers.
 const (
-	EventGetDeviceMetadata      = "rfid:get_device_metadata"
-	EventDeviceMetadata         = "rfid:device_metadata"
-	EventDeviceMetadataResponse = "rfid:device_metadata_response"
+	EventGetDeviceMetadata      = "rfid/get_device_metadata"
+	EventDeviceMetadata         = "rfid/device_metadata"
+	EventDeviceMetadataResponse = "rfid/device_metadata_response"
 )
 
 // DeviceMetadataRequest represents a query for reader hardware status and metadata.
 type DeviceMetadataRequest struct {
-	Event    string `json:"event"`
-	ID       string `json:"id,omitempty"`
-	RefID    string `json:"refId,omitempty"`
 	ReaderID string `json:"readerId,omitempty"`
 }
 
@@ -40,11 +37,9 @@ func NewDeviceMetadataRequest(readerID ...string) DeviceMetadataRequest {
 	if len(readerID) > 0 {
 		rID = readerID[0]
 	}
-	return DeviceMetadataRequest{
-		Event:    EventGetDeviceMetadata,
-		ID:       wsbrokerclient.GenerateEventID(),
-		ReaderID: rID,
-	}
+	req := DeviceMetadataRequest{}
+	req.ReaderID = rID
+	return req
 }
 
 // NewDeviceMetadataRequestForReader creates a new query request for a specific reader hardware metadata.
@@ -54,12 +49,17 @@ func NewDeviceMetadataRequestForReader(readerID string) DeviceMetadataRequest {
 
 // DeviceMetadataResponseData represents reader hardware metadata and initialization diagnostics data.
 type DeviceMetadataResponseData struct {
-	BaseRFIDPayload
-	Status          string `json:"status"`
-	DeviceID        string `json:"deviceId"`
-	DeviceType      string `json:"deviceType"`
-	InitDescription string `json:"initDescription"`
+	ReaderID        string `json:"readerId,omitempty"`
+	Status          string `json:"status,omitempty"`
+	DeviceID        string `json:"deviceId,omitempty"`
+	DeviceType      string `json:"deviceType,omitempty"`
+	InitDescription string `json:"initDescription,omitempty"`
 	Description     string `json:"description,omitempty"`
+}
+
+// GetReaderID returns the logical reader identifier.
+func (r *DeviceMetadataResponseData) GetReaderID() string {
+	return r.ReaderID
 }
 
 // DeviceMetadataResponse represents a typed wsbroker event containing DeviceMetadataResponseData.

@@ -2,7 +2,6 @@ package rfidclient
 
 import (
 	"context"
-	"encoding/json"
 	"strings"
 	"time"
 
@@ -25,21 +24,17 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		return nil, err
 	}
 
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
-	}
-	req.Event = EventWriteTag
 	session, err := wsbrokerclient.GenerateSessionID()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
 
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteTag, c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write tag request event")
 	}
 	reqEvt.Session = session
-	reqEvt.ID = req.ID
+	reqID := reqEvt.ID
 
 	reqCtx := ctx
 	var cancel context.CancelFunc
@@ -64,7 +59,7 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 
 	if c.logger != nil {
 		logEvt := c.logger.Info().
-			Str("id", req.ID).
+			Str("id", reqID).
 			Str("target", targetAddr)
 		if req.ReaderID != "" {
 			logEvt = logEvt.Str("readerId", req.ReaderID)
@@ -93,24 +88,20 @@ func (c *RFIDClient) WriteTag(ctx context.Context, target string, req WriteTagRe
 		return nil, errors.New("empty response received for write tag request")
 	}
 
-	var writeData WriteTagResponseData
-	if err := json.Unmarshal(respEvt.Data, &writeData); err != nil {
+	writeResp, err := wsbrokerclient.ToTyped[WriteTagResponseData](respEvt)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to decode write tag response")
 	}
 
-	if writeData.ReaderID == "" && respEvt.Source != "" {
-		writeData.ReaderID = respEvt.Source
+	if writeResp.Data.ReaderID == "" && respEvt.Source != "" {
+		writeResp.Data.ReaderID = respEvt.Source
 	}
 
-	baseEvt := respEvt.BaseEvent
-	if baseEvt.RefID == "" {
-		baseEvt.RefID = req.ID
+	if writeResp.RefID == "" {
+		writeResp.RefID = reqID
 	}
 
-	writeResp := &WriteTagResponse{
-		BaseEvent: baseEvt,
-		Data:      writeData,
-	}
+	writeData := writeResp.Data
 
 	if c.logger != nil {
 		if writeData.IsSuccess() {
@@ -198,12 +189,12 @@ func (c *RFIDClient) writeTagBatchStreamWithReader(ctx context.Context, target s
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to generate correlation session")
 	}
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteTag, c.broker.ClientName(), targetAddr, req)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create write tag request event")
 	}
 	reqEvt.Session = session
-	reqEvt.ID = req.ID
+	reqID := reqEvt.ID
 
 	rawCh := make(chan *event.RawEvent, expectedResults)
 	outCh := make(chan *WriteTagResponse, expectedResults)
@@ -214,24 +205,20 @@ func (c *RFIDClient) writeTagBatchStreamWithReader(ctx context.Context, target s
 			if raw == nil || len(raw.Data) == 0 {
 				continue
 			}
-			var data WriteTagResponseData
-			if err := json.Unmarshal(raw.Data, &data); err != nil {
+			typed, err := wsbrokerclient.ToTyped[WriteTagResponseData](raw)
+			if err != nil {
 				if c.logger != nil {
 					c.logger.Warn().Err(err).Msg("failed to decode streaming write tag response item")
 				}
 				continue
 			}
-			if data.ReaderID == "" && raw.Source != "" {
-				data.ReaderID = raw.Source
+			if typed.Data.ReaderID == "" && raw.Source != "" {
+				typed.Data.ReaderID = raw.Source
 			}
-			baseEvt := raw.BaseEvent
-			if baseEvt.RefID == "" {
-				baseEvt.RefID = req.ID
+			if typed.RefID == "" {
+				typed.RefID = reqID
 			}
-			outCh <- &WriteTagResponse{
-				BaseEvent: baseEvt,
-				Data:      data,
-			}
+			outCh <- typed
 		}
 	}()
 
@@ -267,30 +254,25 @@ func (c *RFIDClient) sendWriteTagBatchWithReader(ctx context.Context, target str
 	if err != nil {
 		return err
 	}
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
+
+	reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteTag, c.broker.ClientName(), targetAddr, req)
+	if err != nil {
+		return errors.Wrap(err, "failed to create batch write tag request event")
 	}
-	req.Event = EventWriteTag
 
 	if c.logger != nil {
 		c.logger.Info().
-			Str("id", req.ID).
+			Str("id", reqEvt.ID).
 			Int("count", len(tags)).
 			Str("target", targetAddr).
 			Msg("sending batch RFID write tag command")
 	}
 
-	reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), targetAddr, req)
-	if err != nil {
-		return errors.Wrap(err, "failed to create batch write tag request event")
-	}
-	reqEvt.ID = req.ID
-
 	if err := c.broker.Request0(ctx, reqEvt); err != nil {
 		if c.logger != nil {
 			c.logger.Warn().
 				Err(err).
-				Str("id", req.ID).
+				Str("id", reqEvt.ID).
 				Str("target", targetAddr).
 				Int("count", len(tags)).
 				Msg("failed to send batch RFID write tag command")
@@ -300,7 +282,7 @@ func (c *RFIDClient) sendWriteTagBatchWithReader(ctx context.Context, target str
 
 	if c.logger != nil {
 		c.logger.Info().
-			Str("id", req.ID).
+			Str("id", reqEvt.ID).
 			Str("target", targetAddr).
 			Int("count", len(tags)).
 			Msg("batch RFID write tag command sent successfully")
@@ -325,10 +307,6 @@ func (c *RFIDClient) broadcastWriteTagBatchWithReader(ctx context.Context, chann
 	if err := req.Validate(); err != nil {
 		return err
 	}
-	if req.ID == "" {
-		req.ID = wsbrokerclient.GenerateEventID()
-	}
-	req.Event = EventWriteTag
 
 	channels := make([]string, 0)
 	if strings.TrimSpace(channel) != "" {
@@ -345,15 +323,7 @@ func (c *RFIDClient) broadcastWriteTagBatchWithReader(ctx context.Context, chann
 
 	var firstErr error
 	for _, ch := range channels {
-		if c.logger != nil {
-			c.logger.Info().
-				Str("id", req.ID).
-				Int("count", len(tags)).
-				Str("channel", ch).
-				Msg("broadcasting batch RFID write tag command")
-		}
-
-		reqEvt, err := wsbrokerclient.NewMessageEvent(c.broker.ClientName(), ch, req)
+		reqEvt, err := wsbrokerclient.NewRawEvent(EventWriteTag, c.broker.ClientName(), ch, req)
 		if err != nil {
 			if firstErr == nil {
 				firstErr = errors.Wrap(err, "failed to create batch write tag broadcast event")
@@ -361,15 +331,21 @@ func (c *RFIDClient) broadcastWriteTagBatchWithReader(ctx context.Context, chann
 			continue
 		}
 		reqEvt.Channel = ch
-		reqEvt.ID = req.ID
+
+		if c.logger != nil {
+			c.logger.Info().
+				Str("id", reqEvt.ID).
+				Int("count", len(tags)).
+				Str("channel", ch).
+				Msg("broadcasting batch RFID write tag command")
+		}
 
 		if err := c.broker.Request0(ctx, reqEvt); err != nil {
 			if c.logger != nil {
 				c.logger.Warn().
 					Err(err).
-					Str("id", req.ID).
+					Str("id", reqEvt.ID).
 					Str("channel", ch).
-					Int("count", len(tags)).
 					Msg("failed to broadcast batch RFID write tag command")
 			}
 			if firstErr == nil {
@@ -377,7 +353,7 @@ func (c *RFIDClient) broadcastWriteTagBatchWithReader(ctx context.Context, chann
 			}
 		} else if c.logger != nil {
 			c.logger.Info().
-				Str("id", req.ID).
+				Str("id", reqEvt.ID).
 				Str("channel", ch).
 				Int("count", len(tags)).
 				Msg("batch RFID write tag command broadcast successfully")

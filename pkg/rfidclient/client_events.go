@@ -121,7 +121,7 @@ func (c *RFIDClient) SubscribeTags(ctx context.Context, channel string) (<-chan 
 	tagCh := make(chan *TagReadEvent, 64)
 
 	unsub := c.OnTagRead(func(evt *TagReadEvent) {
-		if channel != "" && evt.Target != "" && !strings.EqualFold(evt.Target, channel) && !strings.EqualFold(evt.Target, "all") {
+		if channel != "" && evt.Target != "" && !strings.EqualFold(evt.Target, channel) && !strings.EqualFold(evt.Target, "all") && !strings.EqualFold(evt.Channel, channel) && !strings.EqualFold(evt.Channel, "all") {
 			return
 		}
 		select {
@@ -154,8 +154,9 @@ func (c *RFIDClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 		return nil, nil
 	}
 
-	// Only message events carry RFID payloads; ignore transport/heartbeat events (pong, ping, etc.)
-	if evt.Type != "" && evt.Type != event.TypeMessage {
+	// Ignore standard transport/heartbeat events (pong, ping, attach, detach)
+	switch evt.Type {
+	case event.TypePing, event.TypePong, event.TypeAttach, event.TypeDetach:
 		return nil, nil
 	}
 

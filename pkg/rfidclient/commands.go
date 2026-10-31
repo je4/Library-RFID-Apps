@@ -11,10 +11,10 @@ import (
 
 // Write and command event identifiers.
 const (
-	EventWriteTag         = "rfid:write_tag"
-	EventWriteTagResponse = "rfid:write_tag_response"
-	EventWriteAFI         = "rfid:write_afi"
-	EventWriteAFIResponse = "rfid:write_afi_response"
+	EventWriteTag         = "rfid/write_tag"
+	EventWriteTagResponse = "rfid/write_tag_response"
+	EventWriteAFI         = "rfid/write_afi"
+	EventWriteAFIResponse = "rfid/write_afi_response"
 )
 
 // Standard ISO 28560 AFI (Application Family Identifier) security byte constants.
@@ -85,9 +85,6 @@ func (r *TagWriteResult) IsSuccess() bool {
 
 // WriteTagRequest represents a command to write ISO 28560-2 library metadata and optional AFI to an RFID tag (single or batch).
 type WriteTagRequest struct {
-	Event     string         `json:"event"`
-	ID        string         `json:"id,omitempty"`
-	RefID     string         `json:"refId,omitempty"`
 	ReaderID  string         `json:"readerId,omitempty"`
 	UID       string         `json:"uid,omitempty"`
 	ItemID    string         `json:"itemId,omitempty"`
@@ -122,8 +119,6 @@ func NewWriteTagRequest(itemID string, uid ...string) WriteTagRequest {
 		targetUID = uid[0]
 	}
 	return WriteTagRequest{
-		Event:     EventWriteTag,
-		ID:        wsbrokerclient.GenerateEventID(),
 		UID:       targetUID,
 		ItemID:    itemID,
 		Parts:     1,
@@ -152,10 +147,8 @@ func NewWriteTagBatchRequest(tags []TagWriteItem) WriteTagRequest {
 		}
 	}
 	return WriteTagRequest{
-		Event: EventWriteTag,
-		ID:    wsbrokerclient.GenerateEventID(),
-		UID:   primaryUID,
-		Tags:  normalized,
+		UID:  primaryUID,
+		Tags: normalized,
 	}
 }
 
@@ -215,8 +208,8 @@ func (r *WriteTagRequest) Validate() error {
 
 // WriteTagResponseData represents the result data of an RFID tag write operation (single or batch).
 type WriteTagResponseData struct {
-	BaseRFIDPayload
-	Status         string            `json:"status"` // "ok" | "partial" | "error"
+	ReaderID       string            `json:"readerId,omitempty"`
+	Status         string            `json:"status,omitempty"` // "ok" | "partial" | "error"
 	UID            string            `json:"uid,omitempty"`
 	ItemID         string            `json:"itemId,omitempty"`
 	ISIL           string            `json:"isil,omitempty"`
@@ -231,6 +224,11 @@ type WriteTagResponseData struct {
 	Results        []TagWriteResult  `json:"results,omitempty"`
 	Message        string            `json:"message,omitempty"`
 	Error          string            `json:"error,omitempty"`
+}
+
+// GetReaderID returns the target reader identifier.
+func (r *WriteTagResponseData) GetReaderID() string {
+	return r.ReaderID
 }
 
 // WriteTagResponse represents a typed wsbroker event containing WriteTagResponseData.
@@ -385,9 +383,6 @@ func (r *TagAFIResult) IsSuccess() bool {
 
 // WriteAFIRequest represents a command to write or toggle the AFI byte (single tag or batch).
 type WriteAFIRequest struct {
-	Event    string   `json:"event"`
-	ID       string   `json:"id,omitempty"`
-	RefID    string   `json:"refId,omitempty"`
 	ReaderID string   `json:"readerId,omitempty"`
 	UID      string   `json:"uid,omitempty"`
 	UIDs     []string `json:"uids,omitempty"`
@@ -418,11 +413,9 @@ func NewWriteAFIRequest(afi string, uid ...string) WriteAFIRequest {
 		targetUIDs = uid
 	}
 	return WriteAFIRequest{
-		Event: EventWriteAFI,
-		ID:    wsbrokerclient.GenerateEventID(),
-		UID:   targetUID,
-		UIDs:  targetUIDs,
-		AFI:   afi,
+		UID:  targetUID,
+		UIDs: targetUIDs,
+		AFI:  afi,
 	}
 }
 
@@ -433,11 +426,9 @@ func NewWriteAFIBatchRequest(afi string, uids []string) WriteAFIRequest {
 		targetUID = uids[0]
 	}
 	return WriteAFIRequest{
-		Event: EventWriteAFI,
-		ID:    wsbrokerclient.GenerateEventID(),
-		UID:   targetUID,
-		UIDs:  uids,
-		AFI:   afi,
+		UID:  targetUID,
+		UIDs: uids,
+		AFI:  afi,
 	}
 }
 
@@ -451,8 +442,8 @@ func (r *WriteAFIRequest) Validate() error {
 
 // WriteAFIResponseData represents the result data of writing the AFI byte (single tag or batch).
 type WriteAFIResponseData struct {
-	BaseRFIDPayload
-	Status         string            `json:"status"` // "ok" | "partial" | "error"
+	ReaderID       string            `json:"readerId,omitempty"`
+	Status         string            `json:"status,omitempty"` // "ok" | "partial" | "error"
 	UID            string            `json:"uid,omitempty"`
 	UIDs           []string          `json:"uids,omitempty"`
 	SuccessfulUIDs []string          `json:"successfulUids,omitempty"`
@@ -461,6 +452,11 @@ type WriteAFIResponseData struct {
 	AFI            string            `json:"afi,omitempty"`
 	Message        string            `json:"message,omitempty"`
 	Error          string            `json:"error,omitempty"`
+}
+
+// GetReaderID returns the target reader identifier.
+func (r *WriteAFIResponseData) GetReaderID() string {
+	return r.ReaderID
 }
 
 // WriteAFIResponse represents a typed wsbroker event containing WriteAFIResponseData.
