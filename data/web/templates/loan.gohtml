@@ -14,18 +14,18 @@
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
+<body class="min-h-screen flex flex-col justify-between selection:bg-primary selection:text-primary-content p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-8">
 
         <!-- Metrics Overview Grid -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Active Media on Pad Card -->
             <div class="stats bg-base-100 border border-base-200 shadow-sm">
-                <div class="stat p-4">
+                <div class="stat p-5">
                     <div class="stat-figure text-primary">
                         <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                             <span class="app-icon icon-book-open w-5 h-5" aria-hidden="true"></span>
@@ -38,7 +38,7 @@
 
             <!-- Configured Reader Card -->
             <div class="stats bg-base-100 border border-base-200 shadow-sm">
-                <div class="stat p-4">
+                <div class="stat p-5">
                     <div class="stat-figure text-accent">
                         <div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
                             <span class="app-icon icon-chip w-5 h-5" aria-hidden="true"></span>
@@ -51,7 +51,7 @@
 
             <!-- Channel Card -->
             <div class="stats bg-base-100 border border-base-200 shadow-sm">
-                <div class="stat p-4">
+                <div class="stat p-5">
                     <div class="stat-figure text-secondary">
                         <div class="w-10 h-10 rounded-lg bg-secondary/10 flex items-center justify-center text-secondary">
                             <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
@@ -104,7 +104,7 @@
             <!-- Active Tags Table with SSE Connection -->
             <div class="transponder-stream-scroll flex-1 overflow-x-auto">
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
-                    <thead class="sticky top-0 z-10 bg-base-200/80 backdrop-blur">
+                    <thead class="sticky top-0 z-10 bg-base-200 text-base-content/80 font-bold">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Transponder UID</th>

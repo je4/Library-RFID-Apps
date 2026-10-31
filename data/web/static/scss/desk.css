@@ -48,42 +48,6 @@
   box-shadow: 0 0 6px rgba(16, 185, 129, 0.7);
 }
 
-.theme-card {
-  background-color: hsla(var(--b1)/0.8);
-  border: 1px solid hsla(var(--bc)/0.12);
-  border-radius: var(--rounded-box, 0.75rem);
-  padding: 0.625rem 0.75rem;
-  transition: all 0.15s ease-in-out;
-  cursor: pointer;
-  user-select: none;
-}
-.theme-card:hover {
-  background-color: hsla(var(--b2)/0.9);
-  border-color: hsla(var(--p)/0.5);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-.theme-card.is-active {
-  background-color: hsla(var(--b2)/0.95);
-  border-color: hsl(var(--p));
-  box-shadow: 0 0 0 2px hsla(var(--p)/0.4);
-}
-.theme-card.is-active .theme-check-icon {
-  display: inline-flex !important;
-}
-
-.theme-swatch-box {
-  display: flex;
-  gap: 3px;
-  align-items: center;
-}
-.theme-swatch-box .theme-swatch {
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-}
-
 .app-icon {
   display: inline-block;
   width: 1rem;

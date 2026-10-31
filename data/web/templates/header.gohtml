@@ -1,5 +1,5 @@
 <!-- Header Bar with Navigation -->
-<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 bg-base-100/80 backdrop-blur border border-base-200 shadow-sm rounded-2xl px-4 py-2 gap-4 min-h-0">
+<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-8 bg-base-100 border border-base-200 shadow-sm rounded-2xl px-5 py-3 gap-4 min-h-0 text-base-content">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
@@ -18,7 +18,7 @@
             </h1>
 
             <!-- Metadaten-Zeile -->
-            <p class="text-xs text-base-content/70 font-mono flex items-center gap-2">
+            <p class="text-xs text-base-content/80 font-mono flex items-center gap-2">
                 {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
                 {{if or .IsLoan .IsEncode}}
                 <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>

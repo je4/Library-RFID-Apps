@@ -6,42 +6,42 @@
  */
 
 export const THEMES = [
-    // --- Light Themes (14) ---
-    { id: 'corporate', name: 'Corporate', type: 'light', desc: 'Professionell & Modern', colors: ['#2563eb', '#64748b', '#059669', '#1e293b'] },
-    { id: 'emerald',   name: 'Emerald',   type: 'light', desc: 'Smaragdgrün & Frisch', colors: ['#10b981', '#1e293b', '#f59e0b', '#f8fafc'] },
-    { id: 'nord',      name: 'Nord',      type: 'light', desc: 'Nordisch Klares Blau', colors: ['#5e81ac', '#88c0d0', '#81a1c1', '#eceff4'] },
-    { id: 'cupcake',   name: 'Cupcake',   type: 'light', desc: 'Sanfte Pastellfarben', colors: ['#65c3c8', '#ef9fbc', '#eeaf3a', '#faf7f5'] },
-    { id: 'retro',     name: 'Retro',     type: 'light', desc: 'Vintage Beige / Retro', colors: ['#ef9995', '#a4cbb4', '#dc8850', '#ece3ca'] },
-    { id: 'garden',    name: 'Garden',    type: 'light', desc: 'Natürliches Olivgrün', colors: ['#5c7f67', '#ecf4e7', '#e9e7e7', '#291e00'] },
-    { id: 'aqua',      name: 'Aqua',      type: 'light', desc: 'Ozean & Meeresblau',   colors: ['#09ecf3', '#7209b7', '#f72585', '#345da7'] },
-    { id: 'lofi',      name: 'Lofi',      type: 'light', desc: 'Minimal Monochrom',   colors: ['#0d0d0d', '#1a1919', '#262626', '#ffffff'] },
-    { id: 'pastel',    name: 'Pastel',    type: 'light', desc: 'Bunte Pastelltöne',   colors: ['#d1c1d7', '#f6cbd1', '#b4e9d6', '#ffffff'] },
-    { id: 'fantasy',   name: 'Fantasy',   type: 'light', desc: 'Verspielt & Pink',     colors: ['#6e0b75', '#007ebd', '#f8860d', '#ffffff'] },
-    { id: 'winter',    name: 'Winter',    type: 'light', desc: 'Klares Eisblau',       colors: ['#047aff', '#463aa2', '#c148ac', '#ffffff'] },
-    { id: 'autumn',    name: 'Autumn',    type: 'light', desc: 'Warme Herbsttöne',    colors: ['#8c0327', '#d85251', '#d59b6a', '#f1f1f1'] },
-    { id: 'acid',      name: 'Acid',      type: 'light', desc: 'Neon & Säuregrün',     colors: ['#e2f22b', '#ff6b6b', '#111111', '#fafafa'] },
-    { id: 'lemonade',  name: 'Lemonade',  type: 'light', desc: 'Zitronengelb & Frisch', colors: ['#519903', '#e9e92f', '#2b8f38', '#ffffff'] },
-    { id: 'cyberpunk', name: 'Cyberpunk', type: 'light', desc: 'Gelber Cyber-Look',   colors: ['#ff7598', '#75d1f0', '#c07eec', '#ffee00'] },
-    { id: 'valentine', name: 'Valentine', type: 'light', desc: 'Romantisch Rosa',     colors: ['#e96d7b', '#a991f7', '#88dbdd', '#f0d6e8'] },
-    { id: 'wireframe', name: 'Wireframe', type: 'light', desc: 'Drahtmodell Skizze',  colors: ['#b8b8b8', '#888888', '#b8b8b8', '#ebebeb'] },
-    { id: 'cmyk',      name: 'CMYK',      type: 'light', desc: 'Cyan Magenta Yellow',  colors: ['#45AEEE', '#E8488A', '#FFF232', '#1a1a1a'] },
-    { id: 'silk',      name: 'Silk',      type: 'light', desc: 'Sanftes Seidenweiss',  colors: ['#1e293b', '#0284c7', '#0d9488', '#f8fafc'] },
-    { id: 'light',     name: 'Light',     type: 'light', desc: 'Standard Hell',        colors: ['#570df8', '#f000b8', '#37cdbe', '#ffffff'] },
+    // --- Light Themes (20) ---
+    { id: 'corporate', name: 'Corporate', type: 'light', desc: 'Professionell & Modern' },
+    { id: 'emerald',   name: 'Emerald',   type: 'light', desc: 'Smaragdgrün & Frisch' },
+    { id: 'nord',      name: 'Nord',      type: 'light', desc: 'Nordisch Klares Blau' },
+    { id: 'cupcake',   name: 'Cupcake',   type: 'light', desc: 'Sanfte Pastellfarben' },
+    { id: 'retro',     name: 'Retro',     type: 'light', desc: 'Vintage Beige / Retro' },
+    { id: 'garden',    name: 'Garden',    type: 'light', desc: 'Natürliches Olivgrün' },
+    { id: 'aqua',      name: 'Aqua',      type: 'light', desc: 'Ozean & Meeresblau' },
+    { id: 'lofi',      name: 'Lofi',      type: 'light', desc: 'Minimal Monochrom' },
+    { id: 'pastel',    name: 'Pastel',    type: 'light', desc: 'Bunte Pastelltöne' },
+    { id: 'fantasy',   name: 'Fantasy',   type: 'light', desc: 'Verspielt & Pink' },
+    { id: 'winter',    name: 'Winter',    type: 'light', desc: 'Klares Eisblau' },
+    { id: 'autumn',    name: 'Autumn',    type: 'light', desc: 'Warme Herbsttöne' },
+    { id: 'acid',      name: 'Acid',      type: 'light', desc: 'Neon & Säuregrün' },
+    { id: 'lemonade',  name: 'Lemonade',  type: 'light', desc: 'Zitronengelb & Frisch' },
+    { id: 'cyberpunk', name: 'Cyberpunk', type: 'light', desc: 'Gelber Cyber-Look' },
+    { id: 'valentine', name: 'Valentine', type: 'light', desc: 'Romantisch Rosa' },
+    { id: 'wireframe', name: 'Wireframe', type: 'light', desc: 'Drahtmodell Skizze' },
+    { id: 'cmyk',      name: 'CMYK',      type: 'light', desc: 'Cyan Magenta Yellow' },
+    { id: 'silk',      name: 'Silk',      type: 'light', desc: 'Sanftes Seidenweiss' },
+    { id: 'light',     name: 'Light',     type: 'light', desc: 'Standard Hell' },
 
-    // --- Dark Themes (12) ---
-    { id: 'dark',      name: 'Dark',      type: 'dark',  desc: 'Standard Dunkel',      colors: ['#661ae6', '#d926aa', '#1fb2a5', '#191e24'] },
-    { id: 'synthwave', name: 'Synthwave', type: 'dark',  desc: 'Neon 80s Cyberpunk',   colors: ['#e779c1', '#58c7f3', '#f3cc30', '#1a103c'] },
-    { id: 'halloween', name: 'Halloween', type: 'dark',  desc: 'Kürbisorange & Nacht', colors: ['#f28c18', '#6d3a9c', '#51a800', '#212121'] },
-    { id: 'forest',    name: 'Forest',    type: 'dark',  desc: 'Tiefer Waldgrün',      colors: ['#1eb854', '#1db88e', '#1db8ab', '#171212'] },
-    { id: 'black',     name: 'Black',     type: 'dark',  desc: 'OLED Tiefschwarz',     colors: ['#343232', '#555555', '#777777', '#000000'] },
-    { id: 'luxury',    name: 'Luxury',    type: 'dark',  desc: 'Schwarz & Gold',       colors: ['#ffffff', '#152747', '#513448', '#09090b'] },
-    { id: 'dracula',   name: 'Dracula',   type: 'dark',  desc: 'Vampir-Violett',       colors: ['#ff79c6', '#bd93f9', '#ffb86c', '#282a36'] },
-    { id: 'business',  name: 'Business',  type: 'dark',  desc: 'Dunkelgrau & Business', colors: ['#1C4E80', '#7D8FA9', '#A5D8FF', '#202020'] },
-    { id: 'night',     name: 'Night',     type: 'dark',  desc: 'Sternenklare Nacht',   colors: ['#38bdf8', '#818cf8', '#f472b6', '#0f172a'] },
-    { id: 'coffee',    name: 'Coffee',    type: 'dark',  desc: 'Warmes Kaffeebraun',   colors: ['#db924b', '#263e3f', '#9fe88d', '#20161f'] },
-    { id: 'dim',       name: 'Dim',       type: 'dark',  desc: 'Sanft Gedimmt',        colors: ['#9fe88d', '#f3cc30', '#20161f', '#2a323c'] },
-    { id: 'sunset',    name: 'Sunset',    type: 'dark',  desc: 'Sonnenuntergang Rot',  colors: ['#ff865b', '#fd6f9c', '#b387fa', '#1a1921'] },
-    { id: 'abyss',     name: 'Abyss',     type: 'dark',  desc: 'Tiefsee Ozeanblau',    colors: ['#38bdf8', '#0284c7', '#0369a1', '#030712'] }
+    // --- Dark Themes (13) ---
+    { id: 'dark',      name: 'Dark',      type: 'dark',  desc: 'Standard Dunkel' },
+    { id: 'synthwave', name: 'Synthwave', type: 'dark',  desc: 'Neon 80s Cyberpunk' },
+    { id: 'halloween', name: 'Halloween', type: 'dark',  desc: 'Kürbisorange & Nacht' },
+    { id: 'forest',    name: 'Forest',    type: 'dark',  desc: 'Tiefer Waldgrün' },
+    { id: 'black',     name: 'Black',     type: 'dark',  desc: 'OLED Tiefschwarz' },
+    { id: 'luxury',    name: 'Luxury',    type: 'dark',  desc: 'Schwarz & Gold' },
+    { id: 'dracula',   name: 'Dracula',   type: 'dark',  desc: 'Vampir-Violett' },
+    { id: 'business',  name: 'Business',  type: 'dark',  desc: 'Dunkelgrau & Business' },
+    { id: 'night',     name: 'Night',     type: 'dark',  desc: 'Sternenklare Nacht' },
+    { id: 'coffee',    name: 'Coffee',    type: 'dark',  desc: 'Warmes Kaffeebraun' },
+    { id: 'dim',       name: 'Dim',       type: 'dark',  desc: 'Sanft Gedimmt' },
+    { id: 'sunset',    name: 'Sunset',    type: 'dark',  desc: 'Sonnenuntergang Rot' },
+    { id: 'abyss',     name: 'Abyss',     type: 'dark',  desc: 'Tiefsee Ozeanblau' }
 ];
 
 export function getCookie(name) {
@@ -228,25 +228,29 @@ export function initThemeSelector() {
         modeMatchedThemes.forEach(t => {
             const isSelected = (t.id === currentActiveTheme);
             const card = document.createElement('div');
-            card.className = `theme-card flex flex-col justify-between ${isSelected ? 'is-active' : ''}`;
+            card.setAttribute('data-theme', t.id);
             card.setAttribute('data-theme-id', t.id);
             card.setAttribute('data-theme-type', t.type);
             card.setAttribute('role', 'button');
             card.setAttribute('tabindex', '0');
             card.setAttribute('title', `${t.name} (${t.type === 'dark' ? 'Dunkel' : 'Hell'}): ${t.desc}`);
+            card.className = `theme-card card bg-base-100 text-base-content border ${isSelected ? 'border-primary ring-2 ring-primary/40' : 'border-base-200 hover:border-base-content/20'} shadow-sm hover:shadow-md transition-all cursor-pointer p-3 select-none flex flex-col justify-between`;
 
             card.innerHTML = `
                 <div class="flex items-center justify-between mb-2">
                     <div class="flex items-center gap-1.5">
-                        <span class="text-xs font-bold text-base-content">${t.name}</span>
+                        <span class="text-xs font-bold">${t.name}</span>
                         <span class="badge badge-xs ${t.type === 'dark' ? 'badge-neutral' : 'badge-ghost'} text-[9px] uppercase font-mono">${t.type === 'dark' ? 'Dunkel' : 'Hell'}</span>
                     </div>
                     <span class="theme-check-icon ${isSelected ? '' : 'hidden'} text-primary font-bold text-xs shrink-0" aria-label="Ausgewählt">✓</span>
                 </div>
-                <div class="flex items-center justify-between mt-1">
-                    <span class="text-[10px] app-meta-text truncate max-w-[130px]">${t.desc}</span>
-                    <div class="theme-swatch-box" aria-hidden="true">
-                        ${t.colors.map(c => `<span class="theme-swatch" style="background-color: ${c};"></span>`).join('')}
+                <div class="flex items-center justify-between mt-1 gap-2">
+                    <span class="text-[10px] text-base-content/70 truncate max-w-[130px]">${t.desc}</span>
+                    <div class="flex items-center gap-1 shrink-0" aria-hidden="true">
+                        <span class="w-3.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                        <span class="w-3.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                        <span class="w-3.5 h-3.5 rounded-full bg-accent inline-block"></span>
+                        <span class="w-3.5 h-3.5 rounded-full bg-neutral inline-block"></span>
                     </div>
                 </div>
             `;

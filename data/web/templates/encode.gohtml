@@ -14,12 +14,12 @@
     <script src="{{.StaticPath}}/js/hx-sse.js"></script>
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
+<body class="min-h-screen flex flex-col justify-between selection:bg-primary selection:text-primary-content p-4 sm:p-6 lg:p-8" sse-connect="events" data-sse-connect="events" hx-ext="sse">
 
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-8">
 
         <!-- Form & Controls Panel for Encoding -->
         <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden">
@@ -36,7 +36,7 @@
             </div>
 
             <!-- Encoding Input Grid -->
-            <div class="p-5 sm:p-6">
+            <div class="p-5 sm:p-6 lg:p-7">
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
                     <!-- Barcode / ItemID Input -->
                     <div class="md:col-span-6 flex flex-col gap-1.5">
@@ -147,7 +147,7 @@
             <!-- Active Tags Table with SSE Connection -->
             <div class="transponder-stream-scroll flex-1 overflow-x-auto">
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
-                    <thead class="sticky top-0 z-10 bg-base-200/80 backdrop-blur">
+                    <thead class="sticky top-0 z-10 bg-base-200 text-base-content/80 font-bold">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Item ID (Medium)</th>
                             <th scope="col" class="py-3 px-4 whitespace-nowrap">Transponder UID</th>
@@ -191,7 +191,7 @@
             </div>
 
             <div class="modal-action justify-center mt-2">
-                <button id="btn-encode-modal-stop" type="button" class="btn btn-error btn-sm font-semibold text-white">
+                <button id="btn-encode-modal-stop" type="button" class="btn btn-error btn-sm font-semibold">
                     Kodierung stoppen / Abbrechen
                 </button>
             </div>
@@ -221,7 +221,7 @@
                 <button id="btn-overwrite-skip" type="button" class="btn btn-ghost btn-sm" title="Diesen Transponder überspringen">
                     Überspringen
                 </button>
-                <button id="btn-overwrite-cancel" type="button" class="btn btn-error btn-sm text-white">
+                <button id="btn-overwrite-cancel" type="button" class="btn btn-error btn-sm">
                     Abbrechen
                 </button>
             </div>

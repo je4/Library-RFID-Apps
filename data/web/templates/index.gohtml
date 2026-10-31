@@ -12,12 +12,12 @@
     <link rel="stylesheet" href="{{.StaticPath}}/css/daisyui.min.css">
     <link rel="stylesheet" href="{{.StaticPath}}/scss/desk.css">
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-blue-600 selection:text-white p-4 sm:p-6 lg:p-8">
+<body class="min-h-screen flex flex-col justify-between selection:bg-primary selection:text-primary-content p-4 sm:p-6 lg:p-8">
 
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-8">
         <section class="card bg-base-100 border border-base-200 shadow-sm rounded-2xl overflow-hidden">
             <!-- Action Toolbar Header -->
             <div class="p-4 sm:p-5 border-b border-base-200 flex flex-wrap items-center justify-between gap-3">
@@ -31,7 +31,7 @@
             </div>
 
             <div class="p-5 sm:p-6 lg:p-8">
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" id="channel-selection-list">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" id="channel-selection-list">
                     {{range .Channels}}
                     <a href="{{.}}/" class="card card-bordered card-compact bg-base-100 hover:bg-base-200/60 border-base-200 shadow-sm hover:shadow-md transition-all duration-200 group flex flex-row items-center justify-between p-4" title="Channel {{.}} öffnen">
                         <div class="flex items-center space-x-3.5">
