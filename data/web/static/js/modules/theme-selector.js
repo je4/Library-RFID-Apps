@@ -5,6 +5,9 @@
  */
 
 export const THEMES = [
+    // --- Mediathek Custom Themes ---
+    { id: 'mediathek-nord', name: 'Mediathek Nord', type: 'light' },
+
     // --- Light Themes ---
     { id: 'light',     name: 'Light',     type: 'light' },
     { id: 'corporate', name: 'Corporate', type: 'light' },

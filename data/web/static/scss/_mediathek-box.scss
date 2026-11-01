@@ -1,0 +1,192 @@
+// ==========================================================================
+// Mediathek 3D Parametric Box Styling
+// Features constant border/board thickness, top-right outer 3D depth & inner 3D box cavity
+// Applied automatically to header, footer, .card, .box, .stats and .modal-box when mediathek-nord theme is active
+// ==========================================================================
+
+[data-theme="mediathek-nord"] {
+    header,
+    header.navbar,
+    footer,
+    footer.footer,
+    .card,
+    .box,
+    .modal-box,
+    .stats {
+        position: relative;
+        border-radius: var(--mediathek-box-radius, 0px) !important;
+        border: var(--mediathek-box-border-width, 4px) solid var(--mediathek-box-border-color, #ffffff) !important;
+        border-color: var(--mediathek-box-border-color, #ffffff) !important;
+        background: var(--mediathek-box-bg, #ffffff);
+        color: #2e3440;
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+
+        /*
+           Parametric Multi-Layer 3D Depth Extrusion:
+           - Inset-Schatten: Erzeugt die räumliche 3D-Kisten-Tiefe nach innen (helle, plastische Kavität)
+           - Outer-Schatten: Eng beabstandete 10-stufige Extrusionskaskade nach OBEN-RECHTS (+X, -Y) mit
+             weichem Auslauf in vollständige Oklab-Transparenz
+        */
+        box-shadow:
+            /* 3D-Kavität nach innen (heller Innenraum) */
+            inset 2px 2px 5px 0 rgba(46, 52, 64, 0.08),
+            inset 4px 4px 10px 0 rgba(46, 52, 64, 0.04),
+            inset -1px -1px 2px 0 rgba(255, 255, 255, 0.95),
+            /* 3D-Extrusion nach oben-rechts (+X, -Y) mit eng zusammenstehenden linearen Abständen */
+            calc(var(--mediathek-box-depth, 18px) * 0.10) calc(var(--mediathek-box-depth, 18px) * -0.10) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 85%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.20) calc(var(--mediathek-box-depth, 18px) * -0.20) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 75%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.30) calc(var(--mediathek-box-depth, 18px) * -0.30) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 65%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.40) calc(var(--mediathek-box-depth, 18px) * -0.40) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 55%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.50) calc(var(--mediathek-box-depth, 18px) * -0.50) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 45%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.60) calc(var(--mediathek-box-depth, 18px) * -0.60) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 35%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.70) calc(var(--mediathek-box-depth, 18px) * -0.70) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 25%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.80) calc(var(--mediathek-box-depth, 18px) * -0.80) 0 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 15%, transparent),
+            calc(var(--mediathek-box-depth, 18px) * 0.90) calc(var(--mediathek-box-depth, 18px) * -0.90) 1px 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 6%, transparent),
+            var(--mediathek-box-depth, 18px)              calc(var(--mediathek-box-depth, 18px) * -1)    1px 0
+                color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 0%, transparent);
+
+        /* Scharfkantige Unterelemente mit heller 3D-Kisten-Struktur */
+        & > div,
+        & > section,
+        .card-body,
+        .card-actions {
+            border-radius: 0 !important;
+        }
+
+        .stat {
+            border-radius: 0 !important;
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            box-shadow: inset 1px 1px 3px 0 rgba(46, 52, 64, 0.05);
+        }
+
+        .stat-title {
+            color: #64748b;
+        }
+
+        .stat-value {
+            color: #1e293b;
+        }
+
+        .stat-desc {
+            color: #94a3b8;
+        }
+
+        table thead tr {
+            background-color: #f1f5f9;
+            color: #334155;
+            border-bottom: 2px solid #e2e8f0;
+            box-shadow: inset 0 -1px 2px rgba(46, 52, 64, 0.04);
+        }
+
+        table tbody tr {
+            color: #2e3440;
+            border-bottom: 1px solid #e2e8f0;
+
+            &:hover {
+                background-color: #f8fafc;
+            }
+        }
+
+        .input,
+        .select {
+            border-radius: 0 !important;
+            border: 2px solid #cbd5e1;
+            background-color: #ffffff;
+            color: #1e293b;
+            box-shadow: inset 1px 1px 3px rgba(46, 52, 64, 0.08);
+
+            &:focus {
+                border-color: #94a3b8;
+                outline: none;
+            }
+        }
+
+        .badge {
+            border-radius: 0 !important;
+            border-width: 1px !important;
+        }
+
+        .btn {
+            border-radius: 0 !important;
+        }
+
+        &:hover,
+        &:focus-within {
+            transform: translate(-2px, 2px);
+            --mediathek-box-depth: 22px;
+            border-color: var(--mediathek-box-border-color-hover, var(--mediathek-box-border-color, #ffffff)) !important;
+        }
+    }
+}
+
+/* Also support explicit .mediathek-box-card utility class */
+.mediathek-box-card {
+    position: relative;
+    border-radius: var(--mediathek-box-radius, 0px) !important;
+    border: var(--mediathek-box-border-width, 4px) solid var(--mediathek-box-border-color, #ffffff) !important;
+    border-color: var(--mediathek-box-border-color, #ffffff) !important;
+    background: var(--mediathek-box-bg, #ffffff);
+    color: #2e3440;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+
+    box-shadow:
+        /* 3D-Kavität nach innen (heller Innenraum) */
+        inset 2px 2px 5px 0 rgba(46, 52, 64, 0.08),
+        inset 4px 4px 10px 0 rgba(46, 52, 64, 0.04),
+        inset -1px -1px 2px 0 rgba(255, 255, 255, 0.95),
+        /* 3D-Extrusion nach oben-rechts (+X, -Y) mit eng zusammenstehenden linearen Abständen */
+        calc(var(--mediathek-box-depth, 18px) * 0.10) calc(var(--mediathek-box-depth, 18px) * -0.10) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 85%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.20) calc(var(--mediathek-box-depth, 18px) * -0.20) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 75%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.30) calc(var(--mediathek-box-depth, 18px) * -0.30) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 65%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.40) calc(var(--mediathek-box-depth, 18px) * -0.40) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 55%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.50) calc(var(--mediathek-box-depth, 18px) * -0.50) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 45%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.60) calc(var(--mediathek-box-depth, 18px) * -0.60) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 35%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.70) calc(var(--mediathek-box-depth, 18px) * -0.70) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 25%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.80) calc(var(--mediathek-box-depth, 18px) * -0.80) 0 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 15%, transparent),
+        calc(var(--mediathek-box-depth, 18px) * 0.90) calc(var(--mediathek-box-depth, 18px) * -0.90) 1px 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 6%, transparent),
+        var(--mediathek-box-depth, 18px)              calc(var(--mediathek-box-depth, 18px) * -1)    1px 0
+            color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 0%, transparent);
+
+    &:hover,
+    &:focus-within {
+        transform: translate(-2px, 2px);
+        --mediathek-box-depth: 22px;
+        border-color: var(--mediathek-box-border-color-hover, var(--mediathek-box-border-color, #ffffff)) !important;
+    }
+}
+
+// ==========================================================================
+// Utility Modifiers: Board / Border Thickness
+// ==========================================================================
+.mediathek-board-thin   { --mediathek-box-border-width: 2px; }
+.mediathek-board-medium { --mediathek-box-border-width: 4px; }
+.mediathek-board-thick  { --mediathek-box-border-width: 6px; }
+.mediathek-board-heavy  { --mediathek-box-border-width: 8px; }
+.mediathek-board-massive { --mediathek-box-border-width: 12px; }
+
+// ==========================================================================
+// Utility Modifiers: 3D Depth Levels
+// ==========================================================================
+.mediathek-depth-sm { --mediathek-box-depth: 10px; }
+.mediathek-depth-md { --mediathek-box-depth: 18px; }
+.mediathek-depth-lg { --mediathek-box-depth: 28px; }
+.mediathek-depth-xl { --mediathek-box-depth: 40px; }

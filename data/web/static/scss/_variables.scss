@@ -14,6 +14,15 @@
 
     --scan-flash-bg: color-mix(in oklab, var(--color-primary) 20%, transparent);
     --scan-flash-shadow: color-mix(in oklab, var(--color-primary) 35%, transparent);
+
+    /* Mediathek 3D Box Parametrisierung Defaults */
+    --mediathek-box-border-width: 8px;
+    --mediathek-box-border-color: #ffffff;
+    --mediathek-box-border-color-hover: #ffffff;
+    --mediathek-box-depth: 18px;
+    --mediathek-box-shadow-color: #f8f8f8;
+    --mediathek-box-bg: color-mix(in oklab, var(--color-base-100, #ffffff) 100%, transparent);
+    --mediathek-box-radius: var(--radius-box, 0px);
 }
 
 .dark,

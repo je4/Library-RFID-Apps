@@ -24,3 +24,55 @@
     --er: var(--color-error);
     --erc: var(--color-error-content);
 }
+
+// ==========================================================================
+// Mediathek Nord Theme Definition
+// Combines Nord Polar Night & Frost palette with ergonomic 3D-box tokens
+// ==========================================================================
+
+[data-theme="mediathek-nord"] {
+    color-scheme: light;
+
+    /* Base & Backgrounds (Nord Snow Storm / Polar Night light palette) */
+    --color-base-100: #e5e9f0;
+    --color-base-200: #eceff4;
+    --color-base-300: #d8dee9;
+    --color-base-content: #2e3440;
+
+    /* Nord Palette for UI Accents, Buttons & Icons (High contrast on light ground) */
+    --color-primary: #5e81ac;
+    --color-primary-content: #ffffff;
+    --color-secondary: #81a1c1;
+    --color-secondary-content: #ffffff;
+    --color-accent: #88c0d0;
+    --color-accent-content: #2e3440;
+
+    /* Neutral */
+    --color-neutral: #4c566a;
+    --color-neutral-content: #ffffff;
+
+    /* Semantic Status Alerts */
+    --color-info: #5e81ac;
+    --color-info-content: #ffffff;
+    --color-success: #a3be8c;
+    --color-success-content: #1e293b;
+    --color-warning: #ebcb8b;
+    --color-warning-content: #1e293b;
+    --color-error: #bf616a;
+    --color-error-content: #ffffff;
+
+    /* Geometry & Box Parameters: Eckig, Weiss, kompakter 3D-Extrusions-Schatten */
+    --radius-selector: 0px;
+    --radius-field: 0px;
+    --radius-box: 0px;
+    --border: 1px;
+    --depth: 1;
+
+    --mediathek-box-border-width: 4px;
+    --mediathek-box-border-color: #ffffff;
+    --mediathek-box-border-color-hover: #ffffff;
+    --mediathek-box-depth: 18px;
+    --mediathek-box-shadow-color: #ffffff;
+    --mediathek-box-bg: #ffffff;
+    --mediathek-box-radius: 0px;
+}
