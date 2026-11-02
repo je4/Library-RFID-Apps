@@ -39,14 +39,15 @@ type Config struct {
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
 type Controller struct {
-	cfg        Config
-	router     *gin.Engine
-	server     http.Server
-	templates  *template.Template
-	logger     zLogger.ZLogger
-	hub        *desk.Hub
-	rfidClient libraryclient.Client
-	startTime  time.Time
+	cfg           Config
+	router        *gin.Engine
+	server        http.Server
+	templates     *template.Template
+	logger        zLogger.ZLogger
+	hub           *desk.Hub
+	rfidClient    libraryclient.Client
+	encodeService *EncodeService
+	startTime     time.Time
 }
 
 // NewController creates and initializes the Web Controller instance.
@@ -70,13 +71,24 @@ func NewController(cfg Config) (*Controller, error) {
 	router := gin.New()
 	router.Use(gin.Recovery())
 
+	encodeService := NewEncodeService(
+		cfg.Hub,
+		cfg.RFIDClient,
+		cfg.DefaultReader,
+		cfg.DefaultISIL,
+		cfg.DefaultAFI,
+		cfg.Channels,
+		cfg.Logger,
+	)
+
 	ctrl := &Controller{
-		cfg:        cfg,
-		router:     router,
-		logger:     cfg.Logger,
-		hub:        cfg.Hub,
-		rfidClient: cfg.RFIDClient,
-		startTime:  cfg.StartTime,
+		cfg:           cfg,
+		router:        router,
+		logger:        cfg.Logger,
+		hub:           cfg.Hub,
+		rfidClient:    cfg.RFIDClient,
+		encodeService: encodeService,
+		startTime:     cfg.StartTime,
 	}
 
 	if err := ctrl.init(); err != nil {
@@ -89,6 +101,9 @@ func NewController(cfg Config) (*Controller, error) {
 // SetRFIDClient configures or updates the RFID/Library client used for sending AFI commands.
 func (ctrl *Controller) SetRFIDClient(client libraryclient.Client) {
 	ctrl.rfidClient = client
+	if ctrl.encodeService != nil {
+		ctrl.encodeService.rfidClient = client
+	}
 }
 
 func (ctrl *Controller) init() error {

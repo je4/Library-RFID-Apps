@@ -282,236 +282,26 @@ func (ctrl *Controller) handleEncodeTagsFragment(c *gin.Context) {
 }
 
 // WriteTagPayload defines the JSON/form payload for writing metadata to an RFID tag.
-type WriteTagPayload struct {
-	UID       string `json:"uid" form:"uid"`
-	ItemID    string `json:"itemId" form:"itemId"`
-	ISIL      string `json:"isil" form:"isil"`
-	Country   string `json:"country" form:"country"`
-	Parts     int    `json:"parts" form:"parts"`
-	PartNo    int    `json:"partNo" form:"partNo"`
-	UsageType int    `json:"usageType" form:"usageType"`
-	AFI       string `json:"afi" form:"afi"`
-	Clear     bool   `json:"clear" form:"clear"`
-}
+type WriteTagPayload = WriteTagRequestPayload
 
 func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, payload WriteTagPayload) (gin.H, int) {
-	var itemID string
-	var isil string
-	var country string
-	var parts int
-	var partNo int
-	var usageType int
-	var afi string
-
-	if payload.Clear {
-		itemID = ""
-		isil = ""
-		country = ""
-		parts = 1
-		partNo = 1
-		usageType = 1
-		afi = strings.TrimSpace(payload.AFI)
-		if afi == "" {
-			afi = libraryclient.AFIUnsecured
-		} else if strings.EqualFold(afi, "gesichert") || strings.EqualFold(afi, "secure") {
-			afi = libraryclient.AFISecured
-		} else if strings.EqualFold(afi, "ungesichert") || strings.EqualFold(afi, "unsecure") {
-			afi = libraryclient.AFIUnsecured
-		} else {
-			afi = libraryclient.NormalizeAFI(afi)
-		}
-	} else {
-		itemID = strings.TrimSpace(payload.ItemID)
-		if itemID == "" {
-			return gin.H{"status": "error", "error": "Barcode / ItemID darf nicht leer sein"}, http.StatusBadRequest
-		}
-
-		country = strings.TrimSpace(payload.Country)
-		isil = strings.TrimSpace(payload.ISIL)
-
-		if country == "" && isil != "" {
-			c, i := desk.ParseISIL(isil)
-			if c != "" {
-				country = c
-				isil = i
-			}
-		}
-		if country == "" {
-			country = "CH"
-		}
-
-		parts = payload.Parts
-		if parts <= 0 {
-			parts = 1
-		}
-		partNo = payload.PartNo
-		if partNo <= 0 {
-			partNo = 1
-		}
-		if partNo > parts {
-			partNo = parts
-		}
-
-		usageType = payload.UsageType
-		if usageType <= 0 {
-			usageType = 1
-		}
-
-		afi = strings.TrimSpace(payload.AFI)
-		if afi == "" {
-			afi = ctrl.cfg.DefaultAFI
-		}
-		if afi == "" {
-			afi = libraryclient.AFISecured
-		}
-		if strings.EqualFold(afi, "gesichert") || strings.EqualFold(afi, "secure") {
-			afi = libraryclient.AFISecured
-		} else if strings.EqualFold(afi, "ungesichert") || strings.EqualFold(afi, "unsecure") {
-			afi = libraryclient.AFIUnsecured
-		} else {
-			afi = libraryclient.NormalizeAFI(afi)
-		}
+	if ctrl.encodeService == nil {
+		ctrl.encodeService = NewEncodeService(
+			ctrl.hub,
+			ctrl.rfidClient,
+			ctrl.cfg.DefaultReader,
+			ctrl.cfg.DefaultISIL,
+			ctrl.cfg.DefaultAFI,
+			ctrl.cfg.Channels,
+			ctrl.logger,
+		)
 	}
 
-	uid := strings.TrimSpace(payload.UID)
-
-	// Determine target reader and daemon
-	targetReader := ctrl.cfg.DefaultReader
-	var targetSource string
-	var targetReaderID string
-	if uid != "" {
-		activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
-		for _, t := range activeTags {
-			if strings.EqualFold(t.UID, uid) {
-				targetSource = t.Source
-				targetReaderID = t.ReaderID
-				break
-			}
-		}
-		if targetSource == "" && targetReaderID == "" {
-			for _, t := range ctrl.hub.GetTags(channel) {
-				if strings.EqualFold(t.UID, uid) {
-					targetSource = t.Source
-					targetReaderID = t.ReaderID
-					break
-				}
-			}
-		}
-		if targetSource == "" && targetReaderID == "" {
-			for _, t := range ctrl.hub.GetTags("") {
-				if strings.EqualFold(t.UID, uid) {
-					targetSource = t.Source
-					targetReaderID = t.ReaderID
-					break
-				}
-			}
-		}
-	} else {
-		activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
-		if len(activeTags) > 0 {
-			uid = activeTags[0].UID
-			targetSource = activeTags[0].Source
-			targetReaderID = activeTags[0].ReaderID
-		}
+	res, statusCode := ctrl.encodeService.ExecuteWriteTag(ctx, channel, payload)
+	if statusCode == http.StatusOK {
+		ctrl.broadcastLoanTable(channel)
 	}
-	if targetSource == "" {
-		targetSource = targetReaderID
-	}
-	if targetSource == "" {
-		targetSource = targetReader
-	}
-	if targetSource == "" {
-		targetSource = channel
-	}
-	if targetSource == "" && len(ctrl.cfg.Channels) > 0 {
-		targetSource = ctrl.cfg.Channels[0]
-	}
-	if targetReaderID == "" {
-		targetReaderID = targetReader
-	}
-
-	req := libraryclient.WriteTagRequest{
-		ReaderID:  targetReaderID,
-		UID:       uid,
-		ItemID:    itemID,
-		ISIL:      isil,
-		Country:   country,
-		Parts:     parts,
-		PartNo:    partNo,
-		UsageType: usageType,
-		AFI:       afi,
-	}
-
-	if ctrl.logger != nil {
-		ctrl.logger.Info().
-			Str("uid", uid).
-			Str("itemId", itemID).
-			Str("isil", isil).
-			Str("country", country).
-			Int("partNo", partNo).
-			Int("parts", parts).
-			Str("afi", afi).
-			Bool("clear", payload.Clear).
-			Str("target", targetSource).
-			Str("readerId", targetReaderID).
-			Msg("executing WriteTag request")
-	}
-
-	if ctrl.rfidClient != nil {
-		resp, err := ctrl.rfidClient.WriteTag(ctx, targetSource, req)
-		if err != nil {
-			if ctrl.logger != nil {
-				ctrl.logger.Warn().Err(err).Str("uid", uid).Msg("WriteTag failed with error")
-			}
-			return gin.H{
-				"status": "error",
-				"error":  fmt.Sprintf("Fehler beim Schreiben des Transponders %s: %v", uid, err),
-				"uid":    uid,
-			}, http.StatusInternalServerError
-		}
-		if resp != nil && !resp.Data.IsSuccess() {
-			errMsg := resp.Data.GetError()
-			if errMsg == "" {
-				errMsg = "Schreibfehler auf Transponder"
-			}
-			if ctrl.logger != nil {
-				ctrl.logger.Warn().Str("uid", uid).Str("error", errMsg).Msg("WriteTag returned failure")
-			}
-			return gin.H{
-				"status": "error",
-				"error":  errMsg,
-				"uid":    uid,
-			}, http.StatusBadRequest
-		}
-	}
-
-	// Update in-memory hub
-	if payload.Clear {
-		ctrl.hub.ClearTagMetadata(uid, afi)
-	} else {
-		ctrl.hub.UpdateTagMetadata(uid, itemID, isil, country, parts, partNo, afi)
-	}
-
-	// Broadcast updated loan table
-	ctrl.broadcastLoanTable(channel)
-
-	msg := fmt.Sprintf("Transponder %s erfolgreich beschrieben (Teil %d von %d).", uid, partNo, parts)
-	if payload.Clear {
-		msg = fmt.Sprintf("Transponder %s erfolgreich geleert (Felder gelöscht, Status: Entsichert).", uid)
-	}
-
-	return gin.H{
-		"status":    "success",
-		"message":   msg,
-		"uid":       uid,
-		"itemId":    itemID,
-		"isil":      isil,
-		"country":   country,
-		"parts":     parts,
-		"partNo":    partNo,
-		"usageType": usageType,
-		"afi":       afi,
-	}, http.StatusOK
+	return res.ToGinH(), statusCode
 }
 
 func (ctrl *Controller) handleEncodeWrite(c *gin.Context) {
