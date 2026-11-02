@@ -75,6 +75,12 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	if !strings.Contains(recDeskCSS.Body.String(), "--color-bg-image") || !strings.Contains(recDeskCSS.Body.String(), "background.jpg") {
 		t.Errorf("expected desk.css to contain background image variable, got %s", recDeskCSS.Body.String())
 	}
+	if !strings.Contains(recDeskCSS.Body.String(), "[data-theme=mediathek-light]") || !strings.Contains(recDeskCSS.Body.String(), "[data-theme=mediathek-dark]") {
+		t.Errorf("expected desk.css to contain mediathek-light and mediathek-dark theme rules, got %s", recDeskCSS.Body.String())
+	}
+	if strings.Contains(recDeskCSS.Body.String(), "[data-theme=mediathek-nord]") {
+		t.Errorf("expected desk.css not to contain obsolete mediathek-nord theme rules")
+	}
 
 	reqDeskMap := httptest.NewRequest(http.MethodGet, "/static/scss/desk.css.map", nil)
 	recDeskMap := httptest.NewRecorder()
@@ -2030,6 +2036,15 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 		if !strings.Contains(body, `class="theme-controller`) {
 			t.Errorf("expected %s to contain .theme-controller", path)
 		}
+		if !strings.Contains(body, `value="mediathek-light"`) {
+			t.Errorf("expected %s to contain mediathek-light theme option", path)
+		}
+		if !strings.Contains(body, `value="mediathek-dark"`) {
+			t.Errorf("expected %s to contain mediathek-dark theme option", path)
+		}
+		if strings.Contains(body, `value="mediathek-nord"`) {
+			t.Errorf("expected %s not to contain obsolete mediathek-nord theme option", path)
+		}
 		if strings.Contains(body, `id="skin-select"`) {
 			t.Errorf("expected %s not to contain obsolete #skin-select dropdown", path)
 		}
@@ -2072,6 +2087,23 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 	bodySynth := recSynth.Body.String()
 	if !strings.Contains(bodySynth, `data-theme="synthwave"`) {
 		t.Errorf("expected desk with synthwave cookie to have data-theme=\"synthwave\", got: %s", bodySynth)
+	}
+
+	// 5. Requesting with rfid_theme=mediathek-light and mediathek-dark
+	reqMedLight := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	reqMedLight.AddCookie(&http.Cookie{Name: "rfid_theme", Value: "mediathek-light"})
+	recMedLight := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recMedLight, reqMedLight)
+	if !strings.Contains(recMedLight.Body.String(), `data-theme="mediathek-light"`) {
+		t.Errorf("expected desk with mediathek-light cookie to have data-theme=\"mediathek-light\"")
+	}
+
+	reqMedDark := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
+	reqMedDark.AddCookie(&http.Cookie{Name: "rfid_theme", Value: "mediathek-dark"})
+	recMedDark := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recMedDark, reqMedDark)
+	if !strings.Contains(recMedDark.Body.String(), `data-theme="mediathek-dark"`) {
+		t.Errorf("expected desk with mediathek-dark cookie to have data-theme=\"mediathek-dark\"")
 	}
 }
 
@@ -2274,6 +2306,24 @@ func TestController_EncodeEndpoints(t *testing.T) {
 	}
 	if !strings.Contains(recHtmxClear.Body.String(), "erfolgreich geleert") {
 		t.Errorf("expected HTMX response to contain success message, got: %s", recHtmxClear.Body.String())
+	}
+
+	// 10. Test write/clear fallback when tag is not in active window and DefaultReader is empty
+	ctrlNoDefaultReader, err := NewController(Config{
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-no-default-reader",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-custom"},
+		Hub:        hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create controller without default reader: %v", err)
+	}
+	reqClearHistorical := httptest.NewRequest(http.MethodPost, "/channel-custom/encode/clear?uid=E004010843BC4D8C", nil)
+	recClearHistorical := httptest.NewRecorder()
+	ctrlNoDefaultReader.router.ServeHTTP(recClearHistorical, reqClearHistorical)
+	if recClearHistorical.Code != http.StatusOK {
+		t.Errorf("expected 200 for clear on channel-custom with historical/channel fallback, got %d (body: %s)", recClearHistorical.Code, recClearHistorical.Body.String())
 	}
 }
 

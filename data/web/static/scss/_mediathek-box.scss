@@ -1,10 +1,11 @@
 // ==========================================================================
 // Mediathek 3D Parametric Box Styling
 // Features constant border/board thickness, top-right outer 3D depth & inner 3D box cavity
-// Applied automatically to header, footer, .card, .box, .stats and .modal-box when mediathek-nord theme is active
+// Applied automatically to header, footer, .card, .box, .stats and .modal-box when mediathek-light or mediathek-dark theme is active
 // ==========================================================================
 
-[data-theme="mediathek-nord"] {
+[data-theme="mediathek-light"],
+[data-theme="mediathek-dark"] {
     header,
     header.navbar,
     footer,
@@ -17,8 +18,8 @@
         border-radius: var(--mediathek-box-radius, 0px) !important;
         border: var(--mediathek-box-border-width, 4px) solid var(--mediathek-box-border-color, #ffffff) !important;
         border-color: var(--mediathek-box-border-color, #ffffff) !important;
-        background: var(--mediathek-box-bg, #ffffff);
-        color: #2e3440;
+        background: var(--mediathek-box-bg, var(--color-base-100));
+        color: var(--color-base-content);
         transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 
         /*
@@ -54,7 +55,7 @@
             var(--mediathek-box-depth, 18px)              calc(var(--mediathek-box-depth, 18px) * -1)    1px 0
                 color-mix(in oklab, var(--mediathek-box-shadow-color, #ffffff) 0%, transparent);
 
-        /* Scharfkantige Unterelemente mit heller 3D-Kisten-Struktur */
+        /* Scharfkantige Unterelemente mit 3D-Kisten-Struktur */
         & > div,
         & > section,
         .card-body,
@@ -62,6 +63,34 @@
             border-radius: 0 !important;
         }
 
+        .badge {
+            border-radius: 0 !important;
+            border-width: 1px !important;
+        }
+
+        .btn {
+            border-radius: 0 !important;
+        }
+
+        &:hover,
+        &:focus-within {
+            transform: translate(-2px, 2px);
+            --mediathek-box-depth: 22px;
+            border-color: var(--mediathek-box-border-color-hover, var(--mediathek-box-border-color, #ffffff)) !important;
+        }
+    }
+}
+
+// Mediathek Light Theme Specific Box Inners
+[data-theme="mediathek-light"] {
+    header,
+    header.navbar,
+    footer,
+    footer.footer,
+    .card,
+    .box,
+    .modal-box,
+    .stats {
         .stat {
             border-radius: 0 !important;
             background-color: #f8fafc;
@@ -81,7 +110,8 @@
             color: #94a3b8;
         }
 
-        table thead tr {
+        table thead tr,
+        table thead th {
             background-color: #f1f5f9;
             color: #334155;
             border-bottom: 2px solid #e2e8f0;
@@ -106,25 +136,146 @@
             box-shadow: inset 1px 1px 3px rgba(46, 52, 64, 0.08);
 
             &:focus {
-                border-color: #94a3b8;
+                border-color: #5e81ac;
+                outline: none;
+            }
+        }
+    }
+}
+
+// Mediathek Dark Theme Specific Box Inners & Contrast Overrides
+[data-theme="mediathek-dark"] {
+    header,
+    header.navbar,
+    footer,
+    footer.footer,
+    .card,
+    .box,
+    .modal-box,
+    .stats {
+        .stat {
+            border-radius: 0 !important;
+            background-color: #242933;
+            border: 1px solid #434c5e;
+            box-shadow: inset 1px 1px 3px 0 rgba(0, 0, 0, 0.2);
+        }
+
+        .stat-title {
+            color: #d8dee9;
+        }
+
+        .stat-value {
+            color: #88c0d0;
+        }
+
+        .stat-desc {
+            color: #e5e9f0;
+        }
+
+        table thead tr,
+        table thead th {
+            background-color: #242933 !important;
+            color: #eceff4 !important;
+            border-bottom: 2px solid #434c5e;
+            box-shadow: inset 0 -1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        table tbody tr {
+            color: #eceff4;
+            border-bottom: 1px solid #3b4252;
+
+            &:hover {
+                background-color: #3b4252;
+            }
+        }
+
+        .input,
+        .select {
+            border-radius: 0 !important;
+            border: 2px solid #4c566a;
+            background-color: #242933;
+            color: #eceff4;
+            box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.25);
+
+            &:focus {
+                border-color: #88c0d0;
                 outline: none;
             }
         }
 
-        .badge {
-            border-radius: 0 !important;
-            border-width: 1px !important;
+        .select option {
+            background-color: #242933;
+            color: #eceff4;
         }
 
-        .btn {
-            border-radius: 0 !important;
+        .dropdown-content,
+        .menu {
+            background-color: #242933 !important;
+            color: #eceff4 !important;
+            border-color: #434c5e;
         }
 
-        &:hover,
-        &:focus-within {
-            transform: translate(-2px, 2px);
-            --mediathek-box-depth: 22px;
-            border-color: var(--mediathek-box-border-color-hover, var(--mediathek-box-border-color, #ffffff)) !important;
+        .btn-ghost {
+            color: #eceff4;
+
+            &:hover {
+                background-color: rgba(236, 239, 244, 0.12);
+                color: #ffffff;
+            }
+        }
+
+        .btn-primary {
+            background-color: #88c0d0;
+            color: #1e222a;
+            font-weight: 700;
+
+            &:hover {
+                background-color: #8fbcbb;
+                color: #1e222a;
+            }
+        }
+
+        .btn-secondary {
+            background-color: #81a1c1;
+            color: #1e222a;
+            font-weight: 700;
+        }
+
+        .btn-accent {
+            background-color: #8fbcbb;
+            color: #1e222a;
+            font-weight: 700;
+        }
+
+        .btn-neutral {
+            background-color: #434c5e;
+            color: #eceff4;
+        }
+
+        .btn-outline {
+            border-color: #4c566a;
+            color: #eceff4;
+
+            &:hover {
+                background-color: #434c5e;
+                color: #eceff4;
+            }
+        }
+    }
+
+    footer,
+    footer.footer {
+        background-color: #2e3440 !important;
+        color: #eceff4 !important;
+
+        span, div, p {
+            color: #eceff4;
+        }
+
+        .server-addr,
+        .broker-addr {
+            color: #88c0d0;
+            font-weight: 600;
         }
     }
 }

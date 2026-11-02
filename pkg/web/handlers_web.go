@@ -379,6 +379,24 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 				break
 			}
 		}
+		if targetSource == "" && targetReaderID == "" {
+			for _, t := range ctrl.hub.GetTags(channel) {
+				if strings.EqualFold(t.UID, uid) {
+					targetSource = t.Source
+					targetReaderID = t.ReaderID
+					break
+				}
+			}
+		}
+		if targetSource == "" && targetReaderID == "" {
+			for _, t := range ctrl.hub.GetTags("") {
+				if strings.EqualFold(t.UID, uid) {
+					targetSource = t.Source
+					targetReaderID = t.ReaderID
+					break
+				}
+			}
+		}
 	} else {
 		activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
 		if len(activeTags) > 0 {
@@ -392,6 +410,15 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 	}
 	if targetSource == "" {
 		targetSource = targetReader
+	}
+	if targetSource == "" {
+		targetSource = channel
+	}
+	if targetSource == "" && len(ctrl.cfg.Channels) > 0 {
+		targetSource = ctrl.cfg.Channels[0]
+	}
+	if targetReaderID == "" {
+		targetReaderID = targetReader
 	}
 
 	req := libraryclient.WriteTagRequest{
@@ -621,6 +648,12 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 			}
 			if targetDaemon == "" {
 				targetDaemon = ctrl.cfg.DefaultReader
+			}
+			if targetDaemon == "" {
+				targetDaemon = channel
+			}
+			if targetDaemon == "" && len(ctrl.cfg.Channels) > 0 {
+				targetDaemon = ctrl.cfg.Channels[0]
 			}
 			key := readerClusterKey{
 				target:   targetDaemon,

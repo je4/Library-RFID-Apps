@@ -133,6 +133,12 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 				if targetDaemon == "" {
 					targetDaemon = ctrl.cfg.DefaultReader
 				}
+				if targetDaemon == "" {
+					targetDaemon = channel
+				}
+				if targetDaemon == "" && len(ctrl.cfg.Channels) > 0 {
+					targetDaemon = ctrl.cfg.Channels[0]
+				}
 				key := readerClusterKey{
 					target:   targetDaemon,
 					readerID: readerID,

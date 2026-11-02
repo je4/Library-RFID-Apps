@@ -8,6 +8,10 @@ default_isil = "CH-001596-0"
 default_afi = "07"
 max_tags = 100
 
+[themes]
+dark = "mediathek-dark"
+light = "mediathek-light"
+
 [clienttls]
 type = "minivault"
 

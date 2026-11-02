@@ -6,7 +6,8 @@
 
 export const THEMES = [
     // --- Mediathek Custom Themes ---
-    { id: 'mediathek-nord', name: 'Mediathek Nord', type: 'light' },
+    { id: 'mediathek-light', name: 'Mediathek Light', type: 'light' },
+    { id: 'mediathek-dark',  name: 'Mediathek Dark',  type: 'dark' },
 
     // --- Light Themes ---
     { id: 'light',     name: 'Light',     type: 'light' },
@@ -48,6 +49,7 @@ export const THEMES = [
 ];
 
 const DARK_THEME_IDS = new Set([
+    'mediathek-dark',
     'dark', 'synthwave', 'halloween', 'forest', 'black',
     'luxury', 'dracula', 'business', 'night', 'coffee',
     'dim', 'sunset', 'abyss'

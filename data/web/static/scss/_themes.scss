@@ -26,11 +26,11 @@
 }
 
 // ==========================================================================
-// Mediathek Nord Theme Definition
+// Mediathek Light Theme Definition
 // Combines Nord Polar Night & Frost palette with ergonomic 3D-box tokens
 // ==========================================================================
 
-[data-theme="mediathek-nord"] {
+[data-theme="mediathek-light"] {
     color-scheme: light;
 
     /* Base & Backgrounds (Nord Snow Storm / Polar Night light palette) */
@@ -74,5 +74,58 @@
     --mediathek-box-depth: 18px;
     --mediathek-box-shadow-color: #ffffff;
     --mediathek-box-bg: #ffffff;
+    --mediathek-box-radius: 0px;
+}
+
+// ==========================================================================
+// Mediathek Dark Theme Definition
+// Based on Mediathek Light with Nord Polar Night dark palette for surroundings
+// while preserving white 3D box borders and white 3D extrusion shadows
+// ==========================================================================
+
+[data-theme="mediathek-dark"] {
+    color-scheme: dark;
+
+    /* Base & Backgrounds (Nord Polar Night dark palette) */
+    --color-base-100: #2e3440;
+    --color-base-200: #242933;
+    --color-base-300: #1e222a;
+    --color-base-content: #eceff4;
+
+    /* Nord Palette for UI Accents, Buttons & Icons (High contrast for Dark Mode) */
+    --color-primary: #88c0d0;
+    --color-primary-content: #1e222a;
+    --color-secondary: #81a1c1;
+    --color-secondary-content: #1e222a;
+    --color-accent: #8fbcbb;
+    --color-accent-content: #1e222a;
+
+    /* Neutral */
+    --color-neutral: #434c5e;
+    --color-neutral-content: #eceff4;
+
+    /* Semantic Status Alerts */
+    --color-info: #81a1c1;
+    --color-info-content: #1e222a;
+    --color-success: #a3be8c;
+    --color-success-content: #1e222a;
+    --color-warning: #ebcb8b;
+    --color-warning-content: #1e222a;
+    --color-error: #bf616a;
+    --color-error-content: #ffffff;
+
+    /* Geometry & Box Parameters: Weisse Rahmen & Weisse 3D-Schatten, dunkler Korpus */
+    --radius-selector: 0px;
+    --radius-field: 0px;
+    --radius-box: 0px;
+    --border: 1px;
+    --depth: 1;
+
+    --mediathek-box-border-width: 4px;
+    --mediathek-box-border-color: #ffffff;
+    --mediathek-box-border-color-hover: #ffffff;
+    --mediathek-box-depth: 18px;
+    --mediathek-box-shadow-color: #ffffff;
+    --mediathek-box-bg: #2e3440;
     --mediathek-box-radius: 0px;
 }
