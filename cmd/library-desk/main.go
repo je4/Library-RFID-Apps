@@ -72,6 +72,8 @@ func main() {
 		DefaultReader: conf.DefaultReader,
 		DefaultISIL:   conf.DefaultISIL,
 		DefaultAFI:    conf.DefaultAFI,
+		ThemeLight:    conf.Themes.Light,
+		ThemeDark:     conf.Themes.Dark,
 		Hub:           hub,
 		ISILList:      isilList,
 		Logger:        logger,

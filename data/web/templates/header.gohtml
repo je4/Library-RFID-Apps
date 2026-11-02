@@ -1,5 +1,5 @@
 <!-- Header Bar with Navigation -->
-<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 bg-base-100 border border-base-200 shadow-sm rounded-2xl px-5 sm:px-6 py-3 sm:py-3.5 gap-4 min-h-0 text-base-content">
+<header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-6 bg-base-100 border border-base-200 shadow-sm rounded-2xl px-5 sm:px-6 py-3 sm:py-3.5 gap-4 min-h-0 text-base-content relative z-30">
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
@@ -68,6 +68,62 @@
 
     <!-- Top Right Actions & Theme Selector -->
     <div class="flex items-center space-x-3">
+        {{if .HasExplicitThemes}}
+        <!-- Auto / Light / Dark Mode Switcher (Explicit Themes Configured) -->
+        <div class="dropdown dropdown-end" id="theme-mode-dropdown">
+            <div tabindex="0" role="button" id="theme-mode-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Farbschema anpassen (Auto / Hell / Dunkel)" aria-label="Farbschema Modus" aria-haspopup="true">
+                <span class="app-icon icon-sun-moon w-4 h-4 shrink-0" aria-hidden="true"></span>
+                <span class="hidden sm:inline text-xs font-semibold">Modus</span>
+                <span id="theme-mode-indicator" class="badge badge-xs badge-primary font-mono text-[10px]">{{if .ThemeMode}}{{.ThemeMode}}{{else}}auto{{end}}</span>
+                <svg class="w-3.5 h-3.5 opacity-60 inline-block fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1799 647l-775 775L249 647l64-64 711 711 711-711z"/></svg>
+            </div>
+            <ul tabindex="0" class="dropdown-content menu bg-base-200 text-base-content rounded-2xl z-50 w-52 p-2 shadow-2xl border border-base-300 space-y-1" id="theme-mode-menu">
+                <li class="menu-title text-xs font-bold px-2 py-1.5 opacity-70">Farbschema</li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2">
+                            <span class="app-icon icon-sun-moon w-4 h-4 shrink-0"></span>
+                            <span class="text-xs font-medium">Automatisch</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-mode-check hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="auto" aria-label="Automatisch" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2">
+                            <span data-theme="{{.ThemeLight}}" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">Hell</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-mode-check hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="light" aria-label="Hell" />
+                        </div>
+                    </label>
+                </li>
+                <li>
+                    <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
+                        <div class="flex items-center gap-2">
+                            <span data-theme="{{.ThemeDark}}" class="bg-base-100 rounded-md flex gap-0.5 p-1 border border-base-content/10 shadow-xs shrink-0">
+                                <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
+                                <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
+                            </span>
+                            <span class="text-xs font-medium">Dunkel</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="theme-mode-check hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
+                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="dark" aria-label="Dunkel" />
+                        </div>
+                    </label>
+                </li>
+            </ul>
+        </div>
+        {{else}}
         <!-- DaisyUI Theme Controller Dropdown -->
         <div class="dropdown dropdown-end" id="theme-dropdown">
             <div tabindex="0" role="button" id="theme-dialog-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Theme Controller)" aria-label="Theme Controller" aria-haspopup="true">
@@ -354,6 +410,7 @@
                 </li>
             </ul>
         </div>
+        {{end}}
 
         {{if .Channel}}
         <!-- Audio Feedback Toggle Button -->

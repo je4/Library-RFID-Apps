@@ -159,13 +159,31 @@ func getThemeDarkFromCookie(c *gin.Context) string {
 	return theme
 }
 
+func (ctrl *Controller) populateThemeInfo(c *gin.Context, theme *string, themeMode *string, themeLight *string, themeDark *string) {
+	if ctrl.cfg.ThemeLight != "" && ctrl.cfg.ThemeDark != "" {
+		*themeLight = ctrl.cfg.ThemeLight
+		*themeDark = ctrl.cfg.ThemeDark
+		mode := getThemeModeFromCookie(c)
+		*themeMode = mode
+		if mode == "light" || mode == "lightmode" {
+			*theme = ctrl.cfg.ThemeLight
+		} else if mode == "dark" || mode == "darkmode" {
+			*theme = ctrl.cfg.ThemeDark
+		} else {
+			*theme = ""
+		}
+	} else {
+		*theme = getThemeFromCookie(c)
+		*themeMode = getThemeModeFromCookie(c)
+		*themeLight = ""
+		*themeDark = ""
+	}
+}
+
 func (ctrl *Controller) handleIndex(c *gin.Context) {
 	data := ctrl.getDeskData()
 	data.Skin = getSkinFromCookie(c)
-	data.Theme = getThemeFromCookie(c)
-	data.ThemeMode = getThemeModeFromCookie(c)
-	data.ThemeLight = getThemeLightFromCookie(c)
-	data.ThemeDark = getThemeDarkFromCookie(c)
+	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
 	c.HTML(http.StatusOK, "index.gohtml", data)
 }
 
@@ -173,10 +191,7 @@ func (ctrl *Controller) handleChannelIndex(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getDeskData(channel)
 	data.Skin = getSkinFromCookie(c)
-	data.Theme = getThemeFromCookie(c)
-	data.ThemeMode = getThemeModeFromCookie(c)
-	data.ThemeLight = getThemeLightFromCookie(c)
-	data.ThemeDark = getThemeDarkFromCookie(c)
+	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
 	c.HTML(http.StatusOK, "desk.gohtml", data)
 }
 
@@ -184,10 +199,7 @@ func (ctrl *Controller) handleLoan(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getLoanData(channel)
 	data.Skin = getSkinFromCookie(c)
-	data.Theme = getThemeFromCookie(c)
-	data.ThemeMode = getThemeModeFromCookie(c)
-	data.ThemeLight = getThemeLightFromCookie(c)
-	data.ThemeDark = getThemeDarkFromCookie(c)
+	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
 	c.HTML(http.StatusOK, "loan.gohtml", data)
 }
 
@@ -254,10 +266,7 @@ func (ctrl *Controller) handleEncode(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getEncodeData(channel)
 	data.Skin = getSkinFromCookie(c)
-	data.Theme = getThemeFromCookie(c)
-	data.ThemeMode = getThemeModeFromCookie(c)
-	data.ThemeLight = getThemeLightFromCookie(c)
-	data.ThemeDark = getThemeDarkFromCookie(c)
+	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
 	c.HTML(http.StatusOK, "encode.gohtml", data)
 }
 

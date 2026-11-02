@@ -205,6 +205,11 @@ func (d DeskData) IsEncode() bool {
 	return false
 }
 
+// HasExplicitThemes returns true if both light and dark themes are explicitly configured.
+func (d DeskData) HasExplicitThemes() bool {
+	return d.ThemeLight != "" && d.ThemeDark != ""
+}
+
 // LoanData encapsulates the view model passed to loan and return web templates.
 type LoanData struct {
 	ClientName        string
@@ -237,6 +242,11 @@ func (d LoanData) IsLoan() bool {
 // IsEncode returns true if this data model represents the encode view.
 func (d LoanData) IsEncode() bool {
 	return false
+}
+
+// HasExplicitThemes returns true if both light and dark themes are explicitly configured.
+func (d LoanData) HasExplicitThemes() bool {
+	return d.ThemeLight != "" && d.ThemeDark != ""
 }
 
 // EncodeData encapsulates the view model passed to encode web templates.
@@ -272,4 +282,9 @@ func (d EncodeData) IsLoan() bool {
 // IsEncode returns true if this data model represents the encode view.
 func (d EncodeData) IsEncode() bool {
 	return true
+}
+
+// HasExplicitThemes returns true if both light and dark themes are explicitly configured.
+func (d EncodeData) HasExplicitThemes() bool {
+	return d.ThemeLight != "" && d.ThemeDark != ""
 }

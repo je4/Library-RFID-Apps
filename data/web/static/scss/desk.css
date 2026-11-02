@@ -143,6 +143,12 @@
 
 [data-theme=mediathek-light] header,
 [data-theme=mediathek-light] header.navbar,
+[data-theme=mediathek-dark] header,
+[data-theme=mediathek-dark] header.navbar {
+  z-index: 30;
+}
+[data-theme=mediathek-light] header,
+[data-theme=mediathek-light] header.navbar,
 [data-theme=mediathek-light] footer,
 [data-theme=mediathek-light] footer.footer,
 [data-theme=mediathek-light] .card,
@@ -1096,6 +1102,8 @@ body {
 
 header.navbar {
   margin-bottom: 1.5rem;
+  position: relative;
+  z-index: 30;
 }
 
 main {

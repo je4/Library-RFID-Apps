@@ -148,11 +148,113 @@ export function applyTheme(themeId, persist = true) {
 }
 
 /**
+ * Applies the given theme mode (auto, light, dark) when explicit light and dark themes are configured.
+ */
+export function applyThemeMode(mode, persist = true) {
+    const doc = document.documentElement;
+    const configLight = doc.getAttribute('data-theme-light') || 'mediathek-light';
+    const configDark = doc.getAttribute('data-theme-dark') || 'mediathek-dark';
+
+    let normalizedMode = mode;
+    if (mode === 'lightmode') normalizedMode = 'light';
+    if (mode === 'darkmode') normalizedMode = 'dark';
+    if (normalizedMode !== 'light' && normalizedMode !== 'dark') {
+        normalizedMode = 'auto';
+    }
+
+    let activeTheme = '';
+    if (normalizedMode === 'light') {
+        activeTheme = configLight;
+    } else if (normalizedMode === 'dark') {
+        activeTheme = configDark;
+    } else {
+        const isDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        activeTheme = isDark ? configDark : configLight;
+    }
+
+    // Apply activeTheme without overwriting explicit light/dark cookies
+    applyTheme(activeTheme, false);
+
+    // Update data-theme-mode on <html>
+    doc.setAttribute('data-theme-mode', normalizedMode);
+
+    // Update indicator badge in header if present
+    const modeBadge = document.getElementById('theme-mode-indicator');
+    if (modeBadge) {
+        modeBadge.textContent = normalizedMode;
+    }
+
+    // Synchronize radio inputs with class theme-mode-controller
+    const modeControllers = document.querySelectorAll('input.theme-mode-controller');
+    modeControllers.forEach(input => {
+        const isMatch = (input.value === normalizedMode);
+        input.checked = isMatch;
+        const label = input.closest('label');
+        if (label) {
+            const checkIcon = label.querySelector('.theme-mode-check');
+            if (checkIcon) {
+                checkIcon.classList.toggle('hidden', !isMatch);
+            }
+        }
+    });
+
+    if (persist) {
+        setCookie('rfid_theme_mode', normalizedMode);
+        setStorage('rfid_theme_mode', normalizedMode);
+    }
+
+    return normalizedMode;
+}
+
+/**
  * Initializes the Theme Controller event listeners and synchronizes with current theme.
  */
 export function initThemeSelector() {
+    const doc = document.documentElement;
+    const hasExplicitThemes = doc.hasAttribute('data-theme-light') && doc.hasAttribute('data-theme-dark');
+
+    if (hasExplicitThemes) {
+        const initialMode = getCookie('rfid_theme_mode') ||
+                            getStorage('rfid_theme_mode') ||
+                            doc.getAttribute('data-theme-mode') ||
+                            'auto';
+        applyThemeMode(initialMode, false);
+
+        if (window.matchMedia) {
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+                const currentMode = doc.getAttribute('data-theme-mode') || 'auto';
+                if (currentMode === 'auto') {
+                    applyThemeMode('auto', false);
+                }
+            });
+        }
+
+        document.addEventListener('change', (e) => {
+            if (e.target && e.target.classList && e.target.classList.contains('theme-mode-controller')) {
+                applyThemeMode(e.target.value, true);
+            }
+        });
+
+        const modeMenu = document.getElementById('theme-mode-menu');
+        if (modeMenu) {
+            modeMenu.addEventListener('click', (e) => {
+                const label = e.target.closest('label');
+                if (label) {
+                    const radio = label.querySelector('input.theme-mode-controller');
+                    if (radio && radio.value) {
+                        applyThemeMode(radio.value, true);
+                        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                            document.activeElement.blur();
+                        }
+                    }
+                }
+            });
+        }
+        return;
+    }
+
     // 1. Determine active theme (from DOM attribute, cookie, or storage)
-    const activeTheme = document.documentElement.getAttribute('data-theme') ||
+    const activeTheme = doc.getAttribute('data-theme') ||
                         getStoredTheme() ||
                         'corporate';
 

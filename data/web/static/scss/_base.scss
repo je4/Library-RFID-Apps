@@ -33,6 +33,8 @@ body {
 // Layout structural spacing defaults
 header.navbar {
     margin-bottom: 1.5rem;
+    position: relative;
+    z-index: 30;
 }
 
 main {

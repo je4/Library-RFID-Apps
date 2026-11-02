@@ -2107,6 +2107,119 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 	}
 }
 
+func TestController_ExplicitThemesAutoLightDarkSwitch(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-explicit-theme",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		ThemeLight:    "mediathek-light",
+		ThemeDark:     "mediathek-dark",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller with explicit themes: %v", err)
+	}
+
+	// 1. Verify that all main views have the auto/light/dark switch and NO full theme selection dropdown
+	for _, path := range []string{"/", "/channel-1/", "/channel-1/loan", "/channel-1/encode"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(rec, req)
+		if rec.Code != http.StatusOK {
+			t.Fatalf("expected 200 for %s, got %d", path, rec.Code)
+		}
+		body := rec.Body.String()
+
+		// Must contain auto/light/dark switch elements
+		if !strings.Contains(body, `id="theme-mode-dropdown"`) {
+			t.Errorf("expected %s to contain #theme-mode-dropdown", path)
+		}
+		if !strings.Contains(body, `id="theme-mode-btn"`) {
+			t.Errorf("expected %s to contain #theme-mode-btn", path)
+		}
+		if !strings.Contains(body, `id="theme-mode-menu"`) {
+			t.Errorf("expected %s to contain #theme-mode-menu", path)
+		}
+		if !strings.Contains(body, `class="theme-mode-controller`) {
+			t.Errorf("expected %s to contain .theme-mode-controller", path)
+		}
+		if !strings.Contains(body, `data-theme-light="mediathek-light"`) {
+			t.Errorf("expected %s to contain data-theme-light=\"mediathek-light\"", path)
+		}
+		if !strings.Contains(body, `data-theme-dark="mediathek-dark"`) {
+			t.Errorf("expected %s to contain data-theme-dark=\"mediathek-dark\"", path)
+		}
+
+		// Must NOT contain general theme selector dropdown or list of general themes
+		if strings.Contains(body, `id="theme-dropdown-menu"`) {
+			t.Errorf("expected %s NOT to contain #theme-dropdown-menu when explicit themes are configured", path)
+		}
+		if strings.Contains(body, `value="cyberpunk"`) {
+			t.Errorf("expected %s NOT to contain cyberpunk theme option when explicit themes are configured", path)
+		}
+		if strings.Contains(body, `value="valentine"`) {
+			t.Errorf("expected %s NOT to contain valentine theme option when explicit themes are configured", path)
+		}
+		if strings.Contains(body, `value="garden"`) {
+			t.Errorf("expected %s NOT to contain garden theme option when explicit themes are configured", path)
+		}
+	}
+
+	// 2. Test mode cookie = light
+	reqLight := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+	reqLight.AddCookie(&http.Cookie{Name: "rfid_theme_mode", Value: "light"})
+	recLight := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recLight, reqLight)
+	if recLight.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recLight.Code)
+	}
+	bodyLight := recLight.Body.String()
+	if !strings.Contains(bodyLight, `data-theme="mediathek-light"`) {
+		t.Errorf("expected data-theme=\"mediathek-light\" for mode light, got: %s", bodyLight)
+	}
+	if !strings.Contains(bodyLight, `data-theme-mode="light"`) {
+		t.Errorf("expected data-theme-mode=\"light\" for mode light, got: %s", bodyLight)
+	}
+
+	// 3. Test mode cookie = dark
+	reqDark := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+	reqDark.AddCookie(&http.Cookie{Name: "rfid_theme_mode", Value: "dark"})
+	recDark := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recDark, reqDark)
+	if recDark.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recDark.Code)
+	}
+	bodyDark := recDark.Body.String()
+	if !strings.Contains(bodyDark, `data-theme="mediathek-dark"`) {
+		t.Errorf("expected data-theme=\"mediathek-dark\" for mode dark, got: %s", bodyDark)
+	}
+	if !strings.Contains(bodyDark, `data-theme-mode="dark"`) {
+		t.Errorf("expected data-theme-mode=\"dark\" for mode dark, got: %s", bodyDark)
+	}
+
+	// 4. Test mode cookie = auto
+	reqAuto := httptest.NewRequest(http.MethodGet, "/channel-1/loan", nil)
+	reqAuto.AddCookie(&http.Cookie{Name: "rfid_theme_mode", Value: "auto"})
+	recAuto := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAuto, reqAuto)
+	if recAuto.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recAuto.Code)
+	}
+	bodyAuto := recAuto.Body.String()
+	if !strings.Contains(bodyAuto, `data-theme-mode="auto"`) {
+		t.Errorf("expected data-theme-mode=\"auto\" for mode auto, got: %s", bodyAuto)
+	}
+}
+
 func TestController_EncodeEndpoints(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

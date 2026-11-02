@@ -7,6 +7,12 @@ import (
 	"go.ub.unibas.ch/cloud/certloader/v2/pkg/loader"
 )
 
+// ThemeConfig defines explicit light and dark themes to use for auto/light/dark switching.
+type ThemeConfig struct {
+	Dark  string `toml:"dark"`
+	Light string `toml:"light"`
+}
+
 // DeskAppConfig defines configuration parameters for the library-desk application.
 //
 // Fields:
@@ -20,6 +26,7 @@ import (
 //   - DefaultAFI: Default AFI hex byte (e.g. "07" for secured, "C2" for unsecured).
 //   - MaxTags: Maximum number of scanned tags to retain in memory (default: 100).
 //   - ReadLimit: Maximum WebSocket message read limit in bytes (optional).
+//   - Themes: Explicit light and dark themes (optional).
 //   - ClientTLS: mTLS configuration via certloader (MiniVault, File, Env, Dev, or ACME).
 //   - WebTLS: TLS configuration for the local web server.
 type DeskAppConfig struct {
@@ -33,6 +40,7 @@ type DeskAppConfig struct {
 	DefaultAFI    string        `toml:"default_afi"`
 	MaxTags       int           `toml:"max_tags"`
 	ReadLimit     int64         `toml:"read_limit"`
+	Themes        ThemeConfig   `toml:"themes"`
 	ClientTLS     loader.Config `toml:"clienttls"`
 	WebTLS        loader.Config `toml:"webtls"`
 }

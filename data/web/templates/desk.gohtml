@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" translate="no" {{if .Theme}}data-theme="{{.Theme}}"{{end}}>
+<html lang="de" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">

@@ -28,6 +28,8 @@ type Config struct {
 	DefaultReader string
 	DefaultISIL   string
 	DefaultAFI    string
+	ThemeLight    string
+	ThemeDark     string
 	Hub           *desk.Hub
 	RFIDClient    libraryclient.Client
 	ISILList      map[string]*desk.ISILEntry

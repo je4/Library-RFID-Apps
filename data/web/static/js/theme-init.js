@@ -20,25 +20,47 @@
     }
 
     function syncTheme() {
-        var directTheme = getCookie('rfid_theme') || getStorage('rfid_theme');
-        var activeTheme = directTheme;
+        var doc = document.documentElement;
+        var configLight = doc.getAttribute('data-theme-light');
+        var configDark = doc.getAttribute('data-theme-dark');
+        var hasExplicitThemes = Boolean(configLight && configDark);
 
-        if (!activeTheme) {
-            var isDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
-            activeTheme = isDark ? (getCookie('rfid_theme_dark') || getStorage('rfid_theme_dark') || 'dark')
-                                 : (getCookie('rfid_theme_light') || getStorage('rfid_theme_light') || 'corporate');
+        var mode = getCookie('rfid_theme_mode') || getStorage('rfid_theme_mode') || doc.getAttribute('data-theme-mode') || 'auto';
+        var activeTheme = '';
+
+        if (hasExplicitThemes) {
+            if (mode === 'light' || mode === 'lightmode') {
+                activeTheme = configLight;
+            } else if (mode === 'dark' || mode === 'darkmode') {
+                activeTheme = configDark;
+            } else {
+                var isDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                activeTheme = isDark ? configDark : configLight;
+            }
+            doc.setAttribute('data-theme-mode', mode);
+        } else {
+            var directTheme = getCookie('rfid_theme') || getStorage('rfid_theme');
+            activeTheme = directTheme;
+
+            if (!activeTheme) {
+                var isDark = Boolean(window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                activeTheme = isDark ? (getCookie('rfid_theme_dark') || getStorage('rfid_theme_dark') || 'dark')
+                                     : (getCookie('rfid_theme_light') || getStorage('rfid_theme_light') || 'corporate');
+            }
         }
 
         var isDarkTheme = DARK_THEMES.indexOf(activeTheme) !== -1;
         if (isDarkTheme) {
-            document.documentElement.classList.add('dark');
-            document.documentElement.classList.remove('light');
+            doc.classList.add('dark');
+            doc.classList.remove('light');
         } else {
-            document.documentElement.classList.add('light');
-            document.documentElement.classList.remove('dark');
+            doc.classList.add('light');
+            doc.classList.remove('dark');
         }
 
-        document.documentElement.setAttribute('data-theme', activeTheme);
+        if (activeTheme) {
+            doc.setAttribute('data-theme', activeTheme);
+        }
     }
 
     syncTheme();
