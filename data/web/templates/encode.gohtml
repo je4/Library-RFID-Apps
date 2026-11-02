@@ -92,7 +92,7 @@
 
                     <!-- Dropdown for 6 to 12 parts -->
                     <div class="relative inline-flex items-center">
-                        <select id="encode-parts-select" class="select select-sm select-bordered h-8 text-xs font-semibold rounded-lg px-2.5 cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
+                        <select id="encode-parts-select" class="select select-sm select-bordered h-8 text-xs font-semibold rounded-lg cursor-pointer" aria-label="Weitere Teile auswählen (6 bis 12)">
                             <option value="" disabled {{if le .DefaultParts 5}}selected{{end}}>6 - 12 Teile...</option>
                             <option value="6" {{if eq .DefaultParts 6}}selected{{end}}>6 Teile</option>
                             <option value="7" {{if eq .DefaultParts 7}}selected{{end}}>7 Teile</option>
