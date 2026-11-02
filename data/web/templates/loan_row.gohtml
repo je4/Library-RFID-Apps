@@ -220,16 +220,16 @@
 
     <!-- Individual Actions -->
     <td class="py-3 px-4 sm:px-5 text-xs whitespace-nowrap">
-        <div class="inline-flex items-center gap-2">
+        <div class="inline-flex items-center gap-1.5">
             {{if or .AFISecured (not .AFIUnsecured)}}
             <button type="button"
                     hx-post="loan/afi/unsecure?uid={{.UID}}"
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="btn btn-xs btn-outline btn-warning"
-                    title="Diesen Transponder einzeln entsichern (C2)">
+                    title="Diesen Transponder einzeln entsichern (C2)"
+                    aria-label="Entsichern">
                 <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
-                <span>Entsichern</span>
             </button>
             {{end}}
             {{if or .AFIUnsecured (not .AFISecured)}}
@@ -238,11 +238,20 @@
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="btn btn-xs btn-outline btn-info"
-                    title="Diesen Transponder einzeln sichern (07)">
+                    title="Diesen Transponder einzeln sichern (07)"
+                    aria-label="Sichern">
                 <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
-                <span>Sichern</span>
             </button>
             {{end}}
+            <button type="button"
+                    hx-post="loan/clear?uid={{.UID}}"
+                    hx-target="#loan-table-body"
+                    hx-swap="innerHTML"
+                    class="btn btn-xs btn-outline btn-warning"
+                    title="Diesen Transponder leeren (Daten löschen, AFI entsichern)"
+                    aria-label="Transponder leeren">
+                <span class="app-icon icon-trash w-3.5 h-3.5" aria-hidden="true"></span>
+            </button>
         </div>
     </td>
 

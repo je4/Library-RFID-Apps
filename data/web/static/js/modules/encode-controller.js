@@ -362,6 +362,10 @@ export function startEncoding() {
 
     if (!itemInput) return;
 
+    if (isEncodingRunning) {
+        return;
+    }
+
     currentBarcode = itemInput.value.trim();
     if (!currentBarcode) {
         showEncodeNotification('Bitte geben Sie einen Barcode / ItemID ein.', 'error');
@@ -391,6 +395,83 @@ export function startEncoding() {
     setTimeout(() => {
         processNextTag();
     }, 200);
+}
+
+export async function clearActiveTags() {
+    if (isEncodingRunning) {
+        return;
+    }
+
+    const clearBtn = getElement('btn-clear-tag');
+    const activeTags = getActiveTransponders();
+
+    if (activeTags.length === 0) {
+        showEncodeNotification('Kein aktiver Transponder auf dem Lesegerät gefunden. Bitte ein Medium auflegen.', 'error');
+        return;
+    }
+
+    if (clearBtn) {
+        clearBtn.disabled = true;
+    }
+
+    showEncodeNotification('Transponder wird geleert (Felder löschen, AFI entsichern)...', 'info');
+
+    let successCount = 0;
+    let errorCount = 0;
+    let lastError = '';
+
+    for (const tag of activeTags) {
+        try {
+            const resp = await fetch('encode/write', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({
+                    uid: tag.uid,
+                    clear: true,
+                    itemId: '',
+                    isil: '',
+                    country: '',
+                    parts: 1,
+                    partNo: 1,
+                    afi: 'C2'
+                })
+            });
+
+            const result = await resp.json();
+            if (resp.ok && result.status === 'success') {
+                successCount++;
+            } else {
+                errorCount++;
+                lastError = result.error || 'Fehler beim Leeren des Transponders';
+            }
+        } catch (err) {
+            errorCount++;
+            lastError = err.message || 'Netzwerkfehler';
+        }
+    }
+
+    if (clearBtn) {
+        clearBtn.disabled = false;
+    }
+
+    if (successCount > 0) {
+        playBeep();
+        if (errorCount === 0) {
+            showEncodeNotification(
+                successCount === 1
+                    ? 'Transponder erfolgreich geleert und entsichert (AFI: C2).'
+                    : `Alle ${successCount} Transponder erfolgreich geleert und entsichert (AFI: C2).`,
+                'success'
+            );
+        } else {
+            showEncodeNotification(`${successCount} Transponder geleert, ${errorCount} fehlgeschlagen (${lastError}).`, 'error');
+        }
+    } else {
+        showEncodeNotification(`Fehler beim Leeren des Transponders: ${lastError}`, 'error', 8000);
+    }
 }
 
 export function initEncodeController() {
@@ -458,12 +539,17 @@ export function initEncodeController() {
         itemInput.addEventListener('input', validateInput);
         itemInput.addEventListener('change', validateInput);
         itemInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
+            if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
                 e.preventDefault();
                 validateInput();
                 if (!startBtn.disabled) {
                     startEncoding();
                 }
+            }
+        });
+        itemInput.addEventListener('keyup', (e) => {
+            if (e.key === 'Enter' || e.keyCode === 13 || e.which === 13) {
+                e.preventDefault();
             }
         });
         validateInput();
@@ -490,6 +576,14 @@ export function initEncodeController() {
     if (startBtn) {
         startBtn.addEventListener('click', () => {
             startEncoding();
+        });
+    }
+
+    // Clear Tag Button ("Tag leeren")
+    const clearBtn = getElement('btn-clear-tag');
+    if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+            clearActiveTags();
         });
     }
 

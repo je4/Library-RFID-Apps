@@ -2189,7 +2189,7 @@ func TestController_EncodeEndpoints(t *testing.T) {
 		"isil": "CH-000001",
 		"parts": 1,
 		"partNo": 1,
-		"afi": "C2"
+		"afi": "07"
 	}`
 	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/encode/write?channel=channel-1", strings.NewReader(apiJSON))
 	reqAPI.Header.Set("Content-Type", "application/json")
@@ -2197,6 +2197,83 @@ func TestController_EncodeEndpoints(t *testing.T) {
 	ctrl.router.ServeHTTP(recAPI, reqAPI)
 	if recAPI.Code != http.StatusOK {
 		t.Errorf("expected 200 for /api/v1/encode/write, got %d (body: %s)", recAPI.Code, recAPI.Body.String())
+	}
+
+	// 5. Test Tag leeren button presence in encode template
+	if !strings.Contains(recEncode.Body.String(), `id="btn-clear-tag"`) {
+		t.Errorf("expected encode page to contain 'btn-clear-tag' button, got: %s", recEncode.Body.String())
+	}
+	if !strings.Contains(recEncode.Body.String(), "Tag leeren") {
+		t.Errorf("expected encode page to contain 'Tag leeren' text, got: %s", recEncode.Body.String())
+	}
+
+	// 6. Test /:channel/encode/clear endpoint (resets fields and sets AFI to C2 / unsecured)
+	clearJSON := `{"uid": "E004015099887766"}`
+	reqClear := httptest.NewRequest(http.MethodPost, "/channel-1/encode/clear", strings.NewReader(clearJSON))
+	reqClear.Header.Set("Content-Type", "application/json")
+	recClear := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recClear, reqClear)
+	if recClear.Code != http.StatusOK {
+		t.Errorf("expected 200 for /channel-1/encode/clear, got %d (body: %s)", recClear.Code, recClear.Body.String())
+	}
+
+	activeAfterClear := hub.GetActiveTags()
+	if len(activeAfterClear) == 0 || activeAfterClear[0].ItemID != "" {
+		t.Errorf("expected hub active tag to have empty ItemID after clear, got %+v", activeAfterClear)
+	}
+	if activeAfterClear[0].AFI != "C2" || !activeAfterClear[0].AFIUnsecured || activeAfterClear[0].AFISecured {
+		t.Errorf("expected hub active tag AFI to be 'C2' and unsecured, got AFI=%s, secured=%v, unsecured=%v", activeAfterClear[0].AFI, activeAfterClear[0].AFISecured, activeAfterClear[0].AFIUnsecured)
+	}
+
+	// 7. Test /api/v1/encode/clear endpoint
+	reqAPIClear := httptest.NewRequest(http.MethodPost, "/api/v1/encode/clear?channel=channel-1", strings.NewReader(clearJSON))
+	reqAPIClear.Header.Set("Content-Type", "application/json")
+	recAPIClear := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recAPIClear, reqAPIClear)
+	if recAPIClear.Code != http.StatusOK {
+		t.Errorf("expected 200 for /api/v1/encode/clear, got %d (body: %s)", recAPIClear.Code, recAPIClear.Body.String())
+	}
+
+	// 8. Test Action column contains only icons and includes trash icon for single clear
+	hub.AddTag(&libraryclient.TagReadEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{Channel: "channel-1"},
+		Data: libraryclient.TagReadData{
+			UID:      "E004015099881122",
+			ItemID:   "ITEM-ROW-TEST",
+			AFI:      "07",
+			CRCOk:    true,
+			ReaderID: "desk-reader",
+		},
+	})
+	reqLoanFrag := httptest.NewRequest(http.MethodGet, "/channel-1/loan/tags", nil)
+	recLoanFrag := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recLoanFrag, reqLoanFrag)
+	loanFragBody := recLoanFrag.Body.String()
+
+	if !strings.Contains(loanFragBody, `icon-trash`) {
+		t.Errorf("expected action column to contain icon-trash button, got: %s", loanFragBody)
+	}
+	if !strings.Contains(loanFragBody, `loan/clear?uid=E004015099881122`) {
+		t.Errorf("expected action column to contain clear action for tag UID, got: %s", loanFragBody)
+	}
+	if !strings.Contains(loanFragBody, `icon-lock-open`) {
+		t.Errorf("expected action column to contain icon-lock-open, got: %s", loanFragBody)
+	}
+	// Verify no text labels inside action buttons
+	if strings.Contains(loanFragBody, `<span>Entsichern</span>`) || strings.Contains(loanFragBody, `<span>Sichern</span>`) {
+		t.Errorf("expected action column buttons to contain only icons without text labels, got: %s", loanFragBody)
+	}
+
+	// 9. Test POST /:channel/loan/clear with HTMX request
+	reqHtmxClear := httptest.NewRequest(http.MethodPost, "/channel-1/loan/clear?uid=E004015099881122", nil)
+	reqHtmxClear.Header.Set("HX-Request", "true")
+	recHtmxClear := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recHtmxClear, reqHtmxClear)
+	if recHtmxClear.Code != http.StatusOK {
+		t.Errorf("expected 200 for /channel-1/loan/clear, got %d", recHtmxClear.Code)
+	}
+	if !strings.Contains(recHtmxClear.Body.String(), "erfolgreich geleert") {
+		t.Errorf("expected HTMX response to contain success message, got: %s", recHtmxClear.Body.String())
 	}
 }
 

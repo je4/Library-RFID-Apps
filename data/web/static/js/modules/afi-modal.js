@@ -30,7 +30,7 @@ export function showAfiNotification(message, type = 'info', autoHideMs = 6000) {
 }
 
 export function setAfiButtonsDisabled(disabled) {
-    const afiButtons = document.querySelectorAll('#btn-unsecure, #btn-secure, button[hx-post*="loan/afi"], button[data-hx-post*="loan/afi"]');
+    const afiButtons = document.querySelectorAll('#btn-unsecure, #btn-secure, #btn-clear-tag, button[hx-post*="loan/afi"], button[data-hx-post*="loan/afi"], button[hx-post*="loan/clear"], button[data-hx-post*="loan/clear"], button[hx-post*="encode/clear"]');
     afiButtons.forEach((btn) => {
         btn.disabled = disabled;
         if (disabled) {
@@ -117,8 +117,9 @@ export function hideAfiModal() {
 
 export function handleAfiRequestStart(elt, url) {
     let path = url || (elt && typeof elt.getAttribute === 'function' ? (elt.getAttribute('hx-post') || elt.getAttribute('data-hx-post') || elt.getAttribute('action') || '') : '');
-    if (!path || !path.includes('loan/afi')) return;
+    if (!path || (!path.includes('loan/afi') && !path.includes('loan/clear') && !path.includes('encode/clear'))) return;
 
+    let isClear = path.includes('clear');
     let isUnsecure = path.includes('unsecure') || path.includes('AFI=C2') || path.includes('afi=C2') || path.includes('afi=c2');
     let isSecure = path.includes('secure') || path.includes('AFI=07') || path.includes('afi=07');
 
@@ -143,7 +144,17 @@ export function handleAfiRequestStart(elt, url) {
     let desc = 'Bitte warten Sie, bis der Sicherheitsstatus auf dem Lesefeld aktualisiert wurde. Bitte keine Medien vom Lesegerät entfernen.';
     let status = 'RFID-Schreibbefehl aktiv...';
 
-    if (isUnsecure) {
+    if (isClear) {
+        if (targetUid) {
+            title = 'Transponder wird geleert...';
+            desc = `Transponder ${targetUid} wird mit leeren Daten überschrieben und entsichert (AFI: C2).`;
+            status = `Leeren (${targetUid})...`;
+        } else {
+            title = 'Transponder wird geleert...';
+            desc = 'Aufgelegter Transponder wird mit leeren Daten überschrieben und entsichert (AFI: C2).';
+            status = 'Transponder leeren...';
+        }
+    } else if (isUnsecure) {
         if (targetUid) {
             title = 'Transponder wird entsichert...';
             desc = `AFI-Code C2 (Ausgeliehen / EAS deaktiviert) wird auf Transponder ${targetUid} geschrieben.`;
@@ -170,7 +181,7 @@ export function handleAfiRequestStart(elt, url) {
 
 export function handleAfiRequestEnd(elt, url, isError) {
     let path = url || (elt && typeof elt.getAttribute === 'function' ? (elt.getAttribute('hx-post') || elt.getAttribute('data-hx-post') || elt.getAttribute('action') || '') : '');
-    if (!path.includes('loan/afi') && !isAfiOperationRunning) return;
+    if (!path.includes('loan/afi') && !path.includes('loan/clear') && !path.includes('encode/clear') && !isAfiOperationRunning) return;
 
     hideAfiModal();
     if (isError) {
@@ -199,7 +210,7 @@ export function extractAfiRequestInfo(evt) {
 export function initAfiModal() {
     // 1. Direct click capture listener on document for instantaneous feedback
     document.addEventListener('click', (evt) => {
-        const btn = evt.target?.closest?.('#btn-unsecure, #btn-secure, button[hx-post*="loan/afi"], button[data-hx-post*="loan/afi"], a[hx-post*="loan/afi"]');
+        const btn = evt.target?.closest?.('#btn-unsecure, #btn-secure, button[hx-post*="loan/afi"], button[data-hx-post*="loan/afi"], a[hx-post*="loan/afi"], button[hx-post*="loan/clear"], button[hx-post*="encode/clear"]');
         if (btn) {
             const url = btn.getAttribute('hx-post') || btn.getAttribute('data-hx-post') || '';
             handleAfiRequestStart(btn, url);
@@ -209,21 +220,21 @@ export function initAfiModal() {
     // 2. HTMX request hooks for AFI writing (support HTMX 4 and HTMX 1/2 event signatures)
     const onHtmxBeforeRequest = (evt) => {
         const info = extractAfiRequestInfo(evt);
-        if (info.url && info.url.includes('loan/afi')) {
+        if (info.url && (info.url.includes('loan/afi') || info.url.includes('loan/clear') || info.url.includes('encode/clear'))) {
             handleAfiRequestStart(info.elt, info.url);
         }
     };
 
     const onHtmxAfterRequest = (evt) => {
         const info = extractAfiRequestInfo(evt);
-        if (isAfiOperationRunning || (info.url && info.url.includes('loan/afi'))) {
+        if (isAfiOperationRunning || (info.url && (info.url.includes('loan/afi') || info.url.includes('loan/clear') || info.url.includes('encode/clear')))) {
             handleAfiRequestEnd(info.elt, info.url, info.isError);
         }
     };
 
     const onHtmxError = (evt) => {
         const info = extractAfiRequestInfo(evt);
-        if (isAfiOperationRunning || (info.url && info.url.includes('loan/afi'))) {
+        if (isAfiOperationRunning || (info.url && (info.url.includes('loan/afi') || info.url.includes('loan/clear') || info.url.includes('encode/clear')))) {
             handleAfiRequestEnd(info.elt, info.url, true);
         }
     };

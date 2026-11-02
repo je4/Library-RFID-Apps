@@ -146,9 +146,11 @@ func (ctrl *Controller) init() error {
 		channelGroup.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
 		channelGroup.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)
 		channelGroup.POST("/loan/afi/single", ctrl.handleLoanAFISingle)
+		channelGroup.POST("/loan/clear", ctrl.handleEncodeClear)
 		channelGroup.GET("/encode", ctrl.handleEncode)
 		channelGroup.GET("/encode/tags", ctrl.handleEncodeTagsFragment)
 		channelGroup.POST("/encode/write", ctrl.handleEncodeWrite)
+		channelGroup.POST("/encode/clear", ctrl.handleEncodeClear)
 		channelGroup.GET("/events", ctrl.handleSSE)
 		channelGroup.POST("/tags/clear", ctrl.handleClearTags)
 
@@ -177,6 +179,7 @@ func (ctrl *Controller) init() error {
 		api.GET("/loan/tags", ctrl.handleAPILoanTags)
 		api.POST("/loan/afi", ctrl.handleAPILoanAFI)
 		api.POST("/encode/write", ctrl.handleAPIEncodeWrite)
+		api.POST("/encode/clear", ctrl.handleAPIEncodeClear)
 	}
 
 	ctrl.server = http.Server{

@@ -7,6 +7,41 @@
         </div>
 
         <div>
+            <!-- Breadcrumbs Navigation -->
+            {{if .Channel}}
+            <nav class="breadcrumbs text-xs text-base-content/70 py-0 mb-0.5" aria-label="Breadcrumb-Navigation">
+                <ul>
+                    <li>
+                        <a href="../" id="nav-channels-btn" class="inline-flex items-center gap-1 hover:text-primary transition-colors font-medium" title="Zur Channel-Auswahl">
+                            <span class="app-icon icon-channel w-3 h-3 shrink-0" aria-hidden="true"></span>
+                            <span>Channels</span>
+                        </a>
+                    </li>
+                    {{if or .IsLoan .IsEncode}}
+                    <li>
+                        <a href="." id="nav-desk-btn" class="inline-flex items-center gap-1 hover:text-primary transition-colors font-medium" title="Zur Desk-Übersicht">
+                            <span class="app-icon icon-home w-3 h-3 shrink-0" aria-hidden="true"></span>
+                            <span>Desk ({{.Channel}})</span>
+                        </a>
+                    </li>
+                    <li class="font-semibold text-base-content">
+                        <span class="inline-flex items-center gap-1">
+                            <span class="app-icon {{if .IsLoan}}icon-book{{else}}icon-tag{{end}} w-3 h-3 shrink-0" aria-hidden="true"></span>
+                            <span>{{if .IsLoan}}Ausleihe &amp; Rückgabe{{else}}Medium kodieren{{end}}</span>
+                        </span>
+                    </li>
+                    {{else}}
+                    <li class="font-semibold text-base-content">
+                        <span class="inline-flex items-center gap-1">
+                            <span class="app-icon icon-home w-3 h-3 shrink-0" aria-hidden="true"></span>
+                            <span>Desk ({{.Channel}})</span>
+                        </span>
+                    </li>
+                    {{end}}
+                </ul>
+            </nav>
+            {{end}}
+
             <!-- Titel & Status Badge -->
             <h1 class="text-xl font-bold tracking-tight flex items-center gap-2.5">
                 {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}
@@ -18,7 +53,7 @@
             </h1>
 
             <!-- Metadaten-Zeile -->
-            <p class="text-xs text-base-content/80 font-mono flex items-center gap-2">
+            <p class="text-xs text-base-content/80 font-mono flex items-center gap-2 mt-0.5">
                 {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
                 {{if or .IsLoan .IsEncode}}
                 <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
@@ -304,20 +339,6 @@
         </div>
 
         {{if .Channel}}
-        <!-- Back to Channels Selection Button -->
-        <a href="../" id="nav-channels-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Zurück zur Channel-Auswahl">
-            <span class="app-icon icon-arrow-left w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-            <span>Channels</span>
-        </a>
-
-        {{if or .IsLoan .IsEncode}}
-        <!-- Back to Desk Button (Relative to Channel) -->
-        <a href="." id="nav-desk-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Zurück zur RFID Desk Gesamtübersicht">
-            <span class="app-icon icon-home w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-            <span>Desk</span>
-        </a>
-        {{end}}
-
         <!-- Audio Feedback Toggle Button -->
         <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Signalton einschalten" aria-pressed="false">
             <span class="app-icon icon-volume-off w-3.5 h-3.5 shrink-0 sound-icon-off" aria-hidden="true"></span>

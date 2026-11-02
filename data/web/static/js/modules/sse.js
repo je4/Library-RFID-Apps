@@ -129,6 +129,11 @@ export function onBarcodeReceived(rawBarcode) {
         if (typeof encodeItemInput.select === 'function') {
             encodeItemInput.select();
         }
+
+        const startBtn = document.getElementById('btn-encode-start');
+        if (startBtn && !startBtn.disabled) {
+            startBtn.click();
+        }
     }
 }
 

@@ -394,6 +394,45 @@ func (h *Hub) UpdateTagMetadata(uid, itemID, isil, country string, parts, partNo
 	}
 }
 
+// ClearTagMetadata resets encoded metadata fields (empty ItemID, ISIL, Country, Parts=1) and sets AFI (default C2 / Unsecured).
+func (h *Hub) ClearTagMetadata(uid string, afi string) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+
+	trimmedUID := strings.TrimSpace(uid)
+	if trimmedUID == "" {
+		return
+	}
+
+	clearMetadata := func(item *TagItem) {
+		item.ItemID = ""
+		item.ISIL = ""
+		item.Country = ""
+		item.Parts = 1
+		item.PartNo = 1
+		item.IsMultiPart = false
+		if afi != "" {
+			item.SetAFI(afi)
+		} else {
+			item.SetAFI(libraryclient.AFIUnsecured)
+		}
+		item.ISILName = ""
+		item.ISILEntry = nil
+		item.CRCOk = true
+	}
+
+	for activeUID, item := range h.activeTags {
+		if strings.EqualFold(activeUID, trimmedUID) || strings.EqualFold(item.UID, trimmedUID) {
+			clearMetadata(item)
+		}
+	}
+	for _, item := range h.tags {
+		if strings.EqualFold(item.UID, trimmedUID) {
+			clearMetadata(item)
+		}
+	}
+}
+
 // SetTagAFIResult records individual success or failure for a given tag UID.
 func (h *Hub) SetTagAFIResult(uid string, afi string, success bool, errStr string) {
 	h.mu.Lock()

@@ -126,8 +126,14 @@
                     </div>
                 </div>
 
-                <div class="text-xs text-base-content/70">
-                    Reader: <strong class="font-mono text-primary">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</strong>
+                <div class="flex items-center gap-3">
+                    <button id="btn-clear-tag" type="button" class="btn btn-sm btn-outline btn-warning flex items-center gap-1.5" title="Aufgelegten Transponder mit leeren Daten überschreiben und AFI auf Entsichert setzen">
+                        <span class="app-icon icon-trash w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
+                        <span>Tag leeren</span>
+                    </button>
+                    <div class="text-xs text-base-content/70">
+                        Reader: <strong class="font-mono text-primary">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch / Alle{{end}}</strong>
+                    </div>
                 </div>
             </div>
 

@@ -386,15 +386,10 @@ func NewWriteTagBatchRequestFromMap(tagMap map[string]string, isil string, afi .
 func (r *WriteTagRequest) Validate() error {
 	allTags := r.GetAllTags()
 	if len(allTags) > 0 {
-		for i, tag := range allTags {
-			if strings.TrimSpace(tag.ItemID) == "" {
-				return errors.Errorf("invalid batch item at index %d: itemId is required", i)
-			}
-		}
 		return nil
 	}
 
-	if strings.TrimSpace(r.ItemID) == "" {
+	if strings.TrimSpace(r.ItemID) == "" && strings.TrimSpace(r.UID) == "" && strings.TrimSpace(r.AFI) == "" {
 		return errors.New("write tag request requires a non-empty itemId or at least one tag in batch")
 	}
 	return nil

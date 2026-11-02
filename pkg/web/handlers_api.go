@@ -227,3 +227,17 @@ func (ctrl *Controller) handleAPIEncodeWrite(c *gin.Context) {
 	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
 	c.JSON(statusCode, res)
 }
+
+func (ctrl *Controller) handleAPIEncodeClear(c *gin.Context) {
+	channel := c.Query("channel")
+	var payload WriteTagPayload
+	_ = c.ShouldBindJSON(&payload)
+
+	payload.Clear = true
+	if payload.AFI == "" {
+		payload.AFI = libraryclient.AFIUnsecured
+	}
+
+	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
+	c.JSON(statusCode, res)
+}
