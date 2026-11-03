@@ -35,6 +35,7 @@ type Config struct {
 	ISILList      map[string]*desk.ISILEntry
 	Logger        zLogger.ZLogger
 	StartTime     time.Time
+	SOAPOnly      bool
 }
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
@@ -114,23 +115,27 @@ func (ctrl *Controller) init() error {
 		AllowCredentials: true,
 	}))
 
-	// Mount embedded static assets on /static/*
-	subStatic, err := fs.Sub(data.WebFS, "web/static")
-	if err != nil {
-		return errors.Wrap(err, "cannot get sub filesystem for static assets")
-	}
-	ctrl.router.StaticFS("/static", http.FS(subStatic))
+	var subStatic fs.FS
+	if !ctrl.cfg.SOAPOnly {
+		// Mount embedded static assets on /static/*
+		var err error
+		subStatic, err = fs.Sub(data.WebFS, "web/static")
+		if err != nil {
+			return errors.Wrap(err, "cannot get sub filesystem for static assets")
+		}
+		ctrl.router.StaticFS("/static", http.FS(subStatic))
 
-	// Parse embedded HTML templates
-	tmpl, err := template.ParseFS(data.WebFS, "web/templates/*.gohtml")
-	if err != nil {
-		return errors.Wrap(err, "cannot parse embedded web templates")
-	}
-	ctrl.templates = tmpl
-	ctrl.router.SetHTMLTemplate(tmpl)
+		// Parse embedded HTML templates
+		tmpl, err := template.ParseFS(data.WebFS, "web/templates/*.gohtml")
+		if err != nil {
+			return errors.Wrap(err, "cannot parse embedded web templates")
+		}
+		ctrl.templates = tmpl
+		ctrl.router.SetHTMLTemplate(tmpl)
 
-	// Web Index (Channel Selection) route
-	ctrl.router.GET("/", ctrl.handleIndex)
+		// Web Index (Channel Selection) route
+		ctrl.router.GET("/", ctrl.handleIndex)
+	}
 
 	// Global Alma RFID SOAP Service routes (/TagService)
 	tagServiceGroup := ctrl.router.Group("/TagService")
@@ -154,22 +159,24 @@ func (ctrl *Controller) init() error {
 			c.Next()
 		})
 
-		// Web Dashboard UI routes
-		channelGroup.StaticFS("/static", http.FS(subStatic))
-		channelGroup.GET("", ctrl.handleChannelIndex)
-		channelGroup.GET("/", ctrl.handleChannelIndex)
-		channelGroup.GET("/loan", ctrl.handleLoan)
-		channelGroup.GET("/loan/tags", ctrl.handleLoanTagsFragment)
-		channelGroup.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
-		channelGroup.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)
-		channelGroup.POST("/loan/afi/single", ctrl.handleLoanAFISingle)
-		channelGroup.POST("/loan/clear", ctrl.handleEncodeClear)
-		channelGroup.GET("/encode", ctrl.handleEncode)
-		channelGroup.GET("/encode/tags", ctrl.handleEncodeTagsFragment)
-		channelGroup.POST("/encode/write", ctrl.handleEncodeWrite)
-		channelGroup.POST("/encode/clear", ctrl.handleEncodeClear)
-		channelGroup.GET("/events", ctrl.handleSSE)
-		channelGroup.POST("/tags/clear", ctrl.handleClearTags)
+		if !ctrl.cfg.SOAPOnly {
+			// Web Dashboard UI routes
+			channelGroup.StaticFS("/static", http.FS(subStatic))
+			channelGroup.GET("", ctrl.handleChannelIndex)
+			channelGroup.GET("/", ctrl.handleChannelIndex)
+			channelGroup.GET("/loan", ctrl.handleLoan)
+			channelGroup.GET("/loan/tags", ctrl.handleLoanTagsFragment)
+			channelGroup.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
+			channelGroup.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)
+			channelGroup.POST("/loan/afi/single", ctrl.handleLoanAFISingle)
+			channelGroup.POST("/loan/clear", ctrl.handleEncodeClear)
+			channelGroup.GET("/encode", ctrl.handleEncode)
+			channelGroup.GET("/encode/tags", ctrl.handleEncodeTagsFragment)
+			channelGroup.POST("/encode/write", ctrl.handleEncodeWrite)
+			channelGroup.POST("/encode/clear", ctrl.handleEncodeClear)
+			channelGroup.GET("/events", ctrl.handleSSE)
+			channelGroup.POST("/tags/clear", ctrl.handleClearTags)
+		}
 
 		// Channel-specific Alma RFID SOAP Service routes (/:channel/TagService)
 		channelTagGroup := channelGroup.Group("/TagService")
@@ -183,20 +190,22 @@ func (ctrl *Controller) init() error {
 		}
 	}
 
-	// Global events and tags clear routes
-	ctrl.router.GET("/events", ctrl.handleSSE)
-	ctrl.router.POST("/tags/clear", ctrl.handleClearTags)
+	if !ctrl.cfg.SOAPOnly {
+		// Global events and tags clear routes
+		ctrl.router.GET("/events", ctrl.handleSSE)
+		ctrl.router.POST("/tags/clear", ctrl.handleClearTags)
 
-	// REST API v1 routes
-	api := ctrl.router.Group("/api/v1")
-	{
-		api.GET("/status", ctrl.handleAPIStatus)
-		api.GET("/tags", ctrl.handleAPITags)
-		api.POST("/tags/clear", ctrl.handleClearTagsJSON)
-		api.GET("/loan/tags", ctrl.handleAPILoanTags)
-		api.POST("/loan/afi", ctrl.handleAPILoanAFI)
-		api.POST("/encode/write", ctrl.handleAPIEncodeWrite)
-		api.POST("/encode/clear", ctrl.handleAPIEncodeClear)
+		// REST API v1 routes
+		api := ctrl.router.Group("/api/v1")
+		{
+			api.GET("/status", ctrl.handleAPIStatus)
+			api.GET("/tags", ctrl.handleAPITags)
+			api.POST("/tags/clear", ctrl.handleClearTagsJSON)
+			api.GET("/loan/tags", ctrl.handleAPILoanTags)
+			api.POST("/loan/afi", ctrl.handleAPILoanAFI)
+			api.POST("/encode/write", ctrl.handleAPIEncodeWrite)
+			api.POST("/encode/clear", ctrl.handleAPIEncodeClear)
+		}
 	}
 
 	ctrl.server = http.Server{
@@ -217,11 +226,19 @@ func (ctrl *Controller) Start(wg *sync.WaitGroup) {
 			defer wg.Done()
 		}
 		if ctrl.logger != nil {
-			ctrl.logger.Info().Str("addr", ctrl.cfg.Addr).Msg("starting library-desk web server")
+			serverDesc := "library-desk web server"
+			if ctrl.cfg.SOAPOnly {
+				serverDesc = "alma-soap proxy server"
+			}
+			ctrl.logger.Info().Str("addr", ctrl.cfg.Addr).Msg("starting " + serverDesc)
 		}
 		if err := ctrl.server.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			if ctrl.logger != nil {
-				ctrl.logger.Error().Err(err).Msg("library-desk web server encountered an error")
+				serverDesc := "library-desk web server"
+				if ctrl.cfg.SOAPOnly {
+					serverDesc = "alma-soap proxy server"
+				}
+				ctrl.logger.Error().Err(err).Msg(serverDesc + " encountered an error")
 			}
 		}
 	}()

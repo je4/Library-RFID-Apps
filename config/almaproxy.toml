@@ -1,0 +1,25 @@
+addr = "localhost:5000"
+extaddr = "http://localhost:5000"
+name = "mediathek:almaproxy:01"
+wsbroker = "https://localhost:8765"
+channels = ["mediathek01"]
+default_reader = ""
+default_isil = "CH-001596-0"
+default_afi = "07"
+max_tags = 100
+
+[clienttls]
+type = "minivault"
+
+[clienttls.minivault]
+baseurl = "https://localhost:8759/api/v1"
+parenttoken = "%%PARENT_TOKEN%%"
+tokentype = "client_cert"
+tokenpolicies = ["wsbroker.client"]
+certtype = "client_cert"
+uris = ["wsbroker:client:mediathek:almaproxy:01", "wsbroker:channel:mediathek01"]
+ca = ["certs/minivault.ca.pem"]
+usesystempool = false
+
+[webtls]
+type = "dev"

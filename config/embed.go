@@ -7,3 +7,6 @@ var LibraryDeskConfigTOML string
 
 //go:embed barcode-headless.toml
 var BarcodeHeadlessConfigTOML string
+
+//go:embed almaproxy.toml
+var AlmaProxyConfigTOML string

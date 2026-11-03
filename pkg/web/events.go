@@ -23,6 +23,10 @@ func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 	}
 	item := ctrl.hub.AddTag(tag)
 
+	if ctrl.templates == nil {
+		return
+	}
+
 	// Render table row HTML fragment for desk stream
 	var buf bytes.Buffer
 	if err := ctrl.templates.ExecuteTemplate(&buf, "tag_row.gohtml", item); err != nil {
@@ -191,6 +195,9 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIRespo
 }
 
 func (ctrl *Controller) broadcastLoanTableWithData(data desk.LoanData, channel ...string) {
+	if ctrl.templates == nil {
+		return
+	}
 	var buf bytes.Buffer
 	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
 		if ctrl.logger != nil {

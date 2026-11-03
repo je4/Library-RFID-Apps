@@ -416,3 +416,117 @@ func TestSOAP_ChannelScopedEndpoint(t *testing.T) {
 		t.Errorf("expected Success false for channel with no tags, got: %s", recIntern.Body.String())
 	}
 }
+
+func TestSOAPOnly_RoutesAndIsolation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	t.Cleanup(cancel)
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	t.Cleanup(hub.Close)
+
+	mockClient := &mockSOAPRfidClient{}
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:5000",
+		ExtAddr:       "http://localhost:5000",
+		ClientName:    "test-almaproxy",
+		WSBroker:      "https://localhost:8765",
+		Channels:      []string{"mediathek01"},
+		DefaultReader: "reader-01",
+		Hub:           hub,
+		RFIDClient:    mockClient,
+		SOAPOnly:      true,
+	})
+	if err != nil {
+		t.Fatalf("failed to create SOAP-only controller: %v", err)
+	}
+
+	// 1. Verify SOAP TagService endpoint is active
+	reqWSDL := httptest.NewRequest(http.MethodGet, "/TagService?wsdl", nil)
+	recWSDL := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recWSDL, reqWSDL)
+	if recWSDL.Code != http.StatusOK {
+		t.Errorf("expected 200 for /TagService?wsdl in SOAP-only mode, got %d", recWSDL.Code)
+	}
+
+	// 2. Verify channel-scoped SOAP TagService endpoint is active
+	reqChanWSDL := httptest.NewRequest(http.MethodGet, "/mediathek01/TagService?wsdl", nil)
+	recChanWSDL := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recChanWSDL, reqChanWSDL)
+	if recChanWSDL.Code != http.StatusOK {
+		t.Errorf("expected 200 for /mediathek01/TagService?wsdl in SOAP-only mode, got %d", recChanWSDL.Code)
+	}
+
+	// 3. Verify Web UI index route returns 404
+	reqIndex := httptest.NewRequest(http.MethodGet, "/", nil)
+	recIndex := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recIndex, reqIndex)
+	if recIndex.Code != http.StatusNotFound {
+		t.Errorf("expected 404 for / in SOAP-only mode, got %d", recIndex.Code)
+	}
+
+	// 4. Verify Static assets return 404
+	reqStatic := httptest.NewRequest(http.MethodGet, "/static/css/tailwind.min.css", nil)
+	recStatic := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recStatic, reqStatic)
+	if recStatic.Code != http.StatusNotFound {
+		t.Errorf("expected 404 for /static in SOAP-only mode, got %d", recStatic.Code)
+	}
+
+	// 5. Verify REST API endpoints return 404
+	for _, apiPath := range []string{
+		"/api/v1/status",
+		"/api/v1/tags",
+		"/api/v1/loan/tags",
+		"/api/v1/encode/write",
+	} {
+		reqAPI := httptest.NewRequest(http.MethodGet, apiPath, nil)
+		recAPI := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(recAPI, reqAPI)
+		if recAPI.Code != http.StatusNotFound {
+			t.Errorf("expected 404 for %s in SOAP-only mode, got %d", apiPath, recAPI.Code)
+		}
+	}
+
+	// 6. Verify SSE /events endpoint returns 404
+	reqEvents := httptest.NewRequest(http.MethodGet, "/events", nil)
+	recEvents := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recEvents, reqEvents)
+	if recEvents.Code != http.StatusNotFound {
+		t.Errorf("expected 404 for /events in SOAP-only mode, got %d", recEvents.Code)
+	}
+
+	// 7. Verify Channel UI routes return 404
+	for _, chPath := range []string{
+		"/mediathek01",
+		"/mediathek01/loan",
+		"/mediathek01/encode",
+		"/mediathek01/events",
+	} {
+		reqCh := httptest.NewRequest(http.MethodGet, chPath, nil)
+		recCh := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(recCh, reqCh)
+		if recCh.Code != http.StatusNotFound {
+			t.Errorf("expected 404 for %s in SOAP-only mode, got %d", chPath, recCh.Code)
+		}
+	}
+
+	// 8. Verify SOAP Ping action works in SOAP-only mode
+	soapPing := `<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:tem="http://tempuri.org/">
+  <soap:Body>
+    <tem:Ping />
+  </soap:Body>
+</soap:Envelope>`
+	reqPing := httptest.NewRequest(http.MethodPost, "/TagService", bytes.NewBufferString(soapPing))
+	reqPing.Header.Set("Content-Type", "text/xml; charset=utf-8")
+	recPing := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(recPing, reqPing)
+	if recPing.Code != http.StatusOK {
+		t.Errorf("expected 200 for Ping in SOAP-only mode, got %d", recPing.Code)
+	}
+	if !strings.Contains(recPing.Body.String(), "<PingResult>OK</PingResult>") {
+		t.Errorf("expected PingResult OK, got: %s", recPing.Body.String())
+	}
+}
