@@ -2,6 +2,15 @@ name = "mediathek:selfcheckout:01"
 wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
 channels = ["mediathek01"]
 
+[tunnel]
+remote_addr = "slsp-ubs.alma.exlibrisgroup.com:6443"
+certificate_file = "certs/slsp/client.crt"
+key_file = "certs/slsp/client.key"
+# Empty uses the system trust store for the Alma server certificate.
+ca_file = "certs/slsp/ca.pem"
+# Duration in nanoseconds (200 seconds).
+connect_timeout = 200000000000
+
 [clienttls]
 type = "minivault"
 

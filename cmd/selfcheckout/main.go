@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
+	"github.com/je4/Library-RFID-Apps/pkg/sip2"
 	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/je4/wsbrokerclient"
 	"github.com/rs/zerolog"
@@ -45,6 +46,11 @@ func main() {
 	if err != nil {
 		logger.Fatal().Err(err).Msg("cannot initialize library client")
 	}
+	tunnel, err := sip2.OpenTunnel(conf.Tunnel)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("cannot open SIP2 tunnel")
+	}
+	logger.Info().Str("addr", tunnel.Addr().String()).Msg("SIP2 tunnel listening")
 	if err := client.Connect(context.Background()); err != nil {
 		logger.Warn().Err(err).Msg("failed to initiate initial connection to wsbroker")
 	}
@@ -56,5 +62,8 @@ func main() {
 	signal.Stop(done)
 	if err := client.Close(); err != nil {
 		logger.Warn().Err(err).Msg("error closing library client")
+	}
+	if err := tunnel.Close(); err != nil {
+		logger.Warn().Err(err).Msg("error closing SIP2 tunnel")
 	}
 }

@@ -4,15 +4,17 @@ import (
 	"emperror.dev/errors"
 	"github.com/BurntSushi/toml"
 	"github.com/je4/Library-RFID-Apps/config"
+	"github.com/je4/Library-RFID-Apps/pkg/sip2"
 	"go.ub.unibas.ch/cloud/certloader/v2/pkg/loader"
 )
 
 type Config struct {
-	Name      string        `toml:"name"`
-	WSBroker  string        `toml:"wsbroker"`
-	Channels  []string      `toml:"channels"`
-	ReadLimit int64         `toml:"read_limit"`
-	ClientTLS loader.Config `toml:"clienttls"`
+	Name      string            `toml:"name"`
+	WSBroker  string            `toml:"wsbroker"`
+	Channels  []string          `toml:"channels"`
+	ReadLimit int64             `toml:"read_limit"`
+	ClientTLS loader.Config     `toml:"clienttls"`
+	Tunnel    sip2.TunnelConfig `toml:"tunnel"`
 }
 
 func LoadConfig(path string) (*Config, error) {
