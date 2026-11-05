@@ -1,0 +1,16 @@
+name = "mediathek:selfcheckout:01"
+wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
+channels = ["mediathek01"]
+
+[clienttls]
+type = "minivault"
+
+[clienttls.minivault]
+baseurl = "https://minivault.grpc-system.k8s.ub.unibas.ch/api/v1"
+parenttoken = "%%PARENT_TOKEN%%"
+tokentype = "client_cert"
+tokenpolicies = ["wsbroker.client"]
+certtype = "client_cert"
+uris = ["wsbroker:client:mediathek:selfcheckout:01", "wsbroker:channel:mediathek01"]
+ca = ["certs/minivault_switch.ca.pem", "certs/minivault.ca.pem"]
+usesystempool = false

@@ -10,3 +10,6 @@ var BarcodeHeadlessConfigTOML string
 
 //go:embed almaproxy.toml
 var AlmaProxyConfigTOML string
+
+//go:embed selfcheckout.toml
+var SelfcheckoutConfigTOML string
