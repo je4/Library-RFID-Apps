@@ -1,7 +1,8 @@
 addr = "localhost:5000"
 extaddr = "http://localhost:5000"
 name = "mediathek:desk:01"
-wsbroker = "https://localhost:8765"
+#wsbroker = "https://ws.k8s.ub.unibas.ch"
+wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
 channels = ["mediathek01"]
 default_reader = ""
 default_isil = "CH-001596-0"
@@ -16,13 +17,14 @@ light = "mediathek-light"
 type = "minivault"
 
 [clienttls.minivault]
-baseurl = "https://localhost:8759/api/v1"
+#baseurl = "https://localhost:8759/api/v1"
+baseurl = "https://minivault.grpc-system.k8s.ub.unibas.ch/api/v1"
 parenttoken = "%%PARENT_TOKEN%%"
 tokentype = "client_cert"
 tokenpolicies = ["wsbroker.client"]
 certtype = "client_cert"
 uris = ["wsbroker:client:mediathek:desk:01", "wsbroker:channel:mediathek01"]
-ca = ["certs/minivault.ca.pem"]
+ca = ["certs/minivault_switch.ca.pem", "certs/minivault.ca.pem"]
 usesystempool = false
 
 [webtls]
