@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
@@ -17,6 +19,29 @@ import (
 )
 
 var configfile = flag.String("config", "", "location of toml configuration file")
+
+func connectSIP2(ctx context.Context, addr string, conf SIP2Config) (*sip2.Client, error) {
+	client, err := sip2.Dial(ctx, addr)
+	if err != nil {
+		return nil, err
+	}
+	ok, err := client.Login(ctx, conf.Username, conf.Password, conf.Location)
+	if err != nil {
+		client.Close()
+		return nil, fmt.Errorf("SIP2 login failed: %w", err)
+	}
+	if !ok {
+		client.Close()
+		return nil, errors.New("SIP2 login rejected")
+	}
+	status, err := client.SCStatus(ctx, sip2.SCStatusRequest{StatusCode: '0', MaxPrintWidth: "080", ProtocolVersion: "2.00"})
+	if err != nil {
+		client.Close()
+		return nil, fmt.Errorf("SIP2 status exchange failed: %w", err)
+	}
+	log.Printf("SIP2 status: online=%t, protocol=%s", status.Online, status.ProtocolVersion)
+	return client, nil
+}
 
 func main() {
 	flag.Parse()
@@ -51,6 +76,14 @@ func main() {
 		logger.Fatal().Err(err).Msg("cannot open SIP2 tunnel")
 	}
 	logger.Info().Str("addr", tunnel.Addr().String()).Msg("SIP2 tunnel listening")
+	loginCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	sip2Client, err := connectSIP2(loginCtx, tunnel.Addr().String(), conf.SIP2)
+	cancel()
+	if err != nil {
+		_ = tunnel.Close()
+		logger.Fatal().Err(err).Msg("cannot connect and log in to SIP2")
+	}
+	logger.Info().Msg("SIP2 login successful")
 	if err := client.Connect(context.Background()); err != nil {
 		logger.Warn().Err(err).Msg("failed to initiate initial connection to wsbroker")
 	}
@@ -62,6 +95,9 @@ func main() {
 	signal.Stop(done)
 	if err := client.Close(); err != nil {
 		logger.Warn().Err(err).Msg("error closing library client")
+	}
+	if err := sip2Client.Close(); err != nil {
+		logger.Warn().Err(err).Msg("error closing SIP2 client")
 	}
 	if err := tunnel.Close(); err != nil {
 		logger.Warn().Err(err).Msg("error closing SIP2 tunnel")

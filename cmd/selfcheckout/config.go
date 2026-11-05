@@ -15,6 +15,13 @@ type Config struct {
 	ReadLimit int64             `toml:"read_limit"`
 	ClientTLS loader.Config     `toml:"clienttls"`
 	Tunnel    sip2.TunnelConfig `toml:"tunnel"`
+	SIP2      SIP2Config        `toml:"sip2"`
+}
+
+type SIP2Config struct {
+	Username string `toml:"username"`
+	Password string `toml:"password"`
+	Location string `toml:"location"`
 }
 
 func LoadConfig(path string) (*Config, error) {

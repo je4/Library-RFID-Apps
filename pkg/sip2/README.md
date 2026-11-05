@@ -61,10 +61,18 @@ status, fee payment, holds, renewals and renew-all. Their request dates are
 their two-character identifiers and preserves repeated values. Consult the SIP2
 specification and server configuration for field meanings and required values.
 
-`Exchange` sends and receives raw SIP2 messages without the terminating CR;
-its caller is responsible for constructing and parsing their fields. The client
-not implement sequence numbers, checksums, resend handling or automatic retries.
-Use it only with servers configured without SIP2 error detection. The caller
+`Exchange` sends messages terminated by CR and accepts CR, LF or CRLF responses;
+its caller constructs and parses the message fields. SIP2 error detection is
+disabled by default. If required by the server, enable it when connecting:
+
+```go
+client, err := sip2.Dial(ctx, tunnel.Addr().String(), sip2.ClientOptions{Checksums: true})
+```
+
+In this mode the client adds and verifies `AY` sequence numbers and `AZ`
+checksums, and removes them from responses returned by `Exchange`. A missing or
+invalid checksum or sequence closes the connection. Resend handling and automatic
+retries are not implemented. The caller
 must agree on a character encoding with the server (the SIP2 default is CP850).
 Use contexts with deadlines; after an exchange error, reconnect before retrying,
 and consider that the server might already have processed the request. Login

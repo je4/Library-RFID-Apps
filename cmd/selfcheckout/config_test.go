@@ -45,6 +45,10 @@ certificate_file = "client.pem"
 key_file = "key.pem"
 ca_file = "ca.pem"
 connect_timeout = 3000000000
+[sip2]
+username = "user"
+password = "secret"
+location = "library"
 [clienttls]
 type = "dev"
 `
@@ -61,6 +65,9 @@ type = "dev"
 	want := sip2.TunnelConfig{RemoteAddr: "alma.example.com:6443", CertificateFile: "client.pem", KeyFile: "key.pem", CAFile: "ca.pem", ConnectTimeout: 3 * time.Second}
 	if conf.Tunnel != want {
 		t.Fatalf("unexpected file tunnel configuration: %+v", conf.Tunnel)
+	}
+	if conf.SIP2 != (SIP2Config{Username: "user", Password: "secret", Location: "library"}) {
+		t.Fatal("unexpected SIP2 configuration")
 	}
 	if _, err := LoadConfig(filepath.Join(t.TempDir(), "missing.toml")); err == nil {
 		t.Fatal("expected error for missing configuration")

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -17,20 +18,35 @@ const maxMessageSize = 64 * 1024
 // Close the client after use. A failed exchange closes the connection because its
 // protocol state may be unknown; create a new client to reconnect.
 type Client struct {
-	conn   net.Conn
-	reader *bufio.Reader
-	gate   chan struct{}
+	conn      net.Conn
+	reader    *bufio.Reader
+	gate      chan struct{}
+	checksums bool
+	sequence  byte
+	skipLF    bool
+}
+
+// ClientOptions configures optional SIP2 error detection for the connection.
+type ClientOptions struct {
+	Checksums bool
 }
 
 // Dial connects to a SIP2 server, for example to tunnel.Addr().String().
 // A successful dial to a tunnel does not guarantee that its remote TLS connection
 // has been established; the first exchange can still fail.
-func Dial(ctx context.Context, addr string) (*Client, error) {
+func Dial(ctx context.Context, addr string, options ...ClientOptions) (*Client, error) {
+	if len(options) > 1 {
+		return nil, errors.New("only one SIP2 client options value is allowed")
+	}
 	conn, err := (&net.Dialer{}).DialContext(ctx, "tcp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("dial SIP2: %w", err)
 	}
-	return &Client{conn: conn, reader: bufio.NewReaderSize(conn, maxMessageSize), gate: make(chan struct{}, 1)}, nil
+	client := &Client{conn: conn, reader: bufio.NewReaderSize(conn, maxMessageSize), gate: make(chan struct{}, 1)}
+	if len(options) == 1 {
+		client.checksums = options[0].Checksums
+	}
+	return client, nil
 }
 
 // Close closes the connection and interrupts any exchange in progress.
@@ -39,10 +55,10 @@ func (c *Client) Close() error { return c.conn.Close() }
 // Exchange sends one complete SIP2 message without its terminating CR and
 // returns the response without its terminating CR. expectedCode must be the
 // two-character response code. The caller constructs and parses message fields.
-// This client does not add or verify sequence numbers or checksums, and does
-// not automatically retry transactions.
+// When enabled, sequence and checksum fields are added and verified internally.
+// The client does not automatically retry transactions.
 func (c *Client) Exchange(ctx context.Context, message, expectedCode string) (string, error) {
-	if len(message) < 2 || len(message) >= maxMessageSize || strings.ContainsAny(message, "\r\x00") {
+	if len(message) < 2 || len(message)+10 >= maxMessageSize || strings.ContainsAny(message, "\r\n\x00") {
 		return "", errors.New("invalid SIP2 request")
 	}
 	if len(expectedCode) != 2 {
@@ -75,7 +91,12 @@ func (c *Client) Exchange(ctx context.Context, message, expectedCode string) (st
 		c.conn.SetDeadline(time.Time{})
 	}()
 
-	request := message + "\r"
+	request := message
+	if c.checksums {
+		request += fmt.Sprintf("AY%dAZ", c.sequence)
+		request += fmt.Sprintf("%04X", checksum(request))
+	}
+	request += "\r"
 	for len(request) > 0 {
 		n, err := c.conn.Write([]byte(request))
 		if err != nil || n == 0 {
@@ -90,7 +111,7 @@ func (c *Client) Exchange(ctx context.Context, message, expectedCode string) (st
 		}
 		request = request[n:]
 	}
-	response, err := c.reader.ReadSlice('\r')
+	response, err := c.readMessage()
 	if err != nil {
 		c.conn.Close()
 		if ctx.Err() != nil {
@@ -98,12 +119,56 @@ func (c *Client) Exchange(ctx context.Context, message, expectedCode string) (st
 		}
 		return "", fmt.Errorf("read SIP2 response: %w", err)
 	}
-	response = response[:len(response)-1]
-	if len(response) < 2 || string(response[:2]) != expectedCode || strings.ContainsRune(string(response), '\x00') {
+	if c.checksums {
+		if len(response) < 10 || response[len(response)-9:len(response)-7] != "AY" || response[len(response)-7] != '0'+c.sequence || response[len(response)-6:len(response)-4] != "AZ" {
+			c.conn.Close()
+			return "", errors.New("invalid SIP2 sequence or checksum fields")
+		}
+		value, err := strconv.ParseUint(response[len(response)-4:], 16, 16)
+		if err != nil || strings.ContainsAny(response[len(response)-4:], "+-") || uint16(value) != checksum(response[:len(response)-4]) {
+			c.conn.Close()
+			return "", errors.New("invalid SIP2 checksum")
+		}
+		response = response[:len(response)-9]
+		c.sequence = (c.sequence + 1) % 10
+	}
+	if len(response) < 2 || response[:2] != expectedCode || strings.ContainsRune(response, '\x00') {
 		c.conn.Close()
 		return "", fmt.Errorf("unexpected or malformed SIP2 response")
 	}
-	return string(response), nil
+	return response, nil
+}
+
+func checksum(message string) uint16 {
+	var sum uint16
+	for i := 0; i < len(message); i++ {
+		sum += uint16(message[i])
+	}
+	return -sum
+}
+
+func (c *Client) readMessage() (string, error) {
+	var message []byte
+	for {
+		b, err := c.reader.ReadByte()
+		if err != nil {
+			return "", err
+		}
+		if c.skipLF {
+			c.skipLF = false
+			if b == '\n' {
+				continue
+			}
+		}
+		if b == '\r' || b == '\n' {
+			c.skipLF = b == '\r'
+			return string(message), nil
+		}
+		message = append(message, b)
+		if len(message) >= maxMessageSize {
+			return "", errors.New("SIP2 response too large")
+		}
+	}
 }
 
 // Login sends the SIP2 login message using unencrypted credentials (algorithm 0).
@@ -111,7 +176,7 @@ func (c *Client) Exchange(ctx context.Context, message, expectedCode string) (st
 // A false result means the server explicitly rejected the login.
 func (c *Client) Login(ctx context.Context, username, password, location string) (bool, error) {
 	for _, value := range []string{username, password, location} {
-		if len(value) > 255 || strings.ContainsAny(value, "|\r\x00") {
+		if len(value) > 255 || strings.ContainsAny(value, "|\r\n\x00") {
 			return false, errors.New("invalid SIP2 login field")
 		}
 	}

@@ -11,6 +11,11 @@ ca_file = "certs/slsp/ca.pem"
 # Duration in nanoseconds (200 seconds).
 connect_timeout = 200000000000
 
+[sip2]
+username = ""
+password = ""
+location = ""
+
 [clienttls]
 type = "minivault"
 
