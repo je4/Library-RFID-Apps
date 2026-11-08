@@ -1,0 +1,67 @@
+<!-- Navigation Tabs for Desk, Loan & Encode with Integrated Status Metrics -->
+<nav class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3" aria-label="Hauptnavigation">
+    <!-- Tab List -->
+    <div role="tablist" class="tabs tabs-boxed bg-base-100 p-1.5 border border-base-200 shadow-sm rounded-2xl flex flex-wrap gap-1.5">
+        <!-- Tab 1: Desk (Live-Monitor) -->
+        <a href="{{if or .IsLoan .IsEncode}}./{{else}}#{{end}}"
+           id="nav-desk-btn"
+           role="tab"
+           class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if not (or .IsLoan .IsEncode)}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
+           title="Zur Live-Übersicht (Desk)">
+            <span class="app-icon icon-home w-4 h-4" aria-hidden="true"></span>
+            <span>Desk</span>
+            {{if not (or .IsLoan .IsEncode)}}
+            <span id="stats-total-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
+            {{end}}
+        </a>
+
+        <!-- Tab 2: Ausleihe & Rückgabe -->
+        <a href="{{if .IsLoan}}#{{else}}loan{{end}}"
+           id="nav-loan-btn"
+           role="tab"
+           class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsLoan}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
+           title="Zum Ausleih- und Rückgabemodus">
+            <span class="app-icon icon-book-open w-4 h-4" aria-hidden="true"></span>
+            <span>Ausleihe &amp; Rückgabe</span>
+            {{if .IsLoan}}
+            <span id="stats-active-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
+            {{end}}
+        </a>
+
+        <!-- Tab 3: Medium kodieren -->
+        <a href="{{if .IsEncode}}#{{else}}encode{{end}}"
+           id="nav-encode-btn"
+           role="tab"
+           class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsEncode}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
+           title="Zum RFID-Kodiermodus">
+            <span class="app-icon icon-tag w-4 h-4" aria-hidden="true"></span>
+            <span>Medium kodieren</span>
+        </a>
+    </div>
+
+    <!-- Secondary Info Pills -->
+    <div class="hidden sm:flex items-center flex-wrap gap-2 text-xs font-mono">
+        <!-- Channel Pill -->
+        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="Aktiver Channel">
+            <span class="app-icon icon-channel w-3.5 h-3.5 text-secondary shrink-0" aria-hidden="true"></span>
+            <span class="text-base-content/70">Channel:</span>
+            <strong class="text-secondary font-semibold">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</strong>
+        </div>
+
+        <!-- Reader Pill -->
+        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="Konfigurierter Standard Reader">
+            <span class="app-icon icon-chip w-3.5 h-3.5 text-accent shrink-0" aria-hidden="true"></span>
+            <span class="text-base-content/70">Reader:</span>
+            <strong class="text-accent font-semibold truncate max-w-[150px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch{{end}}</strong>
+        </div>
+
+        {{if .Uptime}}
+        <!-- Uptime Pill -->
+        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="Laufzeit">
+            <span class="app-icon icon-clock w-3.5 h-3.5 text-info shrink-0" aria-hidden="true"></span>
+            <span class="text-base-content/70">Laufzeit:</span>
+            <strong class="text-info font-semibold">{{.Uptime}}</strong>
+        </div>
+        {{end}}
+    </div>
+</nav>
