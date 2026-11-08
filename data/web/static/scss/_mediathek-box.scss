@@ -18,7 +18,9 @@
     .card,
     .box,
     .modal-box,
-    .stats {
+    .stats,
+    .tabs-boxed,
+    .nav-stat-pill {
         position: relative;
         border-radius: var(--mediathek-box-radius, 0px) !important;
         border: var(--mediathek-box-border-width, 4px) solid var(--mediathek-box-border-color, #ffffff) !important;
@@ -73,7 +75,8 @@
             border-width: 1px !important;
         }
 
-        .btn {
+        .btn,
+        .tab {
             border-radius: 0 !important;
         }
 
@@ -95,7 +98,9 @@
     .card,
     .box,
     .modal-box,
-    .stats {
+    .stats,
+    .tabs-boxed,
+    .nav-stat-pill {
         .stat {
             border-radius: 0 !important;
             background-color: #f8fafc;
@@ -145,6 +150,41 @@
                 outline: none;
             }
         }
+
+        .tab {
+            border-radius: 0 !important;
+            border: 2px solid #cbd5e1 !important;
+            background-color: #f1f5f9;
+            color: #1e293b !important;
+            font-weight: 600;
+
+            .badge {
+                border-radius: 0 !important;
+                background-color: #e2e8f0 !important;
+                color: #1e293b !important;
+                border: 1px solid #cbd5e1 !important;
+            }
+
+            &:hover {
+                background-color: #e2e8f0;
+                color: #0f172a !important;
+                border-color: #365a82 !important;
+            }
+
+            &.tab-active {
+                background-color: #365a82 !important;
+                color: #ffffff !important;
+                border-color: #1e3a5f !important;
+                font-weight: 700;
+
+                .badge {
+                    background-color: #ffffff !important;
+                    color: #365a82 !important;
+                    border: 1px solid #1e3a5f !important;
+                    font-weight: 700;
+                }
+            }
+        }
     }
 
     .text-base-content\/40,
@@ -162,7 +202,9 @@
     .card,
     .box,
     .modal-box,
-    .stats {
+    .stats,
+    .tabs-boxed,
+    .nav-stat-pill {
         .stat {
             border-radius: 0 !important;
             background-color: #242933;
@@ -210,6 +252,41 @@
             &:focus {
                 border-color: #88c0d0;
                 outline: none;
+            }
+        }
+
+        .tab {
+            border-radius: 0 !important;
+            border: 2px solid #434c5e !important;
+            background-color: #242933;
+            color: #eceff4 !important;
+            font-weight: 600;
+
+            .badge {
+                border-radius: 0 !important;
+                background-color: #3b4252 !important;
+                color: #eceff4 !important;
+                border: 1px solid #434c5e !important;
+            }
+
+            &:hover {
+                background-color: #3b4252;
+                color: #ffffff !important;
+                border-color: #88c0d0 !important;
+            }
+
+            &.tab-active {
+                background-color: #88c0d0 !important;
+                color: #1e222a !important;
+                border-color: #ffffff !important;
+                font-weight: 700;
+
+                .badge {
+                    background-color: #1e222a !important;
+                    color: #88c0d0 !important;
+                    border: 1px solid #88c0d0 !important;
+                    font-weight: 700;
+                }
             }
         }
 
