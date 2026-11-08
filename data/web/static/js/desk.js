@@ -7,6 +7,7 @@ import { initAfiModal } from './modules/afi-modal.js';
 import { initSSE } from './modules/sse.js';
 import { initThemeSelector } from './modules/theme-selector.js';
 import { initEncodeController } from './modules/encode-controller.js';
+import { initShortcuts } from './modules/shortcuts.js';
 
 export function initDesk() {
     initAudio();
@@ -16,6 +17,7 @@ export function initDesk() {
     initSSE();
     initThemeSelector();
     initEncodeController();
+    initShortcuts();
 }
 
 if (document.readyState === 'loading') {

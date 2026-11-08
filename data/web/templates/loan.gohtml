@@ -20,7 +20,7 @@
     {{template "header.gohtml" .}}
 
     <!-- Main Content Area -->
-    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-6">
+    <main class="w-full max-w-7xl mx-auto flex-1 flex flex-col gap-4">
 
         {{template "nav_tabs.gohtml" .}}
 
@@ -38,21 +38,24 @@
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren">
+                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren (Alt+C)">
                         <span class="app-icon icon-copy w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
                         <span id="copy-all-label">Item-IDs kopieren</span>
+                        <kbd class="kbd kbd-xs bg-base-200 text-base-content/70 border border-base-300">Alt+C</kbd>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-warning flex items-center gap-1.5" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen">
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-warning flex items-center gap-1.5" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen (Alt+U)">
                         <span class="app-icon icon-lock-open w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span>Entsichern</span>
+                        <span id="btn-unsecure-label">Entsichern</span>
+                        <kbd class="kbd kbd-xs bg-base-200/80 text-base-content/80 border border-warning/40">Alt+U</kbd>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info flex items-center gap-1.5" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen">
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info flex items-center gap-1.5" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen (Alt+S)">
                         <span class="app-icon icon-lock-closed w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span>Sichern</span>
+                        <span id="btn-secure-label">Sichern</span>
+                        <kbd class="kbd kbd-xs bg-base-200/80 text-base-content/80 border border-info/40">Alt+S</kbd>
                     </button>
                 </div>
             </div>
@@ -74,7 +77,7 @@
                             <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">CRC Prüfsumme</th>
                             <th scope="col" class="py-3 px-4 sm:px-5">AFI Sicherheitsstatus</th>
                             <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Aktionen</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Zuletzt erfasst</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Erfassungszeit</th>
                         </tr>
                     </thead>
                     <tbody id="loan-table-body" sse-swap="loan_tags" data-sse-swap="loan_tags" hx-swap="innerHTML">

@@ -7,12 +7,13 @@
            id="nav-desk-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if not (or .IsLoan .IsEncode)}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zur Live-Übersicht (Desk)">
+           title="Zur Live-Übersicht (Desk) - Alt+1">
             <span class="app-icon icon-home w-4 h-4" aria-hidden="true"></span>
             <span>Desk</span>
             {{if not (or .IsLoan .IsEncode)}}
             <span id="stats-total-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
             {{end}}
+            <kbd class="hidden md:inline-flex kbd kbd-xs {{if not (or .IsLoan .IsEncode)}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+1</kbd>
         </a>
 
         <!-- Tab 2: Ausleihe & Rückgabe -->
@@ -20,12 +21,13 @@
            id="nav-loan-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsLoan}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zum Ausleih- und Rückgabemodus">
+           title="Zum Ausleih- und Rückgabemodus - Alt+2">
             <span class="app-icon icon-book-open w-4 h-4" aria-hidden="true"></span>
             <span>Ausleihe &amp; Rückgabe</span>
             {{if .IsLoan}}
             <span id="stats-active-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
             {{end}}
+            <kbd class="hidden md:inline-flex kbd kbd-xs {{if .IsLoan}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+2</kbd>
         </a>
 
         <!-- Tab 3: Medium kodieren -->
@@ -33,9 +35,10 @@
            id="nav-encode-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsEncode}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zum RFID-Kodiermodus">
+           title="Zum RFID-Kodiermodus - Alt+3">
             <span class="app-icon icon-tag w-4 h-4" aria-hidden="true"></span>
             <span>Medium kodieren</span>
+            <kbd class="hidden md:inline-flex kbd kbd-xs {{if .IsEncode}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+3</kbd>
         </a>
     </div>
 

@@ -1,4 +1,4 @@
-<tr id="loan-tag-{{.ID}}" class="tag-row border-b border-base-200/60 hover:bg-base-200/40 transition-colors animate-scan-flash group {{if eq .AFIWriteStatus "error"}}bg-error/10 border-l-4 border-l-error{{end}}" data-itemid="{{.ItemID}}" data-uid="{{.UID}}">
+<tr id="loan-tag-{{.ID}}" class="tag-row border-b border-base-200/60 transition-colors animate-scan-flash group {{if eq .AFIWriteStatus "error"}}loan-row-error{{else if not .CRCOk}}loan-row-error{{else if .AFIUnsecured}}loan-row-unsecured{{else if .AFISecured}}loan-row-secured{{else}}hover:bg-base-200/40{{end}}" data-itemid="{{.ItemID}}" data-uid="{{.UID}}" data-partno="{{.PartNo}}" data-parts="{{.Parts}}" data-afi="{{.AFI}}" data-secured="{{if .AFISecured}}true{{else}}false{{end}}" data-unsecured="{{if .AFIUnsecured}}true{{else}}false{{end}}" data-crcok="{{if .CRCOk}}true{{else}}false{{end}}">
     <!-- Item ID -->
     <td class="py-3 px-4 sm:px-5 font-mono font-medium whitespace-nowrap">
         <div class="flex items-center space-x-2">
@@ -27,11 +27,14 @@
     </td>
 
     <!-- Parts (Multi-Part indicator) -->
-    <td class="py-3 px-4 sm:px-5 text-xs font-mono">
+    <td class="py-3 px-4 sm:px-5 text-xs font-mono loan-parts-cell whitespace-nowrap">
         {{if .IsMultiPart}}
-        Teil {{.PartNo}} / {{.Parts}}
+        <span class="loan-part-indicator badge badge-sm font-mono font-semibold text-xs py-2 px-2.5 inline-flex items-center gap-1.5 shadow-2xs" data-partno="{{.PartNo}}" data-parts="{{.Parts}}">
+            <span class="loan-part-label">Teil {{.PartNo}}/{{.Parts}}</span>
+            <span class="loan-part-status inline-flex items-center"></span>
+        </span>
         {{else}}
-        Einzelmedium (1/1)
+        <span class="text-base-content/75 font-mono text-xs font-medium">1/1</span>
         {{end}}
     </td>
 

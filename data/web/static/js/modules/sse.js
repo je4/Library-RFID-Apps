@@ -1,15 +1,21 @@
 /**
  * SSE & Stream Lifecycle Module for RFID Desk
- * Handles SSE connection state indicators, deduplication, row pruning, and table counter updates.
+ * Handles SSE connection state indicators, deduplication, row pruning, table counter updates,
+ * stream freeze/pause toggle, and loan table enhancements.
  */
 
-import { playBeep } from './audio.js';
-import { applyFilter } from './table-actions.js';
+import { playBeep, playSuccessSound, playWarningSound, playErrorSound } from './audio.js';
+import { applyFilter, updateLoanTableEnhancements } from './table-actions.js';
 
 const MAX_TAG_EVENTS = 100;
 let lastLoanTagCount = 0;
 let lastHandledEventId = null;
 let lastHandledTimestamp = 0;
+let isStreamPaused = false;
+
+export function isStreamFrozen() {
+    return isStreamPaused;
+}
 
 export function onSSEOpen() {
     const statusContainer = document.getElementById('sse-status-container');
@@ -96,6 +102,7 @@ export function showClearedNotification() {
 }
 
 export function onTagReceived() {
+    if (isStreamPaused) return;
     playBeep();
     removeEmptyPlaceholder();
     pruneTags();
@@ -111,6 +118,7 @@ export function onLoanTagsReceived() {
     }
     lastLoanTagCount = count;
     updateLoanCounters();
+    updateLoanTableEnhancements();
 }
 
 export function onBarcodeReceived(rawBarcode) {
@@ -174,12 +182,41 @@ export function handleSSEMessage(evt) {
         showClearedNotification();
         updateCounters();
         updateLoanCounters();
+        updateLoanTableEnhancements();
         lastLoanTagCount = 0;
     } else if (eventName === 'loan_tags' || eventName === 'loan_updated') {
         onLoanTagsReceived();
     } else if (eventName === 'barcode_read') {
         onBarcodeReceived(evt.detail?.data);
     }
+}
+
+export function initStreamPause() {
+    const pauseBtn = document.getElementById('btn-stream-pause');
+    const pauseLabel = document.getElementById('stream-pause-label');
+    const pauseIcon = document.getElementById('stream-pause-icon');
+    if (!pauseBtn) return;
+
+    pauseBtn.addEventListener('click', () => {
+        isStreamPaused = !isStreamPaused;
+        if (isStreamPaused) {
+            if (pauseLabel) pauseLabel.textContent = 'Pausiert';
+            if (pauseIcon) {
+                pauseIcon.className = 'w-2 h-2 rounded-full bg-warning';
+            }
+            pauseBtn.classList.add('btn-warning', 'btn-outline');
+            pauseBtn.classList.remove('btn-ghost');
+            pauseBtn.setAttribute('title', 'Stream ist angehalten (Klicken zum Fortsetzen)');
+        } else {
+            if (pauseLabel) pauseLabel.textContent = 'Live';
+            if (pauseIcon) {
+                pauseIcon.className = 'w-2 h-2 rounded-full bg-success pulse-indicator';
+            }
+            pauseBtn.classList.remove('btn-warning', 'btn-outline');
+            pauseBtn.classList.add('btn-ghost');
+            pauseBtn.setAttribute('title', 'Transponder-Stream anhalten / fortsetzen (Pause / Freeze)');
+        }
+    });
 }
 
 export function initSSE() {
@@ -192,10 +229,18 @@ export function initSSE() {
     document.body.addEventListener('htmx:sse:message', handleSSEMessage);
     document.body.addEventListener('htmx:sseMessage', handleSSEMessage);
 
+    // Stream Pause interceptor for live tag reads in desk view
+    document.body.addEventListener('htmx:beforeSwap', (evt) => {
+        if (isStreamPaused && evt.detail?.target?.id === 'tags-table-body') {
+            evt.detail.shouldSwap = false;
+        }
+    });
+
     const afterSwapHandler = () => {
         pruneTags();
         updateCounters();
         updateLoanCounters();
+        updateLoanTableEnhancements();
         applyFilter();
     };
 
@@ -220,6 +265,18 @@ export function initSSE() {
         observer.observe(tableBody, { childList: true });
     }
 
+    const loanTableBody = document.getElementById('loan-table-body');
+    if (loanTableBody) {
+        const loanObserver = new MutationObserver(() => {
+            updateLoanCounters();
+            updateLoanTableEnhancements();
+        });
+        loanObserver.observe(loanTableBody, { childList: true });
+    }
+
+    initStreamPause();
     pruneTags();
     updateCounters();
+    updateLoanCounters();
+    updateLoanTableEnhancements();
 }

@@ -7,7 +7,7 @@
 import { EncodeStateMachine, EncodeState } from './encode-state.js';
 import { EncodeApiClient } from './encode-api.js';
 import { EncodeUI } from './encode-ui.js';
-import { playBeep } from '../audio.js';
+import { playBeep, playSuccessSound, playWarningSound, playErrorSound } from '../audio.js';
 
 export class EncodeOrchestrator {
     constructor(options = {}) {
@@ -110,6 +110,7 @@ export class EncodeOrchestrator {
                     nextTag.itemId, this.state.currentBarcode);
                 this.state.setAwaitingOverwrite(nextTag.uid, nextTag.itemId);
                 this.ui.hideProgressModal();
+                playWarningSound();
                 this.ui.showOverwriteModal(nextTag.uid, nextTag.itemId);
             } else {
                 this.executeWriteTag(nextTag.uid);
@@ -173,6 +174,7 @@ export class EncodeOrchestrator {
         } else {
             this.state.setWritingInFlight(false);
             const errorMsg = result.error || 'Fehler beim Schreiben des Transponders';
+            playErrorSound();
             this.ui.showNotification(`Fehler bei Teil ${currentPart}: ${errorMsg}`, 'error', 10000);
             this.stopEncoding(`Kodierung bei Teil ${currentPart} fehlgeschlagen.`);
         }
@@ -186,7 +188,7 @@ export class EncodeOrchestrator {
         const totalParts = this.state.totalParts;
 
         this.state.stop();
-        playBeep();
+        playSuccessSound();
 
         this.ui.showProgressModal({
             title: 'Kodierung erfolgreich!',
@@ -202,7 +204,7 @@ export class EncodeOrchestrator {
             this.ui.clearBarcodeField();
             this.state.userSelectedPartsManually = false;
             this.updateAutoParts();
-        }, 2200);
+        }, 2000);
     }
 
     /**

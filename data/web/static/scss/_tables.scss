@@ -1,11 +1,11 @@
 // ==========================================================================
-// Table Stream Scroll Container
+// Table Stream Scroll Container & Ergonomics
 // ==========================================================================
 
 .transponder-stream-scroll {
     overflow-y: auto;
     overflow-x: auto;
-    max-height: 560px;
+    max-height: calc(100vh - 280px);
     min-height: 360px;
     scroll-behavior: smooth;
 
