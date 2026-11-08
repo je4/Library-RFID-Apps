@@ -30,6 +30,7 @@ type Config struct {
 	DefaultAFI    string
 	ThemeLight    string
 	ThemeDark     string
+	Inventory     desk.InventoryConfig
 	Hub           *desk.Hub
 	RFIDClient    libraryclient.Client
 	ISILList      map[string]*desk.ISILEntry
@@ -40,15 +41,16 @@ type Config struct {
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
 type Controller struct {
-	cfg           Config
-	router        *gin.Engine
-	server        http.Server
-	templates     *template.Template
-	logger        zLogger.ZLogger
-	hub           *desk.Hub
-	rfidClient    libraryclient.Client
-	encodeService *EncodeService
-	startTime     time.Time
+	cfg              Config
+	router           *gin.Engine
+	server           http.Server
+	templates        *template.Template
+	logger           zLogger.ZLogger
+	hub              *desk.Hub
+	rfidClient       libraryclient.Client
+	encodeService    *EncodeService
+	inventoryService *InventoryService
+	startTime        time.Time
 }
 
 // NewController creates and initializes the Web Controller instance.
@@ -82,14 +84,29 @@ func NewController(cfg Config) (*Controller, error) {
 		cfg.Logger,
 	)
 
+	var invService *InventoryService
+	if cfg.Inventory.Enabled {
+		invService = NewInventoryService(
+			cfg.Inventory,
+			cfg.Hub,
+			nil,
+			cfg.Logger,
+		)
+	}
+
 	ctrl := &Controller{
-		cfg:           cfg,
-		router:        router,
-		logger:        cfg.Logger,
-		hub:           cfg.Hub,
-		rfidClient:    cfg.RFIDClient,
-		encodeService: encodeService,
-		startTime:     cfg.StartTime,
+		cfg:              cfg,
+		router:           router,
+		logger:           cfg.Logger,
+		hub:              cfg.Hub,
+		rfidClient:       cfg.RFIDClient,
+		encodeService:    encodeService,
+		inventoryService: invService,
+		startTime:        cfg.StartTime,
+	}
+
+	if invService != nil {
+		invService.SetOnTagEvent(ctrl.broadcastInventoryTag)
 	}
 
 	if err := ctrl.init(); err != nil {
@@ -174,7 +191,22 @@ func (ctrl *Controller) init() error {
 			channelGroup.GET("/encode/tags", ctrl.handleEncodeTagsFragment)
 			channelGroup.POST("/encode/write", ctrl.handleEncodeWrite)
 			channelGroup.POST("/encode/clear", ctrl.handleEncodeClear)
+			if ctrl.cfg.Inventory.Enabled {
+				channelGroup.GET("/inventory", ctrl.handleInventory)
+				channelGroup.GET("/inventory/tags", ctrl.handleInventoryTagsFragment)
+				channelGroup.POST("/inventory/session", ctrl.handleInventoryStartSession)
+				channelGroup.POST("/inventory/marker", ctrl.handleInventorySetMarker)
+				channelGroup.POST("/inventory/pause", ctrl.handleInventoryPause)
+				channelGroup.POST("/inventory/resume", ctrl.handleInventoryResume)
+				channelGroup.POST("/inventory/reset", ctrl.handleInventoryReset)
+				channelGroup.POST("/inventory/retry", ctrl.handleInventoryRetry)
+			}
 			channelGroup.GET("/events", ctrl.handleSSE)
+			channelGroup.GET("/loan/events", ctrl.handleSSE)
+			channelGroup.GET("/encode/events", ctrl.handleSSE)
+			if ctrl.cfg.Inventory.Enabled {
+				channelGroup.GET("/inventory/events", ctrl.handleSSE)
+			}
 			channelGroup.POST("/tags/clear", ctrl.handleClearTags)
 		}
 
@@ -205,6 +237,14 @@ func (ctrl *Controller) init() error {
 			api.POST("/loan/afi", ctrl.handleAPILoanAFI)
 			api.POST("/encode/write", ctrl.handleAPIEncodeWrite)
 			api.POST("/encode/clear", ctrl.handleAPIEncodeClear)
+			if ctrl.cfg.Inventory.Enabled {
+				api.GET("/inventory/session", ctrl.handleAPIInventorySession)
+				api.POST("/inventory/session", ctrl.handleAPIInventoryStartSession)
+				api.POST("/inventory/pause", ctrl.handleAPIInventoryPause)
+				api.POST("/inventory/resume", ctrl.handleAPIInventoryResume)
+				api.POST("/inventory/reset", ctrl.handleAPIInventoryReset)
+				api.POST("/inventory/retry", ctrl.handleAPIInventoryRetry)
+			}
 		}
 	}
 

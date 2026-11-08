@@ -1,6 +1,7 @@
 package web
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -2747,5 +2748,130 @@ func TestController_WSActivityEvent(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for ws_activity SSE message")
+	}
+}
+
+func TestController_BroadcastInventoryTag(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(50)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ExtAddr:       "http://localhost:8762",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		Hub:           hub,
+		Inventory: desk.InventoryConfig{
+			Enabled: true,
+		},
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	subChan := hub.Subscribe("channel-1")
+	defer hub.Unsubscribe(subChan)
+
+	parts := 1
+	partNo := 1
+	rawTag := &libraryclient.TagReadEvent{
+		Source:  "reader-1",
+		Channel: "channel-1",
+		Data: libraryclient.TagReadData{
+			UID:      "E004010000000001",
+			ItemID:   "300001234",
+			ISIL:     "CH-001596-0",
+			Country:  "CH",
+			Parts:    &parts,
+			PartNo:   &partNo,
+			AFI:      "07",
+			ReaderID: "reader-1",
+			CRCOk:    true,
+		},
+	}
+	tagItem := desk.NewTagItem(rawTag)
+	if hub.GetISILList() != nil {
+		tagItem.EnrichISIL(hub.GetISILList())
+	}
+	tagItem.ISILEntry = &desk.ISILEntry{
+		ISIL:          "CH-001596-0",
+		Status:        "aktiv",
+		NameOriginal:  "Testbibliothek",
+		Strasse:       "Musterstrasse 1",
+		Adresszusatz:  "Gebäude A",
+		Postfach:      "Postfach 9",
+		Postleitzahl:  "8000",
+		Ortschaft:     "Zürich",
+		Kanton:        "ZH",
+		Webseite:      "https://example.org",
+		OnlineKatalog: "https://catalog.example.org",
+	}
+	item := &desk.InventoryItem{
+		TagItem:       tagItem,
+		Marker:        "EG-R01",
+		SessionID:     "sess-123",
+		DispatchState: "pending",
+	}
+
+	ctrl.broadcastInventoryTag(InventoryTagEventPayload{
+		Item:  item,
+		Stats: desk.InventoryStats{TotalScans: 1, UniqueItems: 1},
+		Audio: AudioCueSuccess,
+	}, "channel-1")
+
+	// Test rendering inventory_table.gohtml with items
+	var tableBuf bytes.Buffer
+	invData := ctrl.getInventoryData("channel-1")
+	invData.Items = []*desk.InventoryItem{item}
+	if err := ctrl.templates.ExecuteTemplate(&tableBuf, "inventory_table.gohtml", invData); err != nil {
+		t.Fatalf("failed to render inventory_table.gohtml with items: %v", err)
+	}
+	if !strings.Contains(tableBuf.String(), "300001234") {
+		t.Errorf("expected inventory_table to contain item ID 300001234, got %s", tableBuf.String())
+	}
+
+	select {
+	case msg := <-subChan:
+		if msg == nil {
+			t.Fatal("received nil SSE message")
+		}
+		if msg.Event != "inventory_tag" {
+			t.Errorf("expected SSE event 'inventory_tag', got '%s'", msg.Event)
+		}
+		var payload InventoryTagEventPayload
+		if err := json.Unmarshal([]byte(msg.Data), &payload); err != nil {
+			t.Fatalf("failed to unmarshal inventory_tag payload: %v", err)
+		}
+		if payload.HTMLRow == "" {
+			t.Fatal("expected non-empty HTMLRow in inventory_tag payload, got empty string")
+		}
+		if !strings.Contains(payload.HTMLRow, "300001234") {
+			t.Errorf("expected HTMLRow to contain item ID 300001234, got %s", payload.HTMLRow)
+		}
+		for _, want := range []string{"Musterstrasse 1", "Gebäude A", "Postfach 9", "8000", "Zürich", "https://example.org", "https://catalog.example.org"} {
+			if !strings.Contains(payload.HTMLRow, want) {
+				t.Errorf("expected HTMLRow to contain %q, got %s", want, payload.HTMLRow)
+			}
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for inventory_tag SSE message")
+	}
+
+	for name, entry := range map[string]*desk.ISILEntry{
+		"empty optional fields": &desk.ISILEntry{ISIL: "CH-001596-0"},
+		"missing entry":         nil,
+	} {
+		t.Run(name, func(t *testing.T) {
+			row := &desk.InventoryItem{TagItem: &desk.TagItem{UID: "E004010000000002", ISIL: "CH-001596-0", ISILEntry: entry}}
+			var rowBuf bytes.Buffer
+			if err := ctrl.templates.ExecuteTemplate(&rowBuf, "inventory_row.gohtml", row); err != nil {
+				t.Fatalf("failed to render inventory_row.gohtml with %s: %v", name, err)
+			}
+		})
 	}
 }

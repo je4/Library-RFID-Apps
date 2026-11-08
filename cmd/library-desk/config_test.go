@@ -75,3 +75,56 @@ max_tags = 250
 		t.Errorf("expected max_tags 250, got %d", conf.MaxTags)
 	}
 }
+
+func TestLoadConfig_Inventory(t *testing.T) {
+	tempDir := t.TempDir()
+	configPath := filepath.Join(tempDir, "inventory.toml")
+
+	tomlData := `
+addr = "localhost:8762"
+name = "inventory-desk"
+wsbroker = "wss://broker.example.com"
+channels = ["inventory01"]
+
+[inventory]
+enabled = true
+
+[inventory.webservice]
+target_url = "https://inventory.sammlung.cc/inventory?clientid=station-a"
+client_id = "station-a"
+http_method = "POST"
+jwt_key = "secret123"
+debug_mode = true
+timeout = "10s"
+`
+	if err := os.WriteFile(configPath, []byte(tomlData), 0644); err != nil {
+		t.Fatalf("failed to write inventory config file: %v", err)
+	}
+
+	conf, err := LoadConfig(configPath)
+	if err != nil {
+		t.Fatalf("failed to load inventory config file: %v", err)
+	}
+
+	if !conf.Inventory.Enabled {
+		t.Error("expected inventory.enabled to be true")
+	}
+	if conf.Inventory.Webservice.TargetURL != "https://inventory.sammlung.cc/inventory?clientid=station-a" {
+		t.Errorf("unexpected target_url: %s", conf.Inventory.Webservice.TargetURL)
+	}
+	if conf.Inventory.Webservice.ClientID != "station-a" {
+		t.Errorf("unexpected client_id: %s", conf.Inventory.Webservice.ClientID)
+	}
+	if conf.Inventory.Webservice.HTTPMethod != "POST" {
+		t.Errorf("unexpected http_method: %s", conf.Inventory.Webservice.HTTPMethod)
+	}
+	if conf.Inventory.Webservice.JWTKey != "secret123" {
+		t.Errorf("unexpected jwt_key: %s", conf.Inventory.Webservice.JWTKey)
+	}
+	if !conf.Inventory.Webservice.DebugMode {
+		t.Error("expected debug_mode to be true")
+	}
+	if conf.Inventory.Webservice.Timeout.Seconds() != 10 {
+		t.Errorf("expected timeout 10s, got %v", conf.Inventory.Webservice.Timeout)
+	}
+}

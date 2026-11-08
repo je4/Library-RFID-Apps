@@ -74,6 +74,7 @@ func main() {
 		DefaultAFI:    conf.DefaultAFI,
 		ThemeLight:    conf.Themes.Light,
 		ThemeDark:     conf.Themes.Dark,
+		Inventory:     conf.Inventory,
 		Hub:           hub,
 		ISILList:      isilList,
 		Logger:        logger,

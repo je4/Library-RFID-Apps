@@ -220,13 +220,9 @@ export function initStreamPause() {
 }
 
 export function initSSE() {
-    document.addEventListener('htmx:sse:open', onSSEOpen);
     document.addEventListener('htmx:sseOpen', onSSEOpen);
-
-    document.addEventListener('htmx:sse:error', onSSEError);
     document.addEventListener('htmx:sseError', onSSEError);
 
-    document.body.addEventListener('htmx:sse:message', handleSSEMessage);
     document.body.addEventListener('htmx:sseMessage', handleSSEMessage);
 
     // Stream Pause interceptor for live tag reads in desk view

@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
+	"github.com/je4/utils/v2/pkg/config"
 )
 
 // TagItem represents a view-friendly RFID tag record for dashboard rendering.
@@ -176,23 +177,34 @@ func (item *TagItem) EnrichISIL(isilMap map[string]*ISILEntry) {
 	}
 }
 
+// IsEmpty returns true if the tag contains no item identifier or is unreadable.
+func (item *TagItem) IsEmpty() bool {
+	return item == nil || item.ItemID == ""
+}
+
+// CRCError returns true if CRC validation failed.
+func (item *TagItem) CRCError() bool {
+	return item != nil && !item.CRCOk
+}
+
 // DeskData encapsulates the view model passed to web templates.
 type DeskData struct {
-	ClientName    string
-	WSBroker      string
-	Channels      []string
-	Channel       string
-	DefaultReader string
-	Addr          string
-	ExtAddr       string
-	Uptime        string
-	Tags          []*TagItem
-	Skin          string
-	Theme         string
-	ThemeMode     string
-	ThemeLight    string
-	ThemeDark     string
-	StaticPath    string
+	ClientName       string
+	WSBroker         string
+	Channels         []string
+	Channel          string
+	DefaultReader    string
+	Addr             string
+	ExtAddr          string
+	Uptime           string
+	Tags             []*TagItem
+	Skin             string
+	Theme            string
+	ThemeMode        string
+	ThemeLight       string
+	ThemeDark        string
+	StaticPath       string
+	InventoryEnabled bool
 }
 
 // IsLoan returns true if this data model represents the loan & return view.
@@ -202,6 +214,11 @@ func (d DeskData) IsLoan() bool {
 
 // IsEncode returns true if this data model represents the encode view.
 func (d DeskData) IsEncode() bool {
+	return false
+}
+
+// IsInventory returns true if this data model represents the inventory view.
+func (d DeskData) IsInventory() bool {
 	return false
 }
 
@@ -232,6 +249,7 @@ type LoanData struct {
 	ThemeLight        string
 	ThemeDark         string
 	StaticPath        string
+	InventoryEnabled  bool
 }
 
 // IsLoan returns true if this data model represents the loan & return view.
@@ -244,6 +262,11 @@ func (d LoanData) IsEncode() bool {
 	return false
 }
 
+// IsInventory returns true if this data model represents the inventory view.
+func (d LoanData) IsInventory() bool {
+	return false
+}
+
 // HasExplicitThemes returns true if both light and dark themes are explicitly configured.
 func (d LoanData) HasExplicitThemes() bool {
 	return d.ThemeLight != "" && d.ThemeDark != ""
@@ -251,27 +274,28 @@ func (d LoanData) HasExplicitThemes() bool {
 
 // EncodeData encapsulates the view model passed to encode web templates.
 type EncodeData struct {
-	ClientName     string
-	WSBroker       string
-	Channels       []string
-	Channel        string
-	DefaultReader  string
-	Addr           string
-	ExtAddr        string
-	Uptime         string
-	Tags           []*TagItem
-	ErrorMessage   string
-	SuccessMessage string
-	FailedItems    []string
-	DefaultISIL    string
-	DefaultAFI     string
-	DefaultParts   int
-	Skin           string
-	Theme          string
-	ThemeMode      string
-	ThemeLight     string
-	ThemeDark      string
-	StaticPath     string
+	ClientName       string
+	WSBroker         string
+	Channels         []string
+	Channel          string
+	DefaultReader    string
+	Addr             string
+	ExtAddr          string
+	Uptime           string
+	Tags             []*TagItem
+	ErrorMessage     string
+	SuccessMessage   string
+	FailedItems      []string
+	DefaultISIL      string
+	DefaultAFI       string
+	DefaultParts     int
+	Skin             string
+	Theme            string
+	ThemeMode        string
+	ThemeLight       string
+	ThemeDark        string
+	StaticPath       string
+	InventoryEnabled bool
 }
 
 // IsLoan returns true if this data model represents the loan & return view.
@@ -284,7 +308,109 @@ func (d EncodeData) IsEncode() bool {
 	return true
 }
 
+// IsInventory returns true if this data model represents the inventory view.
+func (d EncodeData) IsInventory() bool {
+	return false
+}
+
 // HasExplicitThemes returns true if both light and dark themes are explicitly configured.
 func (d EncodeData) HasExplicitThemes() bool {
+	return d.ThemeLight != "" && d.ThemeDark != ""
+}
+
+// WebserviceConfig defines parameters for dispatching RFID scan events to an external webservice.
+type WebserviceConfig struct {
+	TargetURL  config.EnvString `toml:"target_url" json:"targetUrl"`
+	ClientID   string           `toml:"client_id" json:"clientId"`
+	HTTPMethod string           `toml:"http_method" json:"httpMethod"` // POST (default) or GET
+	JWTKey     config.EnvString `toml:"jwt_key" json:"jwtKey"`
+	DebugMode  bool             `toml:"debug_mode" json:"debugMode"`
+	Timeout    time.Duration    `toml:"timeout" json:"timeout"`
+}
+
+// InventoryConfig defines settings for the inventory scanning and webservice dispatching subsystem.
+type InventoryConfig struct {
+	Enabled    bool             `toml:"enabled" json:"enabled"`
+	Webservice WebserviceConfig `toml:"webservice" json:"webservice"`
+}
+
+// InventoryItem represents a scanned RFID tag within an inventory session including its dispatch state.
+type InventoryItem struct {
+	*TagItem
+	Marker        string    `json:"marker"`
+	SessionID     string    `json:"sessionId"`
+	IsDuplicate   bool      `json:"isDuplicate"`
+	DispatchState string    `json:"dispatchState"` // "success", "error", "pending"
+	DispatchError string    `json:"dispatchError,omitempty"`
+	DispatchedAt  time.Time `json:"dispatchedAt,omitempty"`
+	HTTPStatus    int       `json:"httpStatus,omitempty"`
+	Signature     string    `json:"signature,omitempty"`
+}
+
+// InventoryStats contains aggregated counters for the current inventory session.
+type InventoryStats struct {
+	TotalScans    int `json:"totalScans"`
+	UniqueItems   int `json:"uniqueItems"`
+	ErrorTags     int `json:"errorTags"`
+	DuplicateTags int `json:"duplicateTags"`
+}
+
+// InventorySession holds the live in-memory state of an active or paused inventory session.
+type InventorySession struct {
+	SessionID string           `json:"sessionId"`
+	Marker    string           `json:"marker"`
+	Active    bool             `json:"active"`
+	Paused    bool             `json:"paused"`
+	StartTime time.Time        `json:"startTime"`
+	Stats     InventoryStats   `json:"stats"`
+	Items     []*InventoryItem `json:"items"`
+}
+
+// InventoryData encapsulates the view model passed to the inventory web template.
+type InventoryData struct {
+	ClientName       string
+	WSBroker         string
+	Channels         []string
+	Channel          string
+	DefaultReader    string
+	Addr             string
+	ExtAddr          string
+	Uptime           string
+	Marker           string
+	SessionActive    bool
+	IsPaused         bool
+	TotalScans       int
+	UniqueItems      int
+	ErrorTags        int
+	DuplicateTags    int
+	Items            []*InventoryItem
+	LastItem         *InventoryItem
+	InventoryConf    *InventoryConfig
+	Skin             string
+	Theme            string
+	ThemeMode        string
+	ThemeLight       string
+	ThemeDark        string
+	StaticPath       string
+	InventoryEnabled bool
+}
+
+// IsLoan returns false for the inventory view.
+func (d InventoryData) IsLoan() bool {
+	return false
+}
+
+// IsEncode returns false for the inventory view.
+func (d InventoryData) IsEncode() bool {
+	return false
+}
+
+// IsInventory returns true for the inventory view.
+func (d InventoryData) IsInventory() bool {
+	return true
+}
+
+// HasExplicitThemes returns true if both light and dark themes are explicitly configured.
+func (d InventoryData) HasExplicitThemes() bool {
 	return d.ThemeLight != "" && d.ThemeDark != ""
 }

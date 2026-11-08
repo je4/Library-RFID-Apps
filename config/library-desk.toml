@@ -13,6 +13,17 @@ max_tags = 100
 #dark = "mediathek-dark"
 #light = "mediathek-light"
 
+[inventory]
+enabled = true
+
+[inventory.webservice]
+target_url = "https://inventory.med.hgk.fhnw.ch/inventory"
+client_id = "1"
+http_method = "POST"
+jwt_key = "%%INVENTORY_JWT_KEY%%"
+debug_mode = false
+timeout = "5s"
+
 [clienttls]
 type = "minivault"
 

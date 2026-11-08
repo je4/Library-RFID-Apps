@@ -1,19 +1,19 @@
-<!-- Navigation Tabs for Desk, Loan & Encode with Integrated Status Metrics -->
+<!-- Navigation Tabs for Desk, Loan, Encode & Inventory with Integrated Status Metrics -->
 <nav class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3" aria-label="Hauptnavigation">
     <!-- Tab List -->
     <div role="tablist" class="tabs tabs-boxed bg-base-100 p-1.5 border border-base-200 shadow-sm rounded-2xl flex flex-wrap gap-1.5">
         <!-- Tab 1: Desk (Live-Monitor) -->
-        <a href="{{if or .IsLoan .IsEncode}}./{{else}}#{{end}}"
+        <a href="{{if or .IsLoan .IsEncode .IsInventory}}.{{else}}#{{end}}"
            id="nav-desk-btn"
            role="tab"
-           class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if not (or .IsLoan .IsEncode)}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
+           class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if not (or .IsLoan .IsEncode .IsInventory)}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
            title="Zur Live-Übersicht (Desk) - Alt+1">
             <span class="app-icon icon-home w-4 h-4" aria-hidden="true"></span>
             <span>Desk</span>
-            {{if not (or .IsLoan .IsEncode)}}
+            {{if not (or .IsLoan .IsEncode .IsInventory)}}
             <span id="stats-total-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
             {{end}}
-            <kbd class="hidden md:inline-flex kbd kbd-xs {{if not (or .IsLoan .IsEncode)}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+1</kbd>
+            <kbd class="hidden md:inline-flex kbd kbd-xs {{if not (or .IsLoan .IsEncode .IsInventory)}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+1</kbd>
         </a>
 
         <!-- Tab 2: Ausleihe & Rückgabe -->
@@ -40,6 +40,22 @@
             <span>Medium kodieren</span>
             <kbd class="hidden md:inline-flex kbd kbd-xs {{if .IsEncode}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+3</kbd>
         </a>
+
+        {{if .InventoryEnabled}}
+        <!-- Tab 4: Inventur -->
+        <a href="{{if .IsInventory}}#{{else}}inventory{{end}}"
+           id="nav-inventory-btn"
+           role="tab"
+           class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsInventory}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
+           title="Zum Inventurmodus - Alt+4">
+            <span class="app-icon icon-archive w-4 h-4" aria-hidden="true"></span>
+            <span>Inventur</span>
+            {{if .IsInventory}}
+            <span id="stats-inventory-items" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{.TotalScans}}</span>
+            {{end}}
+            <kbd class="hidden md:inline-flex kbd kbd-xs {{if .IsInventory}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+4</kbd>
+        </a>
+        {{end}}
     </div>
 
     <!-- Secondary Info Pills -->

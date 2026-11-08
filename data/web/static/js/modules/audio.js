@@ -45,7 +45,8 @@ export function setAudioEnabled(enabled, persist = true) {
         soundToggle.setAttribute('aria-pressed', beepEnabled ? 'true' : 'false');
         soundToggle.setAttribute('title', beepEnabled ? 'Signalton ausschalten (Aktiv - Alt+T)' : 'Signalton einschalten (Inaktiv - Alt+T)');
     }
-    if (beepEnabled) {
+    // Only eagerly resume/create audio context if triggered by user interaction (persist === true)
+    if (beepEnabled && persist) {
         try {
             getAudioContext();
         } catch (e) {
@@ -56,10 +57,13 @@ export function setAudioEnabled(enabled, persist = true) {
 
 function getAudioContext() {
     if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) {
+            audioCtx = new AudioContextClass();
+        }
     }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
     }
     return audioCtx;
 }
@@ -210,13 +214,15 @@ export function initAudio() {
             try {
                 const ctx = getAudioContext();
                 if (ctx && ctx.state === 'suspended') {
-                    ctx.resume();
+                    ctx.resume().catch(() => {});
                 }
             } catch (_) {}
         }
         window.removeEventListener('pointerdown', unlockAudio);
         window.removeEventListener('keydown', unlockAudio);
+        window.removeEventListener('click', unlockAudio);
     };
     window.addEventListener('pointerdown', unlockAudio, { once: true, passive: true });
     window.addEventListener('keydown', unlockAudio, { once: true, passive: true });
+    window.addEventListener('click', unlockAudio, { once: true, passive: true });
 }

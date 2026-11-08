@@ -54,6 +54,16 @@ export function initShortcuts() {
             return;
         }
 
+        // Alt + 4: Switch to Inventory view
+        if (e.altKey && (e.key === '4' || e.code === 'Digit4')) {
+            e.preventDefault();
+            const invBtn = document.getElementById('nav-inventory-btn');
+            if (invBtn && invBtn.getAttribute('href') && invBtn.getAttribute('href') !== '#') {
+                window.location.href = invBtn.getAttribute('href');
+            }
+            return;
+        }
+
         // Alt + U: Unsecure (AFI C2)
         if (e.altKey && (e.key === 'u' || e.key === 'U' || e.code === 'KeyU')) {
             e.preventDefault();

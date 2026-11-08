@@ -22,6 +22,15 @@
         return url ? url.trim() : null;
     }
 
+    function triggerSSEEvent(target, name, detail) {
+        if (!target) return;
+        if (api && api.triggerHtmxEvent) {
+            api.triggerHtmxEvent(target, name, detail);
+        } else {
+            target.dispatchEvent(new CustomEvent(name, { bubbles: true, cancelable: true, detail }));
+        }
+    }
+
     function initSSEConnection(container) {
         let connectUrl = getConnectUrl(container);
         if (!connectUrl) return;
@@ -38,36 +47,33 @@
             source.addEventListener('open', (evt) => {
                 console.log('[htmx 4 sse] SSE connected to:', connectUrl);
                 let detail = { source, event: evt };
-                if (api && api.triggerHtmxEvent) {
-                    api.triggerHtmxEvent(container, 'htmx:sse:open', detail);
-                    api.triggerHtmxEvent(container, 'htmx:sseOpen', detail);
-                }
-                container.dispatchEvent(new CustomEvent('htmx:sse:open', { bubbles: true, detail }));
-                container.dispatchEvent(new CustomEvent('htmx:sseOpen', { bubbles: true, detail }));
+                triggerSSEEvent(container, 'htmx:sseOpen', detail);
             });
 
             source.addEventListener('error', (evt) => {
                 console.warn('[htmx 4 sse] SSE connection error/reconnecting for:', connectUrl);
                 let detail = { source, event: evt };
-                if (api && api.triggerHtmxEvent) {
-                    api.triggerHtmxEvent(container, 'htmx:sse:error', detail);
-                    api.triggerHtmxEvent(container, 'htmx:sseError', detail);
-                }
-                container.dispatchEvent(new CustomEvent('htmx:sse:error', { bubbles: true, detail }));
-                container.dispatchEvent(new CustomEvent('htmx:sseError', { bubbles: true, detail }));
+                triggerSSEEvent(container, 'htmx:sseError', detail);
             });
 
             // Bind global events on EventSource to forward to container event bus
-            const globalEventNames = ['message', 'tag_read', 'tags_cleared', 'loan_tags', 'loan_updated', 'barcode_read', 'ws_activity'];
+            const globalEventNames = [
+                'message',
+                'tag_read',
+                'tags_cleared',
+                'loan_tags',
+                'loan_updated',
+                'barcode_read',
+                'ws_activity',
+                'inventory_tag',
+                'inventory_stats',
+                'inventory_session',
+            ];
             globalEventNames.forEach((evtName) => {
                 source.addEventListener(evtName, (evt) => {
                     let detail = { eventName: evtName, data: evt.data, source };
-                    if (api && api.triggerHtmxEvent) {
-                        api.triggerHtmxEvent(container, 'htmx:sse:message', detail);
-                        api.triggerHtmxEvent(container, 'htmx:sseMessage', detail);
-                    }
-                    container.dispatchEvent(new CustomEvent('htmx:sse:message', { bubbles: true, detail }));
-                    container.dispatchEvent(new CustomEvent('htmx:sseMessage', { bubbles: true, detail }));
+                    triggerSSEEvent(container, 'htmx:sseMessage', detail);
+                    triggerSSEEvent(container, evtName, detail);
                 });
             });
 
@@ -128,12 +134,7 @@
                     }
 
                     let detail = { eventName, data: rawHtml, source: evt.target };
-                    if (api && api.triggerHtmxEvent) {
-                        api.triggerHtmxEvent(targetElt, 'htmx:sse:message', detail);
-                        api.triggerHtmxEvent(targetElt, 'htmx:sseMessage', detail);
-                    }
-                    targetElt.dispatchEvent(new CustomEvent('htmx:sse:message', { bubbles: true, detail }));
-                    targetElt.dispatchEvent(new CustomEvent('htmx:sseMessage', { bubbles: true, detail }));
+                    triggerSSEEvent(targetElt, 'htmx:sseMessage', detail);
                 };
 
                 source.addEventListener(eventName, onMessage);

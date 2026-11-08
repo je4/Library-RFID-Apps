@@ -52,17 +52,18 @@ func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 		tags = ctrl.hub.GetTags()
 	}
 	return desk.DeskData{
-		ClientName:    ctrl.cfg.ClientName,
-		WSBroker:      ctrl.cfg.WSBroker,
-		Channels:      ctrl.cfg.Channels,
-		Channel:       ch,
-		DefaultReader: ctrl.cfg.DefaultReader,
-		Addr:          ctrl.cfg.Addr,
-		ExtAddr:       ctrl.cfg.ExtAddr,
-		Uptime:        uptime,
-		Tags:          tags,
-		Skin:          "default",
-		StaticPath:    staticPath,
+		ClientName:       ctrl.cfg.ClientName,
+		WSBroker:         ctrl.cfg.WSBroker,
+		Channels:         ctrl.cfg.Channels,
+		Channel:          ch,
+		DefaultReader:    ctrl.cfg.DefaultReader,
+		Addr:             ctrl.cfg.Addr,
+		ExtAddr:          ctrl.cfg.ExtAddr,
+		Uptime:           uptime,
+		Tags:             tags,
+		Skin:             "default",
+		StaticPath:       staticPath,
+		InventoryEnabled: ctrl.cfg.Inventory.Enabled,
 	}
 }
 
@@ -123,6 +124,7 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		SuccessMessage:    successMsg,
 		Skin:              "default",
 		StaticPath:        "../static",
+		InventoryEnabled:  ctrl.cfg.Inventory.Enabled,
 	}
 }
 
@@ -245,20 +247,21 @@ func (ctrl *Controller) getEncodeData(channel ...string) desk.EncodeData {
 	}
 
 	return desk.EncodeData{
-		ClientName:    ctrl.cfg.ClientName,
-		WSBroker:      ctrl.cfg.WSBroker,
-		Channels:      ctrl.cfg.Channels,
-		Channel:       ch,
-		DefaultReader: ctrl.cfg.DefaultReader,
-		Addr:          ctrl.cfg.Addr,
-		ExtAddr:       ctrl.cfg.ExtAddr,
-		Uptime:        uptime,
-		Tags:          tags,
-		DefaultISIL:   defaultISIL,
-		DefaultAFI:    defaultAFI,
-		DefaultParts:  defaultParts,
-		Skin:          "default",
-		StaticPath:    "../static",
+		ClientName:       ctrl.cfg.ClientName,
+		WSBroker:         ctrl.cfg.WSBroker,
+		Channels:         ctrl.cfg.Channels,
+		Channel:          ch,
+		DefaultReader:    ctrl.cfg.DefaultReader,
+		Addr:             ctrl.cfg.Addr,
+		ExtAddr:          ctrl.cfg.ExtAddr,
+		Uptime:           uptime,
+		Tags:             tags,
+		DefaultISIL:      defaultISIL,
+		DefaultAFI:       defaultAFI,
+		DefaultParts:     defaultParts,
+		Skin:             "default",
+		StaticPath:       "../static",
+		InventoryEnabled: ctrl.cfg.Inventory.Enabled,
 	}
 }
 

@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strings"
@@ -13,7 +14,7 @@ import (
 )
 
 // HandleTagRead processes an incoming scan event, persists it in the hub,
-// and broadcasts the rendered HTML fragment via SSE.
+// feeds active inventory sessions if enabled, and broadcasts the rendered HTML fragment via SSE.
 func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 	if tag == nil {
 		return
@@ -21,6 +22,11 @@ func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 	if tag.Channel == "" && len(ctrl.cfg.Channels) == 1 {
 		tag.Channel = ctrl.cfg.Channels[0]
 	}
+
+	if ctrl.inventoryService != nil {
+		ctrl.inventoryService.ProcessTagRead(tag)
+	}
+
 	item := ctrl.hub.AddTag(tag)
 
 	if ctrl.templates == nil {
@@ -44,6 +50,59 @@ func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 
 	// Broadcast updated active loan media list
 	ctrl.broadcastLoanTable(item.Channel)
+}
+
+// broadcastInventoryTag renders the inventory table row fragment and broadcasts the tag read and stats via SSE.
+func (ctrl *Controller) broadcastInventoryTag(payload InventoryTagEventPayload, channel string) {
+	if ctrl == nil || ctrl.hub == nil {
+		return
+	}
+
+	if ctrl.templates != nil && payload.Item != nil {
+		var buf bytes.Buffer
+		if err := ctrl.templates.ExecuteTemplate(&buf, "inventory_row.gohtml", payload.Item); err == nil {
+			payload.HTMLRow = buf.String()
+		} else {
+			if ctrl.logger != nil {
+				ctrl.logger.Error().Err(err).Msg("error rendering inventory_row.gohtml template")
+			}
+		}
+	}
+
+	dataBytes, err := json.Marshal(payload)
+	if err == nil {
+		ctrl.hub.Broadcast(&desk.SSEMessage{
+			Event: "inventory_tag",
+			Data:  string(dataBytes),
+		}, channel)
+	}
+
+	statsBytes, err := json.Marshal(payload.Stats)
+	if err == nil {
+		ctrl.hub.Broadcast(&desk.SSEMessage{
+			Event: "inventory_stats",
+			Data:  string(statsBytes),
+		}, channel)
+	}
+}
+
+// broadcastInventorySession broadcasts session lifecycle changes (start, pause, resume, reset) via SSE.
+func (ctrl *Controller) broadcastInventorySession(session desk.InventorySession, channel ...string) {
+	if ctrl == nil || ctrl.hub == nil {
+		return
+	}
+	dataBytes, err := json.Marshal(session)
+	if err != nil {
+		return
+	}
+	ch := ""
+	if len(channel) > 0 {
+		ch = channel[0]
+	}
+	ctrl.hub.Broadcast(&desk.SSEMessage{
+		Event: "inventory_session",
+		Data:  string(dataBytes),
+	}, ch)
 }
 
 // HandleTagsCleared notifies connected SSE clients that the reader field was cleared

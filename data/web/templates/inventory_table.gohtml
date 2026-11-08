@@ -1,0 +1,21 @@
+{{if .Items}}
+    {{range .Items}}
+        {{template "inventory_row.gohtml" .}}
+    {{end}}
+{{else}}
+    <tr id="inventory-empty-row">
+        <td colspan="8" class="text-center py-12 text-base-content/50">
+            <div class="flex flex-col items-center justify-center gap-2">
+                {{if .SessionActive}}
+                    <span class="app-icon icon-play w-8 h-8 text-success animate-pulse" aria-hidden="true"></span>
+                    <p class="font-medium text-sm text-base-content/80">Inventursitzung aktiv{{if .Marker}} (Standort: <span class="font-mono font-bold text-primary">{{.Marker}}</span>){{end}}</p>
+                    <p class="text-xs text-base-content/50">Halten Sie Medien an den RFID-Leser, um die Erfassung zu starten.</p>
+                {{else}}
+                    <span class="app-icon icon-archive w-8 h-8 opacity-40" aria-hidden="true"></span>
+                    <p class="font-medium text-sm">Keine aktive Inventursitzung.</p>
+                    <p class="text-xs text-base-content/40">Geben Sie oben einen Standort/Regal-Marker ein und starten Sie die Sitzung.</p>
+                {{end}}
+            </div>
+        </td>
+    </tr>
+{{end}}

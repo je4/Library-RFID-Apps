@@ -4,6 +4,7 @@ import (
 	"emperror.dev/errors"
 	"github.com/BurntSushi/toml"
 	"github.com/je4/Library-RFID-Apps/config"
+	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"go.ub.unibas.ch/cloud/certloader/v2/pkg/loader"
 )
 
@@ -12,6 +13,12 @@ type ThemeConfig struct {
 	Dark  string `toml:"dark"`
 	Light string `toml:"light"`
 }
+
+// WebserviceConfig is an alias for desk.WebserviceConfig.
+type WebserviceConfig = desk.WebserviceConfig
+
+// InventoryConfig is an alias for desk.InventoryConfig.
+type InventoryConfig = desk.InventoryConfig
 
 // DeskAppConfig defines configuration parameters for the library-desk application.
 //
@@ -27,22 +34,24 @@ type ThemeConfig struct {
 //   - MaxTags: Maximum number of scanned tags to retain in memory (default: 100).
 //   - ReadLimit: Maximum WebSocket message read limit in bytes (optional).
 //   - Themes: Explicit light and dark themes (optional).
+//   - Inventory: Configuration for RFID inventory mode and webservice dispatching.
 //   - ClientTLS: mTLS configuration via certloader (MiniVault, File, Env, Dev, or ACME).
 //   - WebTLS: TLS configuration for the local web server.
 type DeskAppConfig struct {
-	Addr          string        `toml:"addr"`
-	ExtAddr       string        `toml:"extaddr"`
-	Name          string        `toml:"name"`
-	WSBroker      string        `toml:"wsbroker"`
-	Channels      []string      `toml:"channels"`
-	DefaultReader string        `toml:"default_reader"`
-	DefaultISIL   string        `toml:"default_isil"`
-	DefaultAFI    string        `toml:"default_afi"`
-	MaxTags       int           `toml:"max_tags"`
-	ReadLimit     int64         `toml:"read_limit"`
-	Themes        ThemeConfig   `toml:"themes"`
-	ClientTLS     loader.Config `toml:"clienttls"`
-	WebTLS        loader.Config `toml:"webtls"`
+	Addr          string               `toml:"addr"`
+	ExtAddr       string               `toml:"extaddr"`
+	Name          string               `toml:"name"`
+	WSBroker      string               `toml:"wsbroker"`
+	Channels      []string             `toml:"channels"`
+	DefaultReader string               `toml:"default_reader"`
+	DefaultISIL   string               `toml:"default_isil"`
+	DefaultAFI    string               `toml:"default_afi"`
+	MaxTags       int                  `toml:"max_tags"`
+	ReadLimit     int64                `toml:"read_limit"`
+	Themes        ThemeConfig          `toml:"themes"`
+	Inventory     desk.InventoryConfig `toml:"inventory"`
+	ClientTLS     loader.Config        `toml:"clienttls"`
+	WebTLS        loader.Config        `toml:"webtls"`
 }
 
 // Config is an alias for DeskAppConfig.
