@@ -172,7 +172,11 @@ export function initIsilFlyout() {
     });
 
     // Reposition on scroll / window resize
-    window.addEventListener('scroll', () => {
+    window.addEventListener('scroll', (e) => {
+        if (globalIsilFlyout && e.target && globalIsilFlyout.contains(e.target)) {
+            return;
+        }
+
         if (activeFlyoutWrapper && globalIsilFlyout && globalIsilFlyout.classList.contains('is-visible')) {
             showIsilFlyout(activeFlyoutWrapper);
         }

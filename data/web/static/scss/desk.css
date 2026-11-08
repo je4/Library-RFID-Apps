@@ -30,23 +30,23 @@
   --color-base-300: #d8dee9;
   --color-base-content: #2e3440;
   /* Nord Palette for UI Accents, Buttons & Icons (High contrast on light ground) */
-  --color-primary: #5e81ac;
+  --color-primary: #365a82;
   --color-primary-content: #ffffff;
-  --color-secondary: #81a1c1;
+  --color-secondary: #465f7a;
   --color-secondary-content: #ffffff;
-  --color-accent: #88c0d0;
-  --color-accent-content: #2e3440;
+  --color-accent: #286373;
+  --color-accent-content: #ffffff;
   /* Neutral */
   --color-neutral: #4c566a;
   --color-neutral-content: #ffffff;
   /* Semantic Status Alerts */
-  --color-info: #5e81ac;
+  --color-info: #365a82;
   --color-info-content: #ffffff;
-  --color-success: #a3be8c;
-  --color-success-content: #1e293b;
-  --color-warning: #ebcb8b;
-  --color-warning-content: #1e293b;
-  --color-error: #bf616a;
+  --color-success: #3e6a31;
+  --color-success-content: #ffffff;
+  --color-warning: #795100;
+  --color-warning-content: #ffffff;
+  --color-error: #a33b46;
   --color-error-content: #ffffff;
   /* Geometry & Box Parameters: Eckig, Weiss, kompakter 3D-Extrusions-Schatten */
   --radius-selector: 0px;
@@ -107,7 +107,7 @@
 :root {
   --color-bg-body: var(--color-base-100);
   --color-bg-image: url('../img/background.jpg');
-  --color-bg-overlay: linear-gradient(135deg, rgba(248, 250, 252, 0.75) 0%, rgba(241, 245, 249, 0.88) 100%);
+  --color-bg-overlay: linear-gradient(135deg, rgba(248, 250, 252, 0.48) 0%, rgba(241, 245, 249, 0.62) 100%);
   --scrollbar-track: color-mix(in oklab, var(--color-base-200) 60%, transparent);
   --scrollbar-thumb: color-mix(in oklab, var(--color-base-content) 25%, transparent);
   --scrollbar-thumb-hover: color-mix(in oklab, var(--color-base-content) 40%, transparent);
@@ -138,7 +138,7 @@
 [data-theme=dim],
 [data-theme=sunset],
 [data-theme=abyss] {
-  --color-bg-overlay: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(3, 7, 18, 0.92) 100%);
+  --color-bg-overlay: linear-gradient(135deg, rgba(15, 23, 42, 0.55) 0%, rgba(3, 7, 18, 0.68) 100%);
 }
 
 [data-theme=mediathek-light] header,
@@ -358,7 +358,7 @@
 [data-theme=mediathek-light] .box .stat-desc,
 [data-theme=mediathek-light] .modal-box .stat-desc,
 [data-theme=mediathek-light] .stats .stat-desc {
-  color: #94a3b8;
+  color: #526174;
 }
 [data-theme=mediathek-light] header table thead tr,
 [data-theme=mediathek-light] header table thead th,
@@ -442,6 +442,10 @@
 [data-theme=mediathek-light] .stats .select:focus {
   border-color: #5e81ac;
   outline: none;
+}
+[data-theme=mediathek-light] .text-base-content\/40,
+[data-theme=mediathek-light] .text-base-content\/50 {
+  color: #596574;
 }
 
 [data-theme=mediathek-dark] header .stat,
@@ -1191,6 +1195,15 @@ footer.footer {
 }
 .app-isil-info-btn:hover {
   transform: scale(1.15);
+}
+
+.dark .app-isil-info-btn img,
+[data-theme=dark] .app-isil-info-btn img,
+[data-theme=mediathek-dark] .app-isil-info-btn img,
+[data-theme=synthwave] .app-isil-info-btn img,
+[data-theme=black] .app-isil-info-btn img,
+[data-theme=abyss] .app-isil-info-btn img {
+  filter: invert(1);
 }
 
 #app-global-isil-flyout,

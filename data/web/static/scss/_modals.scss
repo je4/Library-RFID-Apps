@@ -34,6 +34,17 @@
     }
 }
 
+.dark,
+[data-theme="dark"],
+[data-theme="mediathek-dark"],
+[data-theme="synthwave"],
+[data-theme="black"],
+[data-theme="abyss"] {
+    .app-isil-info-btn img {
+        filter: invert(1);
+    }
+}
+
 // Global Floating Flyout Portal (appended to document.body)
 #app-global-isil-flyout,
 .app-isil-flyout {
@@ -68,6 +79,7 @@
         pointer-events: auto;
     }
 }
+
 
 .dark,
 [data-theme="dark"],

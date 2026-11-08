@@ -1,6 +1,7 @@
 {
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
+    "sass": "^1.108.1",
     "tailwindcss": "^4.3.3"
   }
 }

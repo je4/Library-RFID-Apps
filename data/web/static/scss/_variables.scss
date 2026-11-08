@@ -6,7 +6,7 @@
 :root {
     --color-bg-body: var(--color-base-100);
     --color-bg-image: url('../img/background.jpg');
-    --color-bg-overlay: linear-gradient(135deg, rgba(248, 250, 252, 0.75) 0%, rgba(241, 245, 249, 0.88) 100%);
+    --color-bg-overlay: linear-gradient(135deg, rgba(248, 250, 252, 0.48) 0%, rgba(241, 245, 249, 0.62) 100%);
 
     --scrollbar-track: color-mix(in oklab, var(--color-base-200) 60%, transparent);
     --scrollbar-thumb: color-mix(in oklab, var(--color-base-content) 25%, transparent);
@@ -40,5 +40,5 @@
 [data-theme="dim"],
 [data-theme="sunset"],
 [data-theme="abyss"] {
-    --color-bg-overlay: linear-gradient(135deg, rgba(15, 23, 42, 0.82) 0%, rgba(3, 7, 18, 0.92) 100%);
+    --color-bg-overlay: linear-gradient(135deg, rgba(15, 23, 42, 0.55) 0%, rgba(3, 7, 18, 0.68) 100%);
 }

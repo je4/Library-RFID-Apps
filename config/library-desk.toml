@@ -10,8 +10,8 @@ default_afi = "07"
 max_tags = 100
 
 [themes]
-dark = "mediathek-dark"
-light = "mediathek-light"
+#dark = "mediathek-dark"
+#light = "mediathek-light"
 
 [clienttls]
 type = "minivault"
