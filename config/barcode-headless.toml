@@ -1,18 +1,20 @@
 name = "mediathek:barcodereader:01"
-wsbroker = "https://localhost:8765"
+#wsbroker = "https://localhost:8765"
+wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
 channels = ["mediathek01"]
 
 [clienttls]
 type = "minivault"
 
 [clienttls.minivault]
-baseurl = "https://localhost:8759/api/v1"
+#baseurl = "https://localhost:8759/api/v1"
+baseurl = "https://minivault.grpc-system.k8s.ub.unibas.ch/api/v1"
 parenttoken = "%%PARENT_TOKEN%%"
 tokentype = "client_cert"
 tokenpolicies = ["wsbroker.client"]
 certtype = "client_cert"
 uris = ["wsbroker:client:mediathek:barcodereader:01", "wsbroker:channel:mediathek01"]
-ca = ["certs/minivault.ca.pem"]
+ca = ["certs/minivault_switch.ca.pem", "certs/minivault.ca.pem"]
 usesystempool = false
 
 # Barcode Readers Configuration (Multiple readers can be configured)
@@ -20,7 +22,7 @@ usesystempool = false
 id = "honeywell-01"
 device_id = "honeywell-1300g-01"
 device_type = "honeywell-1300g"
-port = "COM8"                      # Windows: COM3, Linux: /dev/ttyUSB0 or /dev/ttyACM0
+port = "COM3"                      # Windows: COM3, Linux: /dev/ttyUSB0 or /dev/ttyACM0
 baud_rate = 9600                   # Honeywell 1300G default baud rate: 9600
 data_bits = 8
 stop_bits = 1
