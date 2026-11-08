@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
@@ -36,7 +35,6 @@ func getThemeModeFromCookie(c *gin.Context) string {
 }
 
 func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
-	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
 	ch := ""
 	if len(channel) > 0 {
 		ch = channel[0]
@@ -56,10 +54,8 @@ func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 		WSBroker:         ctrl.cfg.WSBroker,
 		Channels:         ctrl.cfg.Channels,
 		Channel:          ch,
-		DefaultReader:    ctrl.cfg.DefaultReader,
 		Addr:             ctrl.cfg.Addr,
 		ExtAddr:          ctrl.cfg.ExtAddr,
-		Uptime:           uptime,
 		Tags:             tags,
 		Skin:             "default",
 		StaticPath:       staticPath,
@@ -68,16 +64,15 @@ func (ctrl *Controller) getDeskData(channel ...string) desk.DeskData {
 }
 
 func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
-	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
 	ch := ""
 	if len(channel) > 0 {
 		ch = channel[0]
 	}
 	var tags []*desk.TagItem
 	if ch != "" {
-		tags = ctrl.hub.GetActiveTagsForChannel(ch, ctrl.cfg.DefaultReader)
+		tags = ctrl.hub.GetActiveTagsForChannel(ch, "*")
 	} else {
-		tags = ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+		tags = ctrl.hub.GetActiveTags("*")
 	}
 	successCount := 0
 	errorCount := 0
@@ -112,10 +107,8 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		WSBroker:          ctrl.cfg.WSBroker,
 		Channels:          ctrl.cfg.Channels,
 		Channel:           ch,
-		DefaultReader:     ctrl.cfg.DefaultReader,
 		Addr:              ctrl.cfg.Addr,
 		ExtAddr:           ctrl.cfg.ExtAddr,
-		Uptime:            uptime,
 		Tags:              tags,
 		WriteSuccessCount: successCount,
 		WriteErrorCount:   errorCount,
@@ -217,16 +210,15 @@ func (ctrl *Controller) handleLoanTagsFragment(c *gin.Context) {
 }
 
 func (ctrl *Controller) getEncodeData(channel ...string) desk.EncodeData {
-	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
 	ch := ""
 	if len(channel) > 0 {
 		ch = channel[0]
 	}
 	var tags []*desk.TagItem
 	if ch != "" {
-		tags = ctrl.hub.GetActiveTagsForChannel(ch, ctrl.cfg.DefaultReader)
+		tags = ctrl.hub.GetActiveTagsForChannel(ch, "*")
 	} else {
-		tags = ctrl.hub.GetActiveTags(ctrl.cfg.DefaultReader)
+		tags = ctrl.hub.GetActiveTags("*")
 	}
 
 	defaultParts := len(tags)
@@ -251,10 +243,8 @@ func (ctrl *Controller) getEncodeData(channel ...string) desk.EncodeData {
 		WSBroker:         ctrl.cfg.WSBroker,
 		Channels:         ctrl.cfg.Channels,
 		Channel:          ch,
-		DefaultReader:    ctrl.cfg.DefaultReader,
 		Addr:             ctrl.cfg.Addr,
 		ExtAddr:          ctrl.cfg.ExtAddr,
-		Uptime:           uptime,
 		Tags:             tags,
 		DefaultISIL:      defaultISIL,
 		DefaultAFI:       defaultAFI,
@@ -292,7 +282,6 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 		ctrl.encodeService = NewEncodeService(
 			ctrl.hub,
 			ctrl.rfidClient,
-			ctrl.cfg.DefaultReader,
 			ctrl.cfg.DefaultISIL,
 			ctrl.cfg.DefaultAFI,
 			ctrl.cfg.Channels,
@@ -388,7 +377,7 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	}
 
 	channel := c.Param("channel")
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 	var targets []*desk.TagItem
 	if targetUID != "" {
 		for _, t := range activeTags {
@@ -449,9 +438,6 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 				targetDaemon = tag.ReaderID
 			}
 			if targetDaemon == "" {
-				targetDaemon = ctrl.cfg.DefaultReader
-			}
-			if targetDaemon == "" {
 				targetDaemon = channel
 			}
 			if targetDaemon == "" && len(ctrl.cfg.Channels) > 0 {
@@ -502,9 +488,9 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 		}
 	} else if ctrl.rfidClient != nil && len(targets) == 0 && len(activeTags) == 0 {
 		req := libraryclient.NewWriteAFIRequest(afi)
-		if ctrl.cfg.DefaultReader != "" {
+		if channel != "" {
 			hadSyncWrite = true
-			resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
+			resp, err := ctrl.rfidClient.WriteAFI(ctx, channel, req)
 			if err != nil {
 				writeErrors = append(writeErrors, err.Error())
 			} else if resp != nil && !resp.Data.IsSuccess() {

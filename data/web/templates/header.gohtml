@@ -53,12 +53,10 @@
             <!-- Metadaten-Zeile -->
             <p class="text-xs text-base-content/80 font-mono flex items-center gap-2 mt-0.5">
                 {{if .Channel}}<span>Channel: <strong>{{.Channel}}</strong></span><span>&bull;</span>{{end}}
-                {{if or .IsLoan .IsEncode}}
-                <span>Reader: <strong>{{if .DefaultReader}}{{.DefaultReader}}{{else}}Alle{{end}}</strong></span>
-                {{else}}
+                {{if not (or .IsLoan .IsEncode)}}
                 <span>Broker: <strong>{{.WSBroker}}</strong></span>
-                {{end}}
                 <span>&bull;</span>
+                {{end}}
                 <span>Client: <strong>{{.ClientName}}</strong></span>
             </p>
         </div>

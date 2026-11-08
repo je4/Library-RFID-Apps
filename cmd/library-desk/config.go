@@ -28,7 +28,6 @@ type InventoryConfig = desk.InventoryConfig
 //   - Name: Unique client identifier (e.g. "library-desk-01") for WSBroker authorization.
 //   - WSBroker: Target broker WebSocket endpoint URL (e.g. "https://localhost:8765").
 //   - Channels: List of WSBroker channels to subscribe on connect (e.g. ["all", "intern", "rfid"]).
-//   - DefaultReader: Target reader identifier for RPC commands (e.g. "rfid-reader-station-01").
 //   - DefaultISIL: Default ISIL identifier formatted as <Country>-<ISIL> (e.g. "CH-000001").
 //   - DefaultAFI: Default AFI hex byte (e.g. "07" for secured, "C2" for unsecured).
 //   - MaxTags: Maximum number of scanned tags to retain in memory (default: 100).
@@ -38,20 +37,19 @@ type InventoryConfig = desk.InventoryConfig
 //   - ClientTLS: mTLS configuration via certloader (MiniVault, File, Env, Dev, or ACME).
 //   - WebTLS: TLS configuration for the local web server.
 type DeskAppConfig struct {
-	Addr          string               `toml:"addr"`
-	ExtAddr       string               `toml:"extaddr"`
-	Name          string               `toml:"name"`
-	WSBroker      string               `toml:"wsbroker"`
-	Channels      []string             `toml:"channels"`
-	DefaultReader string               `toml:"default_reader"`
-	DefaultISIL   string               `toml:"default_isil"`
-	DefaultAFI    string               `toml:"default_afi"`
-	MaxTags       int                  `toml:"max_tags"`
-	ReadLimit     int64                `toml:"read_limit"`
-	Themes        ThemeConfig          `toml:"themes"`
-	Inventory     desk.InventoryConfig `toml:"inventory"`
-	ClientTLS     loader.Config        `toml:"clienttls"`
-	WebTLS        loader.Config        `toml:"webtls"`
+	Addr        string               `toml:"addr"`
+	ExtAddr     string               `toml:"extaddr"`
+	Name        string               `toml:"name"`
+	WSBroker    string               `toml:"wsbroker"`
+	Channels    []string             `toml:"channels"`
+	DefaultISIL string               `toml:"default_isil"`
+	DefaultAFI  string               `toml:"default_afi"`
+	MaxTags     int                  `toml:"max_tags"`
+	ReadLimit   int64                `toml:"read_limit"`
+	Themes      ThemeConfig          `toml:"themes"`
+	Inventory   desk.InventoryConfig `toml:"inventory"`
+	ClientTLS   loader.Config        `toml:"clienttls"`
+	WebTLS      loader.Config        `toml:"webtls"`
 }
 
 // Config is an alias for DeskAppConfig.

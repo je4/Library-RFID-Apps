@@ -124,7 +124,7 @@ func (ctrl *Controller) handleSOAPGetItems(c *gin.Context) {
 		channel = c.Query("channel")
 	}
 
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 
 	var items []alma.ArbiterItem
 	for _, tag := range activeTags {
@@ -205,7 +205,7 @@ func (ctrl *Controller) handleSOAPGetTag(c *gin.Context) {
 		channel = c.Query("channel")
 	}
 
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 
 	if len(activeTags) > 0 {
 		firstTag := activeTags[0]
@@ -270,7 +270,7 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 			Msg("Alma SOAP SetTagSecurity empfangen")
 	}
 
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 	var targetTag *desk.TagItem
 	if req.TagID != "" {
 		for _, t := range activeTags {
@@ -293,7 +293,7 @@ func (ctrl *Controller) handleSOAPSetTagSecurity(c *gin.Context, rawBody []byte)
 	}
 
 	ctx := c.Request.Context()
-	targetReader := ctrl.cfg.DefaultReader
+	targetReader := channel
 	var targetSource string
 	var targetReaderID string
 	if targetTag != nil {
@@ -414,7 +414,7 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 			Msg("Alma SOAP WriteTag empfangen")
 	}
 
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 	var targetTag *desk.TagItem
 	if req.TagUID != "" {
 		for _, t := range activeTags {
@@ -437,7 +437,7 @@ func (ctrl *Controller) handleSOAPWriteTag(c *gin.Context, rawBody []byte) {
 	}
 
 	ctx := c.Request.Context()
-	targetReader := ctrl.cfg.DefaultReader
+	targetReader := channel
 	var targetSource string
 	var targetReaderID string
 	if targetTag != nil {
@@ -585,7 +585,7 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 			Msg("Alma SOAP Write Request empfangen")
 	}
 
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 
 	var targetTag *desk.TagItem
 	if itemIdentifier != "" {
@@ -601,7 +601,7 @@ func (ctrl *Controller) executeSOAPWrite(c *gin.Context, reqItemIdentifier, reqS
 	}
 
 	ctx := c.Request.Context()
-	targetReader := ctrl.cfg.DefaultReader
+	targetReader := channel
 	var targetSource string
 	var targetReaderID string
 	if targetTag != nil {

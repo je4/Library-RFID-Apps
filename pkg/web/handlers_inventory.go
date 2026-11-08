@@ -21,7 +21,6 @@ type InventoryRetryRequest struct {
 }
 
 func (ctrl *Controller) getInventoryData(channel ...string) desk.InventoryData {
-	uptime := strings.TrimSpace(ctrl.getUptime())
 	ch := ""
 	if len(channel) > 0 {
 		ch = channel[0]
@@ -53,10 +52,8 @@ func (ctrl *Controller) getInventoryData(channel ...string) desk.InventoryData {
 		WSBroker:         ctrl.cfg.WSBroker,
 		Channels:         ctrl.cfg.Channels,
 		Channel:          ch,
-		DefaultReader:    ctrl.cfg.DefaultReader,
 		Addr:             ctrl.cfg.Addr,
 		ExtAddr:          ctrl.cfg.ExtAddr,
-		Uptime:           uptime,
 		Marker:           marker,
 		SessionActive:    sessionActive,
 		IsPaused:         isPaused,
@@ -71,10 +68,6 @@ func (ctrl *Controller) getInventoryData(channel ...string) desk.InventoryData {
 		StaticPath:       "../static",
 		InventoryEnabled: ctrl.cfg.Inventory.Enabled,
 	}
-}
-
-func (ctrl *Controller) getUptime() string {
-	return ctrl.getDeskData().Uptime
 }
 
 func (ctrl *Controller) handleInventory(c *gin.Context) {

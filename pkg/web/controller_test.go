@@ -27,13 +27,12 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ExtAddr:       "http://localhost:8762",
-		ClientName:    "test-library-desk",
-		WSBroker:      "https://localhost:8765",
-		Channels:      []string{"all", "intern", "rfid"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ExtAddr:    "http://localhost:8762",
+		ClientName: "test-library-desk",
+		WSBroker:   "https://localhost:8765",
+		Channels:   []string{"all", "intern", "rfid"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -282,8 +281,8 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 		t.Errorf("expected /rfid/loan to contain afi-modal-overlay, got %s", bodyLoan)
 	}
 
-	// 8. Test Reader Qualification for Active Media on /rfid/loan
-	// Tag 1: from configured reader "reader-01" -> should qualify
+	// 8. Test active media from multiple readers on /rfid/loan
+	// Tag 1: from reader "reader-01"
 	tagQualified := &libraryclient.TagReadEvent{
 		Data: libraryclient.TagReadData{
 			UID:      "E004015011112222",
@@ -293,7 +292,7 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 			ReaderID: "reader-01",
 		},
 	}
-	// Tag 2: from another reader "other-reader-99" -> should NOT qualify for configured reader-01
+	// Tag 2: from another reader "other-reader-99"
 	tagOther := &libraryclient.TagReadEvent{
 		Data: libraryclient.TagReadData{
 			UID:      "E004015099998888",
@@ -312,8 +311,8 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	if !strings.Contains(bodyLoanWithTags, "ITEM-QUALIFIED-1") {
 		t.Errorf("expected qualified item ITEM-QUALIFIED-1 on loan page, got %s", bodyLoanWithTags)
 	}
-	if strings.Contains(bodyLoanWithTags, "ITEM-OTHER-READER") {
-		t.Errorf("expected item from other-reader-99 to be excluded from configured reader-01 loan list, got %s", bodyLoanWithTags)
+	if !strings.Contains(bodyLoanWithTags, "ITEM-OTHER-READER") {
+		t.Errorf("expected item from other-reader-99 on loan page, got %s", bodyLoanWithTags)
 	}
 
 	// 9. Test AFI Manipulation (Entsichern & Sichern)
@@ -434,12 +433,11 @@ func TestController_AFIViaRFIDClient_Success(t *testing.T) {
 	mockCli := &mockRFIDClient{}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -511,12 +509,11 @@ func TestController_AFIViaRFIDClient_Error(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -553,7 +550,7 @@ func TestController_AFIViaRFIDClient_Error(t *testing.T) {
 	}
 
 	// Test API returns 500 when write fails
-	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/loan/afi", strings.NewReader(`{"action":"secure"}`))
+	reqAPI := httptest.NewRequest(http.MethodPost, "/api/v1/loan/afi", strings.NewReader(`{"action":"unsecure"}`))
 	reqAPI.Header.Set("Content-Type", "application/json")
 	recAPI := httptest.NewRecorder()
 	ctrl.router.ServeHTTP(recAPI, reqAPI)
@@ -571,10 +568,9 @@ func TestController_HandleWriteAFIResponse_Success(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		DefaultReader: "reader-01",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -635,10 +631,9 @@ func TestController_HandleWriteAFIResponse_Error(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		DefaultReader: "reader-01",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -710,12 +705,11 @@ func TestController_SetAFI_SynchronousFailure(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -763,14 +757,12 @@ func TestController_SetAFI_TargetedReader(t *testing.T) {
 
 	mockCli := &mockRFIDClient{}
 
-	// No DefaultReader configured
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -810,12 +802,11 @@ func TestController_LoanAFISingleTag(t *testing.T) {
 	mockCli := &mockRFIDClient{}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -936,12 +927,11 @@ func TestController_LoanAFIMixedBatch(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1053,12 +1043,11 @@ func TestController_LoanAFIFailurePreservedOnContinuousRescans(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1171,12 +1160,11 @@ func TestBatchAFIWrite_OnlyDifferingTagsTargeted(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1293,11 +1281,10 @@ func TestController_APILoanAFI_MixedBatch(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1352,11 +1339,10 @@ func TestController_ChannelIsolationAndCardDisplay(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"desk-a", "desk-b"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"desk-a", "desk-b"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1514,12 +1500,11 @@ func TestController_LoanAFI_ClusteredByReader(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "reader-default",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1671,12 +1656,11 @@ func TestController_LoanAFI_ClusteredBySourceAndReaderID(t *testing.T) {
 	}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "test-library-desk",
-		Channels:      []string{"rfid-ch"},
-		DefaultReader: "rfid:reader:01",
-		Hub:           hub,
-		RFIDClient:    mockCli,
+		Addr:       "localhost:8762",
+		ClientName: "test-library-desk",
+		Channels:   []string{"rfid-ch"},
+		Hub:        hub,
+		RFIDClient: mockCli,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1754,12 +1738,11 @@ func TestController_HeaderFooterTemplates(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-01",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-1"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1849,13 +1832,12 @@ func TestController_ISILLibraryNameAndFlyoutRendering(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"all"},
-		DefaultReader: "desk-reader",
-		Hub:           hub,
-		ISILList:      isilMap,
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-01",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"all"},
+		Hub:        hub,
+		ISILList:   isilMap,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -1920,12 +1902,11 @@ func TestController_StaticPathRendering(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-01",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-1"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2011,12 +1992,11 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-01",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-1"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2120,14 +2100,13 @@ func TestController_ExplicitThemesAutoLightDarkSwitch(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-explicit-theme",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		ThemeLight:    "mediathek-light",
-		ThemeDark:     "mediathek-dark",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-explicit-theme",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-1"},
+		ThemeLight: "mediathek-light",
+		ThemeDark:  "mediathek-dark",
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller with explicit themes: %v", err)
@@ -2233,14 +2212,13 @@ func TestController_EncodeEndpoints(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		DefaultISIL:   "CH-000001",
-		DefaultAFI:    "07",
-		Hub:           hub,
+		Addr:        "localhost:8762",
+		ClientName:  "bib-client-01",
+		WSBroker:    "wss://broker.example.com",
+		Channels:    []string{"channel-1"},
+		DefaultISIL: "CH-000001",
+		DefaultAFI:  "07",
+		Hub:         hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2425,8 +2403,8 @@ func TestController_EncodeEndpoints(t *testing.T) {
 		t.Errorf("expected HTMX response to contain success message, got: %s", recHtmxClear.Body.String())
 	}
 
-	// 10. Test write/clear fallback when tag is not in active window and DefaultReader is empty
-	ctrlNoDefaultReader, err := NewController(Config{
+	// 10. Test write/clear fallback when tag is not in active window
+	ctrlFallback, err := NewController(Config{
 		Addr:       "localhost:8762",
 		ClientName: "bib-client-no-default-reader",
 		WSBroker:   "wss://broker.example.com",
@@ -2434,11 +2412,11 @@ func TestController_EncodeEndpoints(t *testing.T) {
 		Hub:        hub,
 	})
 	if err != nil {
-		t.Fatalf("failed to create controller without default reader: %v", err)
+		t.Fatalf("failed to create fallback controller: %v", err)
 	}
 	reqClearHistorical := httptest.NewRequest(http.MethodPost, "/channel-custom/encode/clear?uid=E004010843BC4D8C", nil)
 	recClearHistorical := httptest.NewRecorder()
-	ctrlNoDefaultReader.router.ServeHTTP(recClearHistorical, reqClearHistorical)
+	ctrlFallback.router.ServeHTTP(recClearHistorical, reqClearHistorical)
 	if recClearHistorical.Code != http.StatusOK {
 		t.Errorf("expected 200 for clear on channel-custom with historical/channel fallback, got %d (body: %s)", recClearHistorical.Code, recClearHistorical.Body.String())
 	}
@@ -2453,12 +2431,11 @@ func TestThemeModeAndColumnBadges(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8763",
-		ClientName:    "bib-client-mode-test",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
+		Addr:       "localhost:8763",
+		ClientName: "bib-client-mode-test",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-1"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2573,12 +2550,11 @@ func TestReaderIDRenderingInDeskTable(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8764",
-		ClientName:    "reader-id-test-desk",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"rfid"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
+		Addr:       "localhost:8764",
+		ClientName: "reader-id-test-desk",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"rfid"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2645,14 +2621,13 @@ func TestController_BarcodeReadAndAFIToggle(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		DefaultISIL:   "CH-000001",
-		DefaultAFI:    "07",
-		Hub:           hub,
+		Addr:        "localhost:8762",
+		ClientName:  "bib-client-01",
+		WSBroker:    "wss://broker.example.com",
+		Channels:    []string{"channel-1"},
+		DefaultISIL: "CH-000001",
+		DefaultAFI:  "07",
+		Hub:         hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2719,12 +2694,11 @@ func TestController_WSActivityEvent(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ClientName:    "bib-client-01",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		Hub:           hub,
+		Addr:       "localhost:8762",
+		ClientName: "bib-client-01",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"channel-1"},
+		Hub:        hub,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -2781,12 +2755,11 @@ func TestController_BroadcastInventoryTag(t *testing.T) {
 	defer hub.Close()
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ExtAddr:       "http://localhost:8762",
-		WSBroker:      "wss://broker.example.com",
-		Channels:      []string{"channel-1"},
-		DefaultReader: "desk-reader",
-		Hub:           hub,
+		Addr:     "localhost:8762",
+		ExtAddr:  "http://localhost:8762",
+		WSBroker: "wss://broker.example.com",
+		Channels: []string{"channel-1"},
+		Hub:      hub,
 		Inventory: desk.InventoryConfig{
 			Enabled: true,
 		},

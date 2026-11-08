@@ -4,7 +4,6 @@ name = "mediathek:desk:01"
 #wsbroker = "https://ws.k8s.ub.unibas.ch"
 wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
 channels = ["mediathek01"]
-default_reader = ""
 default_isil = "CH-001596-0"
 default_afi = "07"
 max_tags = 100

@@ -43,33 +43,30 @@ type WriteTagResult struct {
 // EncodeService handles ISO 28560-2 RFID tag encoding, payload validation,
 // reader routing, and state synchronization with the Hub.
 type EncodeService struct {
-	hub           *desk.Hub
-	rfidClient    libraryclient.Client
-	defaultReader string
-	defaultISIL   string
-	defaultAFI    string
-	channels      []string
-	logger        zLogger.ZLogger
+	hub         *desk.Hub
+	rfidClient  libraryclient.Client
+	defaultISIL string
+	defaultAFI  string
+	channels    []string
+	logger      zLogger.ZLogger
 }
 
 // NewEncodeService creates a new EncodeService instance.
 func NewEncodeService(
 	hub *desk.Hub,
 	rfidClient libraryclient.Client,
-	defaultReader string,
 	defaultISIL string,
 	defaultAFI string,
 	channels []string,
 	logger zLogger.ZLogger,
 ) *EncodeService {
 	return &EncodeService{
-		hub:           hub,
-		rfidClient:    rfidClient,
-		defaultReader: defaultReader,
-		defaultISIL:   defaultISIL,
-		defaultAFI:    defaultAFI,
-		channels:      channels,
-		logger:        logger,
+		hub:         hub,
+		rfidClient:  rfidClient,
+		defaultISIL: defaultISIL,
+		defaultAFI:  defaultAFI,
+		channels:    channels,
+		logger:      logger,
 	}
 }
 
@@ -156,10 +153,9 @@ func (s *EncodeService) ValidateAndNormalize(payload *WriteTagRequestPayload) er
 // ResolveTarget determines the appropriate target daemon source and reader ID for a tag UID.
 func (s *EncodeService) ResolveTarget(channel string, uid string) (targetSource string, targetReaderID string, resolvedUID string) {
 	resolvedUID = strings.TrimSpace(uid)
-	targetReaderID = s.defaultReader
 
 	if resolvedUID != "" && s.hub != nil {
-		activeTags := s.hub.GetActiveTagsForChannel(channel, s.defaultReader)
+		activeTags := s.hub.GetActiveTagsForChannel(channel, "*")
 		for _, t := range activeTags {
 			if strings.EqualFold(t.UID, resolvedUID) {
 				targetSource = t.Source
@@ -186,7 +182,7 @@ func (s *EncodeService) ResolveTarget(channel string, uid string) (targetSource 
 			}
 		}
 	} else if resolvedUID == "" && s.hub != nil {
-		activeTags := s.hub.GetActiveTagsForChannel(channel, s.defaultReader)
+		activeTags := s.hub.GetActiveTagsForChannel(channel, "*")
 		if len(activeTags) > 0 {
 			resolvedUID = activeTags[0].UID
 			targetSource = activeTags[0].Source
@@ -198,16 +194,10 @@ func (s *EncodeService) ResolveTarget(channel string, uid string) (targetSource 
 		targetSource = targetReaderID
 	}
 	if targetSource == "" {
-		targetSource = s.defaultReader
-	}
-	if targetSource == "" {
 		targetSource = channel
 	}
 	if targetSource == "" && len(s.channels) > 0 {
 		targetSource = s.channels[0]
-	}
-	if targetReaderID == "" {
-		targetReaderID = s.defaultReader
 	}
 
 	return targetSource, targetReaderID, resolvedUID

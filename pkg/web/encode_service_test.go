@@ -7,13 +7,14 @@ import (
 
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
+	"github.com/je4/wsbrokerclient"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeService_ValidateAndNormalize(t *testing.T) {
 	hub := desk.NewHub(50)
-	svc := NewEncodeService(hub, nil, "reader1", "CH-000001", "07", []string{"ch1"}, nil)
+	svc := NewEncodeService(hub, nil, "CH-000001", "07", []string{"ch1"}, nil)
 
 	t.Run("empty payload", func(t *testing.T) {
 		err := svc.ValidateAndNormalize(nil)
@@ -84,12 +85,11 @@ func TestEncodeService_ValidateAndNormalize(t *testing.T) {
 
 func TestEncodeService_ExecuteWriteTag_HubSync(t *testing.T) {
 	hub := desk.NewHub(50)
-	svc := NewEncodeService(hub, nil, "reader1", "CH-000001", "07", []string{"ch1"}, nil)
+	svc := NewEncodeService(hub, nil, "CH-000001", "07", []string{"ch1"}, nil)
 
 	// Add tag to hub
 	event := &libraryclient.TagReadEvent{
-		Source:  "ch1",
-		Channel: "ch1",
+		BaseEvent: wsbrokerclient.BaseEvent{Source: "ch1", Channel: "ch1"},
 		Data: libraryclient.TagReadData{
 			UID:      "E0040150E2A12345",
 			ReaderID: "reader1",
@@ -138,4 +138,22 @@ func TestEncodeService_ExecuteWriteTag_HubSync(t *testing.T) {
 	require.Len(t, activeAfterClear, 1)
 	assert.Equal(t, "", activeAfterClear[0].ItemID)
 	assert.Equal(t, "C2", activeAfterClear[0].AFI)
+}
+
+func TestEncodeService_MultipleReadersInChannel(t *testing.T) {
+	hub := desk.NewHub(50)
+	hub.SetConfiguredReader("reader1")
+	for _, reader := range []string{"reader1", "reader2"} {
+		hub.AddTag(&libraryclient.TagReadEvent{
+			BaseEvent: wsbrokerclient.BaseEvent{Source: "daemon-" + reader, Channel: "ch1"},
+			Data:      libraryclient.TagReadData{UID: "uid-" + reader, ReaderID: reader},
+		})
+	}
+	svc := NewEncodeService(hub, nil, "", "", []string{"ch1"}, nil)
+	source, reader, uid := svc.ResolveTarget("ch1", "uid-reader2")
+	assert.Equal(t, "daemon-reader2", source)
+	assert.Equal(t, "reader2", reader)
+	assert.Equal(t, "uid-reader2", uid)
+	ctrl := &Controller{hub: hub}
+	assert.Len(t, ctrl.getLoanData("ch1").Tags, 2)
 }

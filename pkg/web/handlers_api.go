@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
-	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
@@ -19,15 +18,12 @@ type LoanAFIRequestPayload struct {
 }
 
 func (ctrl *Controller) handleAPIStatus(c *gin.Context) {
-	uptime := time.Since(ctrl.startTime).Truncate(time.Second).String()
 	c.JSON(http.StatusOK, gin.H{
-		"app":           "library-desk",
-		"clientName":    ctrl.cfg.ClientName,
-		"wsbroker":      ctrl.cfg.WSBroker,
-		"channels":      ctrl.cfg.Channels,
-		"defaultReader": ctrl.cfg.DefaultReader,
-		"uptime":        uptime,
-		"tagsCount":     ctrl.hub.Count(),
+		"app":        "library-desk",
+		"clientName": ctrl.cfg.ClientName,
+		"wsbroker":   ctrl.cfg.WSBroker,
+		"channels":   ctrl.cfg.Channels,
+		"tagsCount":  ctrl.hub.Count(),
 	})
 }
 
@@ -48,7 +44,7 @@ func (ctrl *Controller) handleClearTagsJSON(c *gin.Context) {
 
 func (ctrl *Controller) handleAPILoanTags(c *gin.Context) {
 	channel := c.Query("channel")
-	active := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	active := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 	c.JSON(http.StatusOK, active)
 }
 
@@ -69,7 +65,7 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 
 	channel := c.Query("channel")
 	ctx := c.Request.Context()
-	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, ctrl.cfg.DefaultReader)
+	activeTags := ctrl.hub.GetActiveTagsForChannel(channel, "*")
 	tagMap := make(map[string]*desk.TagItem)
 	for _, t := range activeTags {
 		if t.UID != "" {
@@ -104,9 +100,9 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 	if ctrl.rfidClient != nil {
 		if len(uids) == 0 {
 			req := libraryclient.NewWriteAFIRequest(afi)
-			if ctrl.cfg.DefaultReader != "" {
+			if channel != "" {
 				hadSyncWrite = true
-				resp, err := ctrl.rfidClient.WriteAFI(ctx, ctrl.cfg.DefaultReader, req)
+				resp, err := ctrl.rfidClient.WriteAFI(ctx, channel, req)
 				if err != nil {
 					writeErrors = append(writeErrors, err.Error())
 				} else if resp != nil && !resp.Data.IsSuccess() {
@@ -129,9 +125,6 @@ func (ctrl *Controller) handleAPILoanAFI(c *gin.Context) {
 				}
 				if targetDaemon == "" {
 					targetDaemon = readerID
-				}
-				if targetDaemon == "" {
-					targetDaemon = ctrl.cfg.DefaultReader
 				}
 				if targetDaemon == "" {
 					targetDaemon = channel

@@ -67,20 +67,5 @@
             <strong class="text-secondary font-semibold">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</strong>
         </div>
 
-        <!-- Reader Pill -->
-        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="Konfigurierter Standard Reader">
-            <span class="app-icon icon-chip w-3.5 h-3.5 text-accent shrink-0" aria-hidden="true"></span>
-            <span class="text-base-content/70">Reader:</span>
-            <strong class="text-accent font-semibold truncate max-w-[150px]">{{if .DefaultReader}}{{.DefaultReader}}{{else}}Automatisch{{end}}</strong>
-        </div>
-
-        {{if .Uptime}}
-        <!-- Uptime Pill -->
-        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="Laufzeit">
-            <span class="app-icon icon-clock w-3.5 h-3.5 text-info shrink-0" aria-hidden="true"></span>
-            <span class="text-base-content/70">Laufzeit:</span>
-            <strong class="text-info font-semibold">{{.Uptime}}</strong>
-        </div>
-        {{end}}
     </div>
 </nav>

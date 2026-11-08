@@ -65,14 +65,13 @@ func setupTestSOAPController(t *testing.T) (*Controller, *desk.Hub, *mockSOAPRfi
 	mockClient := &mockSOAPRfidClient{}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:8762",
-		ExtAddr:       "http://localhost:8762",
-		ClientName:    "test-library-desk",
-		WSBroker:      "https://localhost:8765",
-		Channels:      []string{"all", "intern", "rfid"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockClient,
+		Addr:       "localhost:8762",
+		ExtAddr:    "http://localhost:8762",
+		ClientName: "test-library-desk",
+		WSBroker:   "https://localhost:8765",
+		Channels:   []string{"all", "intern", "rfid"},
+		Hub:        hub,
+		RFIDClient: mockClient,
 	})
 	if err != nil {
 		t.Fatalf("failed to create web controller: %v", err)
@@ -428,15 +427,14 @@ func TestSOAPOnly_RoutesAndIsolation(t *testing.T) {
 	mockClient := &mockSOAPRfidClient{}
 
 	ctrl, err := NewController(Config{
-		Addr:          "localhost:5000",
-		ExtAddr:       "http://localhost:5000",
-		ClientName:    "test-almaproxy",
-		WSBroker:      "https://localhost:8765",
-		Channels:      []string{"mediathek01"},
-		DefaultReader: "reader-01",
-		Hub:           hub,
-		RFIDClient:    mockClient,
-		SOAPOnly:      true,
+		Addr:       "localhost:5000",
+		ExtAddr:    "http://localhost:5000",
+		ClientName: "test-almaproxy",
+		WSBroker:   "https://localhost:8765",
+		Channels:   []string{"mediathek01"},
+		Hub:        hub,
+		RFIDClient: mockClient,
+		SOAPOnly:   true,
 	})
 	if err != nil {
 		t.Fatalf("failed to create SOAP-only controller: %v", err)

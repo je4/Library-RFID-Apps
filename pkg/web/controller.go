@@ -20,23 +20,21 @@ import (
 
 // Config defines settings for the web dashboard server.
 type Config struct {
-	Addr          string
-	ExtAddr       string
-	ClientName    string
-	WSBroker      string
-	Channels      []string
-	DefaultReader string
-	DefaultISIL   string
-	DefaultAFI    string
-	ThemeLight    string
-	ThemeDark     string
-	Inventory     desk.InventoryConfig
-	Hub           *desk.Hub
-	RFIDClient    libraryclient.Client
-	ISILList      map[string]*desk.ISILEntry
-	Logger        zLogger.ZLogger
-	StartTime     time.Time
-	SOAPOnly      bool
+	Addr        string
+	ExtAddr     string
+	ClientName  string
+	WSBroker    string
+	Channels    []string
+	DefaultISIL string
+	DefaultAFI  string
+	ThemeLight  string
+	ThemeDark   string
+	Inventory   desk.InventoryConfig
+	Hub         *desk.Hub
+	RFIDClient  libraryclient.Client
+	ISILList    map[string]*desk.ISILEntry
+	Logger      zLogger.ZLogger
+	SOAPOnly    bool
 }
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
@@ -50,20 +48,12 @@ type Controller struct {
 	rfidClient       libraryclient.Client
 	encodeService    *EncodeService
 	inventoryService *InventoryService
-	startTime        time.Time
 }
 
 // NewController creates and initializes the Web Controller instance.
 func NewController(cfg Config) (*Controller, error) {
 	if cfg.Hub == nil {
 		return nil, errors.New("desk Hub cannot be nil")
-	}
-	if cfg.StartTime.IsZero() {
-		cfg.StartTime = time.Now().UTC()
-	}
-
-	if cfg.DefaultReader != "" && cfg.Hub.GetConfiguredReader() == "" {
-		cfg.Hub.SetConfiguredReader(cfg.DefaultReader)
 	}
 
 	if cfg.ISILList != nil && cfg.Hub.GetISILList() == nil {
@@ -77,7 +67,6 @@ func NewController(cfg Config) (*Controller, error) {
 	encodeService := NewEncodeService(
 		cfg.Hub,
 		cfg.RFIDClient,
-		cfg.DefaultReader,
 		cfg.DefaultISIL,
 		cfg.DefaultAFI,
 		cfg.Channels,
@@ -103,7 +92,6 @@ func NewController(cfg Config) (*Controller, error) {
 		rfidClient:       cfg.RFIDClient,
 		encodeService:    encodeService,
 		inventoryService: invService,
-		startTime:        cfg.StartTime,
 	}
 
 	if invService != nil {

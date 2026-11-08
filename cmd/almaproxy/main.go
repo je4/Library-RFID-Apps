@@ -44,8 +44,6 @@ func main() {
 		extAddr = fmt.Sprintf("http://%s", addr)
 	}
 
-	appStartTime := time.Now().UTC()
-
 	// Initialize ISIL list
 	isilList, err := desk.LoadISILList(logger)
 	if err != nil {
@@ -64,19 +62,17 @@ func main() {
 
 	// 4. Initialize SOAP Controller (only /TagService endpoints, no REST or Web UI)
 	webCtrl, err := web.NewController(web.Config{
-		Addr:          addr,
-		ExtAddr:       extAddr,
-		ClientName:    conf.Name,
-		WSBroker:      conf.WSBroker,
-		Channels:      conf.Channels,
-		DefaultReader: conf.DefaultReader,
-		DefaultISIL:   conf.DefaultISIL,
-		DefaultAFI:    conf.DefaultAFI,
-		Hub:           hub,
-		ISILList:      isilList,
-		Logger:        logger,
-		StartTime:     appStartTime,
-		SOAPOnly:      true,
+		Addr:        addr,
+		ExtAddr:     extAddr,
+		ClientName:  conf.Name,
+		WSBroker:    conf.WSBroker,
+		Channels:    conf.Channels,
+		DefaultISIL: conf.DefaultISIL,
+		DefaultAFI:  conf.DefaultAFI,
+		Hub:         hub,
+		ISILList:    isilList,
+		Logger:      logger,
+		SOAPOnly:    true,
 	})
 	if err != nil {
 		logger.Fatal().Err(err).Msg("cannot initialize almaproxy soap controller")

@@ -44,8 +44,6 @@ func main() {
 		extAddr = fmt.Sprintf("http://%s", addr)
 	}
 
-	appStartTime := time.Now().UTC()
-
 	// Initialize ISIL list
 	isilList, err := desk.LoadISILList(logger)
 	if err != nil {
@@ -64,21 +62,19 @@ func main() {
 
 	// 4. Initialize Web Controller with embedded templates and assets
 	webCtrl, err := web.NewController(web.Config{
-		Addr:          addr,
-		ExtAddr:       extAddr,
-		ClientName:    conf.Name,
-		WSBroker:      conf.WSBroker,
-		Channels:      conf.Channels,
-		DefaultReader: conf.DefaultReader,
-		DefaultISIL:   conf.DefaultISIL,
-		DefaultAFI:    conf.DefaultAFI,
-		ThemeLight:    conf.Themes.Light,
-		ThemeDark:     conf.Themes.Dark,
-		Inventory:     conf.Inventory,
-		Hub:           hub,
-		ISILList:      isilList,
-		Logger:        logger,
-		StartTime:     appStartTime,
+		Addr:        addr,
+		ExtAddr:     extAddr,
+		ClientName:  conf.Name,
+		WSBroker:    conf.WSBroker,
+		Channels:    conf.Channels,
+		DefaultISIL: conf.DefaultISIL,
+		DefaultAFI:  conf.DefaultAFI,
+		ThemeLight:  conf.Themes.Light,
+		ThemeDark:   conf.Themes.Dark,
+		Inventory:   conf.Inventory,
+		Hub:         hub,
+		ISILList:    isilList,
+		Logger:      logger,
 	})
 	if err != nil {
 		logger.Fatal().Err(err).Msg("cannot initialize web controller")
@@ -103,9 +99,6 @@ func main() {
 
 	rfidOpts := []libraryclient.Option{
 		libraryclient.WithLogger(logger),
-	}
-	if conf.DefaultReader != "" {
-		rfidOpts = append(rfidOpts, libraryclient.WithDefaultTarget(conf.DefaultReader))
 	}
 
 	rfidCli, err := libraryclient.NewFromConfig(brokerCfg, rfidOpts...)

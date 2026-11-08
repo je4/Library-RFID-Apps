@@ -193,10 +193,8 @@ type DeskData struct {
 	WSBroker         string
 	Channels         []string
 	Channel          string
-	DefaultReader    string
 	Addr             string
 	ExtAddr          string
-	Uptime           string
 	Tags             []*TagItem
 	Skin             string
 	Theme            string
@@ -233,10 +231,8 @@ type LoanData struct {
 	WSBroker          string
 	Channels          []string
 	Channel           string
-	DefaultReader     string
 	Addr              string
 	ExtAddr           string
-	Uptime            string
 	Tags              []*TagItem
 	ErrorMessage      string
 	SuccessMessage    string
@@ -278,10 +274,8 @@ type EncodeData struct {
 	WSBroker         string
 	Channels         []string
 	Channel          string
-	DefaultReader    string
 	Addr             string
 	ExtAddr          string
-	Uptime           string
 	Tags             []*TagItem
 	ErrorMessage     string
 	SuccessMessage   string
@@ -371,10 +365,8 @@ type InventoryData struct {
 	WSBroker         string
 	Channels         []string
 	Channel          string
-	DefaultReader    string
 	Addr             string
 	ExtAddr          string
-	Uptime           string
 	Marker           string
 	SessionActive    bool
 	IsPaused         bool

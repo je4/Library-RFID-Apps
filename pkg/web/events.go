@@ -108,7 +108,7 @@ func (ctrl *Controller) broadcastInventorySession(session desk.InventorySession,
 // HandleTagsCleared notifies connected SSE clients that the reader field was cleared
 // and updates the active media list for the loan view.
 func (ctrl *Controller) HandleTagsCleared() {
-	ctrl.hub.ClearActive(ctrl.cfg.DefaultReader)
+	ctrl.hub.ClearActive()
 	ctrl.hub.Broadcast(&desk.SSEMessage{
 		Event: "tags_cleared",
 		Data:  "cleared",
