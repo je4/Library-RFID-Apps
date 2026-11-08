@@ -321,7 +321,6 @@ func (d EncodeData) HasExplicitThemes() bool {
 // WebserviceConfig defines parameters for dispatching RFID scan events to an external webservice.
 type WebserviceConfig struct {
 	TargetURL  config.EnvString `toml:"target_url" json:"targetUrl"`
-	ClientID   string           `toml:"client_id" json:"clientId"`
 	HTTPMethod string           `toml:"http_method" json:"httpMethod"` // POST (default) or GET
 	JWTKey     config.EnvString `toml:"jwt_key" json:"jwtKey"`
 	DebugMode  bool             `toml:"debug_mode" json:"debugMode"`

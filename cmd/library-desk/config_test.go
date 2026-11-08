@@ -82,7 +82,7 @@ func TestLoadConfig_Inventory(t *testing.T) {
 
 	tomlData := `
 addr = "localhost:8762"
-name = "inventory-desk"
+name = "station-a"
 wsbroker = "wss://broker.example.com"
 channels = ["inventory01"]
 
@@ -91,7 +91,6 @@ enabled = true
 
 [inventory.webservice]
 target_url = "https://inventory.sammlung.cc/inventory?clientid=station-a"
-client_id = "station-a"
 http_method = "POST"
 jwt_key = "secret123"
 debug_mode = true
@@ -112,8 +111,8 @@ timeout = "10s"
 	if conf.Inventory.Webservice.TargetURL != "https://inventory.sammlung.cc/inventory?clientid=station-a" {
 		t.Errorf("unexpected target_url: %s", conf.Inventory.Webservice.TargetURL)
 	}
-	if conf.Inventory.Webservice.ClientID != "station-a" {
-		t.Errorf("unexpected client_id: %s", conf.Inventory.Webservice.ClientID)
+	if conf.Name != "station-a" {
+		t.Errorf("unexpected application name: %s", conf.Name)
 	}
 	if conf.Inventory.Webservice.HTTPMethod != "POST" {
 		t.Errorf("unexpected http_method: %s", conf.Inventory.Webservice.HTTPMethod)

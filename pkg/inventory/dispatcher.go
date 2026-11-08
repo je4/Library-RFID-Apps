@@ -161,9 +161,6 @@ func (d *WebserviceDispatcher) GenerateJWT(payload ScanPayload) (string, error) 
 
 // Dispatch sends the scan payload to the configured external webservice.
 func (d *WebserviceDispatcher) Dispatch(ctx context.Context, payload ScanPayload) (*DispatchResponse, error) {
-	if payload.ClientID == "" && d.cfg.ClientID != "" {
-		payload.ClientID = d.cfg.ClientID
-	}
 	if payload.Timestamp <= 0 {
 		payload.Timestamp = time.Now().UnixMilli()
 	}

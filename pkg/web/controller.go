@@ -88,6 +88,7 @@ func NewController(cfg Config) (*Controller, error) {
 	if cfg.Inventory.Enabled {
 		invService = NewInventoryService(
 			cfg.Inventory,
+			cfg.ClientName,
 			cfg.Hub,
 			nil,
 			cfg.Logger,

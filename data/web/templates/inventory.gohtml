@@ -92,14 +92,6 @@
                         <span>Zurücksetzen</span>
                     </button>
 
-                    <!-- Acoustic Feedback Toggle Button -->
-                    <button id="btn-inv-sound"
-                            type="button"
-                            class="btn btn-sm btn-ghost border border-base-200 gap-1 text-base-content/80"
-                            title="Akustisches Feedback (Audio Cues) umschalten">
-                        <span id="icon-sound-state" class="app-icon icon-volume-2 w-3.5 h-3.5 text-success" aria-hidden="true"></span>
-                        <span id="sound-state-label" class="text-xs">Ton an</span>
-                    </button>
                 </div>
             </div>
 
@@ -112,8 +104,8 @@
                     <span class="truncate" title="{{.InventoryConf.Webservice.TargetURL}}">Ziel: <strong>{{.InventoryConf.Webservice.TargetURL}}</strong></span>
                 </div>
                 <div class="flex items-center gap-3">
-                    {{if .InventoryConf.Webservice.ClientID}}
-                    <span>Station: <strong class="text-base-content/80">{{.InventoryConf.Webservice.ClientID}}</strong></span>
+                    {{if .ClientName}}
+                    <span>Station: <strong class="text-base-content/80">{{.ClientName}}</strong></span>
                     {{end}}
                     {{if .InventoryConf.Webservice.JWTKey}}
                     <span class="badge badge-xs badge-success gap-1 font-semibold" title="HMAC-SHA256 JWT Authentifizierung aktiv">
@@ -235,92 +227,25 @@
 
     {{template "footer.gohtml" .}}
 
-    <!-- Web Audio API and Interactive Inventory Controller Script -->
-    <script>
+    <!-- Interactive Inventory Controller Script -->
+    <script type="module">
+        import { playSuccessSound, playWarningSound, playErrorSound } from "{{.StaticPath}}/js/modules/audio.js";
+
         (function() {
-            // Web Audio API Acoustic Feedback Engine
-            let audioCtx = null;
-            let soundEnabled = true;
-
-            function getAudioContext() {
-                if (!audioCtx) {
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    if (AudioContextClass) {
-                        audioCtx = new AudioContextClass();
-                    }
-                }
-                if (audioCtx && audioCtx.state === 'suspended') {
-                    audioCtx.resume().catch(() => {});
-                }
-                return audioCtx;
-            }
-
-            function playTone(freq, type, duration, gainLevel, startTimeOffset = 0) {
-                if (!soundEnabled) return;
-                const ctx = getAudioContext();
-                if (!ctx) return;
-
-                try {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    const now = ctx.currentTime + startTimeOffset;
-
-                    osc.type = type;
-                    osc.frequency.setValueAtTime(freq, now);
-
-                    gain.gain.setValueAtTime(gainLevel, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-
-                    osc.start(now);
-                    osc.stop(now + duration);
-                } catch (e) {
-                    console.warn("Audio cue error:", e);
-                }
-            }
-
             // High positive double chime for successful scan
             function playSuccessCue() {
-                playTone(980, 'sine', 0.08, 0.25, 0);
-                playTone(1480, 'sine', 0.12, 0.20, 0.06);
+                playSuccessSound();
             }
 
             // Muted gentle tone for duplicate tag
             function playDuplicateCue() {
-                playTone(440, 'triangle', 0.12, 0.20, 0);
+                playWarningSound();
             }
 
             // Distinct low double beep for error/empty tag or failed webservice call
             function playErrorCue() {
-                playTone(220, 'sawtooth', 0.10, 0.25, 0);
-                playTone(180, 'sawtooth', 0.14, 0.25, 0.12);
+                playErrorSound();
             }
-
-            // Sound Toggle UI
-            const btnSound = document.getElementById('btn-inv-sound');
-            const iconSound = document.getElementById('icon-sound-state');
-            const labelSound = document.getElementById('sound-state-label');
-
-            if (btnSound) {
-                btnSound.addEventListener('click', function() {
-                    soundEnabled = !soundEnabled;
-                    if (soundEnabled) {
-                        iconSound.className = 'app-icon icon-volume-2 w-3.5 h-3.5 text-success';
-                        labelSound.textContent = 'Ton an';
-                        playTone(1000, 'sine', 0.05, 0.15);
-                    } else {
-                        iconSound.className = 'app-icon icon-volume-x w-3.5 h-3.5 text-base-content/40';
-                        labelSound.textContent = 'Ton aus';
-                    }
-                });
-            }
-
-            // Resume audio context on first user interaction
-            document.addEventListener('click', function() {
-                getAudioContext();
-            }, { once: true });
 
             // SSE Event Listener for Inventory Tag Reads and KPI Stats
             let lastHandledInvEventKey = null;

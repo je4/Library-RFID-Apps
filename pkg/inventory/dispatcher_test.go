@@ -139,13 +139,13 @@ func TestWebserviceDispatcher_Dispatch_PostSuccess(t *testing.T) {
 
 	d := NewWebserviceDispatcher(desk.WebserviceConfig{
 		TargetURL:  config.EnvString(srv.URL + "/inventory"),
-		ClientID:   "client-alpha",
 		HTTPMethod: "POST",
 		JWTKey:     "jwt-secret-xyz",
 		Timeout:    2 * time.Second,
 	}, nil)
 
 	payload := ScanPayload{
+		ClientID:  "client-alpha",
 		SessionID: "sess-abc",
 		Marker:    "SHELF-1",
 		UID:       "E00411223344",

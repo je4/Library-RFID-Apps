@@ -2,6 +2,12 @@ package web
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -9,6 +15,7 @@ import (
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/inventory"
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
+	"github.com/je4/utils/v2/pkg/config"
 )
 
 type mockDispatcher struct {
@@ -47,11 +54,10 @@ func TestInventoryService_SessionLifecycle(t *testing.T) {
 		Enabled: true,
 		Webservice: desk.WebserviceConfig{
 			TargetURL: "https://example.com/inv",
-			ClientID:  "desk-01",
 		},
 	}
 	disp := &mockDispatcher{}
-	svc := NewInventoryService(cfg, nil, disp, nil)
+	svc := NewInventoryService(cfg, "desk-01", nil, disp, nil)
 
 	// 1. Initial state
 	sess := svc.GetSession()
@@ -109,11 +115,10 @@ func TestInventoryService_ProcessTagRead_DeduplicationAndStats(t *testing.T) {
 		Enabled: true,
 		Webservice: desk.WebserviceConfig{
 			TargetURL: "https://example.com/inv",
-			ClientID:  "desk-01",
 		},
 	}
 	disp := &mockDispatcher{}
-	svc := NewInventoryService(cfg, nil, disp, nil)
+	svc := NewInventoryService(cfg, "desk-01", nil, disp, nil)
 
 	// Ignore scans when session is not started
 	tag1 := &libraryclient.TagReadEvent{
@@ -182,7 +187,7 @@ func TestInventoryService_ProcessTagRead_ErrorTag(t *testing.T) {
 		},
 	}
 	disp := &mockDispatcher{}
-	svc := NewInventoryService(cfg, nil, disp, nil)
+	svc := NewInventoryService(cfg, "", nil, disp, nil)
 	svc.StartSession("SHELF-ERR")
 
 	// Tag with CRC Error
@@ -216,7 +221,7 @@ func TestInventoryService_MarkerValidation(t *testing.T) {
 		},
 	}
 	disp := &mockDispatcher{}
-	svc := NewInventoryService(cfg, nil, disp, nil)
+	svc := NewInventoryService(cfg, "", nil, disp, nil)
 
 	// Inactive by default
 	if svc.GetSession().Active {
@@ -252,11 +257,10 @@ func TestInventoryService_DispatchStateTransitionsAndRetry(t *testing.T) {
 		Enabled: true,
 		Webservice: desk.WebserviceConfig{
 			TargetURL: "https://example.com/inv",
-			ClientID:  "desk-01",
 		},
 	}
 	disp := &mockDispatcher{}
-	svc := NewInventoryService(cfg, nil, disp, nil)
+	svc := NewInventoryService(cfg, "desk-01", nil, disp, nil)
 
 	var callbackEvents []InventoryTagEventPayload
 	var cbMu sync.Mutex
@@ -315,5 +319,95 @@ func TestInventoryService_DispatchStateTransitionsAndRetry(t *testing.T) {
 	time.Sleep(50 * time.Millisecond)
 	if retriedItem.DispatchState != "success" {
 		t.Errorf("expected success after retry dispatch, got %s", retriedItem.DispatchState)
+	}
+}
+
+func TestInventoryService_DispatchUsesApplicationName(t *testing.T) {
+	type dispatchRequest struct {
+		payload   inventory.ScanPayload
+		urlName   string
+		authority string
+	}
+	requests := make(chan dispatchRequest, 1)
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("failed to read dispatch body: %v", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		var payload inventory.ScanPayload
+		if err := json.Unmarshal(body, &payload); err != nil {
+			t.Errorf("failed to decode dispatch payload: %v", err)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		requests <- dispatchRequest{
+			payload:   payload,
+			urlName:   r.URL.Query().Get("clientid"),
+			authority: r.Header.Get("Authorization"),
+		}
+		w.WriteHeader(http.StatusOK)
+	}))
+	defer server.Close()
+
+	const appName = "mediathek:desk:01"
+	cfg := desk.InventoryConfig{
+		Enabled: true,
+		Webservice: desk.WebserviceConfig{
+			TargetURL:  config.EnvString(server.URL + "/inventory?clientid={clientid}"),
+			HTTPMethod: http.MethodPost,
+			JWTKey:     config.EnvString("inventory-test-secret"),
+		},
+	}
+	dispatcher := inventory.NewWebserviceDispatcher(cfg.Webservice, nil)
+	svc := NewInventoryService(cfg, appName, nil, dispatcher, nil)
+	svc.StartSession("SHELF-01")
+
+	tag := &libraryclient.TagReadEvent{
+		Data: libraryclient.TagReadData{
+			UID:    "E004015099887766",
+			ItemID: "ITEM-01",
+			CRCOk:  true,
+		},
+	}
+	if item, _, ok := svc.ProcessTagRead(tag); !ok || item == nil {
+		t.Fatalf("expected scan to be processed, got item=%v ok=%v", item, ok)
+	}
+
+	var request dispatchRequest
+	select {
+	case request = <-requests:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for webservice dispatch")
+	}
+
+	if request.payload.ClientID != appName {
+		t.Errorf("expected payload clientId %q, got %q", appName, request.payload.ClientID)
+	}
+	if request.urlName != appName {
+		t.Errorf("expected URL clientid %q, got %q", appName, request.urlName)
+	}
+	if request.payload.JWT == "" {
+		t.Fatal("expected JWT in dispatch payload")
+	}
+	if request.authority != "Bearer "+request.payload.JWT {
+		t.Errorf("expected Bearer header to match payload JWT, got %q", request.authority)
+	}
+
+	jwtParts := strings.Split(request.payload.JWT, ".")
+	if len(jwtParts) != 3 {
+		t.Fatalf("expected JWT to contain 3 parts, got %d", len(jwtParts))
+	}
+	claimsBytes, err := base64.RawURLEncoding.DecodeString(jwtParts[1])
+	if err != nil {
+		t.Fatalf("failed to decode JWT claims: %v", err)
+	}
+	var claims map[string]interface{}
+	if err := json.Unmarshal(claimsBytes, &claims); err != nil {
+		t.Fatalf("failed to unmarshal JWT claims: %v", err)
+	}
+	if claims["client_id"] != appName {
+		t.Errorf("expected JWT client_id %q, got %v", appName, claims["client_id"])
 	}
 }

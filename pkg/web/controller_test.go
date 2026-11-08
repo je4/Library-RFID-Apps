@@ -2730,6 +2730,27 @@ func TestController_WSActivityEvent(t *testing.T) {
 		t.Fatalf("failed to create web controller: %v", err)
 	}
 
+	var inventoryPage bytes.Buffer
+	pageData := desk.InventoryData{
+		ClientName:       "station-a",
+		Channel:          "channel-1",
+		StaticPath:       "../static",
+		InventoryEnabled: true,
+	}
+	if err := ctrl.templates.ExecuteTemplate(&inventoryPage, "inventory.gohtml", pageData); err != nil {
+		t.Fatalf("failed to render inventory page: %v", err)
+	}
+	pageHTML := inventoryPage.String()
+	if strings.Count(pageHTML, `id="sound-toggle"`) != 1 {
+		t.Errorf("expected one shared header audio toggle in inventory page")
+	}
+	if strings.Contains(pageHTML, `btn-inv-sound`) {
+		t.Errorf("inventory page should not render its own audio toggle")
+	}
+	if !strings.Contains(pageHTML, "js/modules/audio.js") || !strings.Contains(pageHTML, "playSuccessSound") {
+		t.Errorf("expected inventory audio cues to use the shared audio module")
+	}
+
 	subChan := hub.Subscribe("channel-1")
 	defer hub.Unsubscribe(subChan)
 

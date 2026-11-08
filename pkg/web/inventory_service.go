@@ -37,6 +37,7 @@ type InventoryTagEventPayload struct {
 type InventoryService struct {
 	mu         sync.RWMutex
 	cfg        desk.InventoryConfig
+	clientName string
 	hub        *desk.Hub
 	dispatcher inventory.Dispatcher
 	logger     zLogger.ZLogger
@@ -54,6 +55,7 @@ type InventoryService struct {
 // NewInventoryService creates a new InventoryService instance.
 func NewInventoryService(
 	cfg desk.InventoryConfig,
+	clientName string,
 	hub *desk.Hub,
 	dispatcher inventory.Dispatcher,
 	logger zLogger.ZLogger,
@@ -64,6 +66,7 @@ func NewInventoryService(
 
 	svc := &InventoryService{
 		cfg:        cfg,
+		clientName: clientName,
 		hub:        hub,
 		dispatcher: dispatcher,
 		logger:     logger,
@@ -266,7 +269,7 @@ func (s *InventoryService) dispatchItem(item *desk.InventoryItem) {
 	}
 
 	payload := inventory.ScanPayload{
-		ClientID:   s.cfg.Webservice.ClientID,
+		ClientID:   s.clientName,
 		SessionID:  item.SessionID,
 		Marker:     item.Marker,
 		UID:        item.UID,
