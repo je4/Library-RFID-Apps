@@ -57,6 +57,17 @@ func (ctrl *Controller) HandleTagsCleared() {
 	ctrl.broadcastLoanTable()
 }
 
+// HandleWSActivity notifies connected SSE clients of incoming WebSocket broker activity.
+func (ctrl *Controller) HandleWSActivity() {
+	if ctrl == nil || ctrl.hub == nil {
+		return
+	}
+	ctrl.hub.Broadcast(&desk.SSEMessage{
+		Event: "ws_activity",
+		Data:  "ping",
+	})
+}
+
 // HandleBarcodeRead processes an incoming barcode scan event from barcode-headless
 // and broadcasts the barcode string via SSE to web clients.
 func (ctrl *Controller) HandleBarcodeRead(evt *libraryclient.BarcodeReadEvent) {

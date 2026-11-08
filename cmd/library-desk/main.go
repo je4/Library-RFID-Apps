@@ -114,6 +114,12 @@ func main() {
 	webCtrl.SetRFIDClient(rfidCli)
 
 	// 6. Register event listeners for tag scans and antenna field events
+	if brokerCli := rfidCli.BrokerClient(); brokerCli != nil {
+		brokerCli.OnEvent(func(rawEvt *wsbrokerclient.RawEvent) {
+			webCtrl.HandleWSActivity()
+		})
+	}
+
 	rfidCli.OnTagRead(func(tag *libraryclient.TagReadEvent) {
 		logger.Info().
 			Str("id", tag.ID).

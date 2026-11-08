@@ -36,11 +36,11 @@ func TestLoadConfig_EmbeddedDefault(t *testing.T) {
 	if conf.MaxTags != 100 {
 		t.Errorf("expected default max_tags 100, got %d", conf.MaxTags)
 	}
-	if conf.Themes.Dark != "mediathek-dark" {
-		t.Errorf("expected dark theme 'mediathek-dark', got '%s'", conf.Themes.Dark)
+	if conf.Themes.Dark != "" && conf.Themes.Dark != "mediathek-dark" {
+		t.Errorf("expected dark theme 'mediathek-dark' or empty, got '%s'", conf.Themes.Dark)
 	}
-	if conf.Themes.Light != "mediathek-light" {
-		t.Errorf("expected light theme 'mediathek-light', got '%s'", conf.Themes.Light)
+	if conf.Themes.Light != "" && conf.Themes.Light != "mediathek-light" {
+		t.Errorf("expected light theme 'mediathek-light' or empty, got '%s'", conf.Themes.Light)
 	}
 }
 

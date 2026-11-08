@@ -1781,6 +1781,9 @@ func TestController_HeaderFooterTemplates(t *testing.T) {
 	if !strings.Contains(bodyIndex, "Webserver: <span class=\"server-addr\">localhost:8762</span>") {
 		t.Errorf("expected index footer server addr, got: %s", bodyIndex)
 	}
+	if !strings.Contains(bodyIndex, "id=\"ws-activity-bullet\"") {
+		t.Errorf("expected index footer ws-activity-bullet, got: %s", bodyIndex)
+	}
 
 	// 2. Desk Dashboard Page Header & Footer verification
 	reqDesk := httptest.NewRequest(http.MethodGet, "/channel-1/", nil)
@@ -2703,5 +2706,46 @@ func TestController_BarcodeReadAndAFIToggle(t *testing.T) {
 		}
 	case <-time.After(2 * time.Second):
 		t.Fatal("timed out waiting for barcode_read SSE message")
+	}
+}
+
+func TestController_WSActivityEvent(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:          "localhost:8762",
+		ClientName:    "bib-client-01",
+		WSBroker:      "wss://broker.example.com",
+		Channels:      []string{"channel-1"},
+		DefaultReader: "desk-reader",
+		Hub:           hub,
+	})
+	if err != nil {
+		t.Fatalf("failed to create web controller: %v", err)
+	}
+
+	subChan := hub.Subscribe("channel-1")
+	defer hub.Unsubscribe(subChan)
+
+	ctrl.HandleWSActivity()
+
+	select {
+	case msg := <-subChan:
+		if msg == nil {
+			t.Fatal("received nil SSE message")
+		}
+		if msg.Event != "ws_activity" {
+			t.Errorf("expected SSE event 'ws_activity', got '%s'", msg.Event)
+		}
+		if msg.Data != "ping" {
+			t.Errorf("expected SSE data 'ping', got '%s'", msg.Data)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for ws_activity SSE message")
 	}
 }

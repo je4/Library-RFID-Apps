@@ -29,3 +29,25 @@
         }
     }
 }
+
+// WebSocket Activity Indicator Bullet in Footer
+.ws-activity-bullet {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0.85em;
+    text-align: center;
+    color: currentColor;
+    opacity: 0.4;
+    transition: color 0.15s ease-out, opacity 0.15s ease-out, text-shadow 0.15s ease-out, transform 0.15s ease-out;
+    user-select: none;
+    line-height: 1;
+
+    &.active,
+    &.flash {
+        opacity: 1;
+        color: #10b981;
+        text-shadow: 0 0 8px rgba(16, 185, 129, 0.95), 0 0 16px rgba(16, 185, 129, 0.7);
+        transform: scale(1.45);
+    }
+}

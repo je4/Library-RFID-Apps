@@ -137,7 +137,26 @@ export function onBarcodeReceived(rawBarcode) {
     }
 }
 
+export function flashWSActivity() {
+    const bullet = document.getElementById('ws-activity-bullet');
+    if (!bullet) return;
+
+    bullet.classList.remove('active', 'flash');
+    // Force DOM reflow to restart CSS transition/animation
+    void bullet.offsetWidth;
+    bullet.classList.add('active', 'flash');
+
+    if (bullet._wsActivityTimeout) {
+        clearTimeout(bullet._wsActivityTimeout);
+    }
+    bullet._wsActivityTimeout = setTimeout(() => {
+        bullet.classList.remove('active', 'flash');
+    }, 600);
+}
+
 export function handleSSEMessage(evt) {
+    flashWSActivity();
+
     const eventName = evt.detail?.eventName;
     if (!eventName) return;
 

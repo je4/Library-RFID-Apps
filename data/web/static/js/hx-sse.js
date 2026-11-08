@@ -58,7 +58,7 @@
             });
 
             // Bind global events on EventSource to forward to container event bus
-            const globalEventNames = ['message', 'tag_read', 'tags_cleared', 'loan_tags', 'loan_updated', 'barcode_read'];
+            const globalEventNames = ['message', 'tag_read', 'tags_cleared', 'loan_tags', 'loan_updated', 'barcode_read', 'ws_activity'];
             globalEventNames.forEach((evtName) => {
                 source.addEventListener(evtName, (evt) => {
                     let detail = { eventName: evtName, data: evt.data, source };
