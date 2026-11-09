@@ -6,6 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{printf (tr "encode.title") .ClientName}}</title>
     <link rel="icon" type="image/svg+xml" href="{{.StaticPath}}/img/favicon.svg">
+    <link rel="manifest" href="{{.StaticPath}}/img/manifest.webmanifest">
+    <link rel="apple-touch-icon" href="{{.StaticPath}}/img/app-icon-192.png">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="RFID Desk">
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script src="{{.StaticPath}}/js/theme-init.js"></script>
     <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->

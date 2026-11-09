@@ -1990,6 +1990,44 @@ func TestController_StaticPathRendering(t *testing.T) {
 	}
 }
 
+func TestController_WebAppAssets(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		ClientName: "bib-client-01",
+		Channels:   []string{"channel-1"},
+		Hub:        hub,
+		Inventory:  desk.InventoryConfig{Enabled: true},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, page := range []struct{ path, static string }{
+		{"/", "static"},
+		{"/channel-1/", "../static"},
+		{"/channel-1/loan", "../static"},
+		{"/channel-1/encode", "../static"},
+		{"/channel-1/inventory", "../static"},
+	} {
+		rec := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, page.path, nil))
+		if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `href="`+page.static+`/img/manifest.webmanifest"`) || !strings.Contains(rec.Body.String(), `href="`+page.static+`/img/app-icon-192.png"`) {
+			t.Errorf("page %s: missing web app links or unexpected status %d", page.path, rec.Code)
+		}
+	}
+	for _, path := range []string{"/static/img/manifest.webmanifest", "/static/img/app-icon-192.png", "/static/img/app-icon-512.png"} {
+		rec := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+		if rec.Code != http.StatusOK || rec.Body.Len() == 0 {
+			t.Errorf("asset %s: status %d, size %d", path, rec.Code, rec.Body.Len())
+		}
+	}
+}
+
 func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
