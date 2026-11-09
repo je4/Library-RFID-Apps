@@ -1,6 +1,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { initCatalog } from './catalog.js';
+import { readFileSync } from 'node:fs';
+
+globalThis.fetch = async () => ({ ok: true, json: async () =>
+    JSON.parse(readFileSync(new URL('../../locales/de.json', import.meta.url), 'utf8')) });
+const { initCatalog } = await import('./catalog.js');
 
 class Element {
     constructor(barcode, tagName = '') {

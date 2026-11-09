@@ -3,18 +3,18 @@
     <div class="flex items-center space-x-3.5">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
-            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else}}bolt.svg{{end}}" class="w-6 h-6 brightness-0 invert" alt="{{if .IsLoan}}Ausleihe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}" />
+            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else}}bolt.svg{{end}}" class="w-6 h-6 brightness-0 invert" alt="{{if .IsLoan}}{{tr "navigation.loan"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else}}{{tr "navigation.appTitle"}}{{end}}" />
         </div>
 
         <div>
             <!-- Breadcrumbs Navigation -->
             {{if .Channel}}
-            <nav class="breadcrumbs text-xs text-base-content/70 py-0 mb-0.5" aria-label="Breadcrumb-Navigation">
+            <nav class="breadcrumbs text-xs text-base-content/70 py-0 mb-0.5" aria-label="{{tr "navigation.breadcrumb"}}">
                 <ul>
                     <li>
-                        <a href="../" id="nav-channels-btn" class="inline-flex items-center gap-1 hover:text-primary transition-colors font-medium" title="Zur Channel-Auswahl">
+                        <a href="../" id="nav-channels-btn" class="inline-flex items-center gap-1 hover:text-primary transition-colors font-medium" title="{{tr "navigation.channelHint"}}">
                             <span class="app-icon icon-channel w-3 h-3 shrink-0" aria-hidden="true"></span>
-                            <span>Channels</span>
+                            <span>{{tr "channel.plural"}}</span>
                         </a>
                     </li>
                     <li>
@@ -33,7 +33,7 @@
                     <li class="font-semibold text-base-content">
                         <span class="inline-flex items-center gap-1">
                             <span class="app-icon {{if .IsLoan}}icon-book-open{{else if .IsEncode}}icon-tag{{else}}icon-home{{end}} w-3 h-3 shrink-0" aria-hidden="true"></span>
-                            <span>{{if .IsLoan}}Ausleihe &amp; Rückgabe{{else if .IsEncode}}Medium kodieren{{else}}Desk{{end}}</span>
+                            <span>{{if .IsLoan}}{{tr "navigation.loanReturn"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else}}{{tr "navigation.desk"}}{{end}}</span>
                         </span>
                     </li>
                 </ul>
@@ -42,11 +42,11 @@
 
             <!-- Titel & Status Badge -->
             <h1 class="text-xl font-bold tracking-tight flex items-center gap-2.5">
-                {{if .IsLoan}}Ausleihe &amp; Rückgabe{{else if .IsEncode}}Medium kodieren{{else}}RFID Desk{{end}}
+                {{if .IsLoan}}{{tr "navigation.loanReturn"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else}}{{tr "navigation.appTitle"}}{{end}}
                 {{if .Channel}}
-                <span id="field-status-badge" class="badge badge-sm badge-outline transition-all">Bereit</span>
+                <span id="field-status-badge" class="badge badge-sm badge-outline transition-all">{{tr "common.ready"}}</span>
                 {{else}}
-                <span class="badge badge-sm badge-outline transition-all">Channel-Auswahl</span>
+                <span class="badge badge-sm badge-outline transition-all">{{tr "channel.select"}}</span>
                 {{end}}
             </h1>
 
@@ -64,26 +64,32 @@
 
     <!-- Top Right Actions & Theme Selector -->
     <div class="flex items-center space-x-3">
+        <select id="language-selector" class="select select-sm" aria-label="Language / Sprache / Langue / Lingua">
+            <option value="de" {{if eq (lang) "de"}}selected{{end}}>Deutsch</option>
+            <option value="en" {{if eq (lang) "en"}}selected{{end}}>English</option>
+            <option value="fr" {{if eq (lang) "fr"}}selected{{end}}>Français</option>
+            <option value="it" {{if eq (lang) "it"}}selected{{end}}>Italiano</option>
+        </select>
         {{if .HasExplicitThemes}}
         <!-- Auto / Light / Dark Mode Switcher (Explicit Themes Configured) -->
         <div class="dropdown dropdown-end" id="theme-mode-dropdown">
-            <div tabindex="0" role="button" id="theme-mode-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Farbschema anpassen (Auto / Hell / Dunkel)" aria-label="Farbschema Modus" aria-haspopup="true">
+            <div tabindex="0" role="button" id="theme-mode-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="{{tr "theme.modeHint"}}" aria-label="{{tr "theme.mode"}}" aria-haspopup="true">
                 <span class="app-icon icon-sun-moon w-4 h-4 shrink-0" aria-hidden="true"></span>
-                <span class="hidden sm:inline text-xs font-semibold">Modus</span>
+                <span class="hidden sm:inline text-xs font-semibold">{{tr "common.mode"}}</span>
                 <span id="theme-mode-indicator" class="badge badge-xs badge-primary font-mono text-[10px]">{{if .ThemeMode}}{{.ThemeMode}}{{else}}auto{{end}}</span>
                 <svg class="w-3.5 h-3.5 opacity-60 inline-block fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1799 647l-775 775L249 647l64-64 711 711 711-711z"/></svg>
             </div>
             <ul tabindex="0" class="dropdown-content menu bg-base-200 text-base-content rounded-2xl z-50 w-52 p-2 shadow-2xl border border-base-300 space-y-1" id="theme-mode-menu">
-                <li class="menu-title text-xs font-bold px-2 py-1.5 opacity-70">Farbschema</li>
+                <li class="menu-title text-xs font-bold px-2 py-1.5 opacity-70">{{tr "theme.colorScheme"}}</li>
                 <li>
                     <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
                         <div class="flex items-center gap-2">
                             <span class="app-icon icon-sun-moon w-4 h-4 shrink-0"></span>
-                            <span class="text-xs font-medium">Automatisch</span>
+                            <span class="text-xs font-medium">{{tr "theme.automatic"}}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="theme-mode-check hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
-                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="auto" aria-label="Automatisch" />
+                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="auto" aria-label="{{tr "theme.automatic"}}" />
                         </div>
                     </label>
                 </li>
@@ -94,11 +100,11 @@
                                 <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
                                 <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
                             </span>
-                            <span class="text-xs font-medium">Hell</span>
+                            <span class="text-xs font-medium">{{tr "theme.light"}}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="theme-mode-check hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
-                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="light" aria-label="Hell" />
+                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="light" aria-label="{{tr "theme.light"}}" />
                         </div>
                     </label>
                 </li>
@@ -109,11 +115,11 @@
                                 <span class="w-1.5 h-3.5 rounded-full bg-primary inline-block"></span>
                                 <span class="w-1.5 h-3.5 rounded-full bg-secondary inline-block"></span>
                             </span>
-                            <span class="text-xs font-medium">Dunkel</span>
+                            <span class="text-xs font-medium">{{tr "theme.dark"}}</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span class="theme-mode-check hidden text-primary font-bold text-xs" aria-hidden="true">✓</span>
-                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="dark" aria-label="Dunkel" />
+                            <input type="radio" name="theme-mode-switch" class="theme-mode-controller hidden" value="dark" aria-label="{{tr "theme.dark"}}" />
                         </div>
                     </label>
                 </li>
@@ -122,14 +128,14 @@
         {{else}}
         <!-- DaisyUI Theme Controller Dropdown -->
         <div class="dropdown dropdown-end" id="theme-dropdown">
-            <div tabindex="0" role="button" id="theme-dialog-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Design &amp; Farbschema anpassen (DaisyUI Theme Controller)" aria-label="Theme Controller" aria-haspopup="true">
+            <div tabindex="0" role="button" id="theme-dialog-btn" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="{{tr "theme.controllerHint"}}" aria-label="{{tr "theme.controller"}}" aria-haspopup="true">
                 <span class="app-icon icon-palette w-4 h-4 shrink-0" aria-hidden="true"></span>
-                <span class="hidden sm:inline text-xs font-semibold">Theme</span>
+                <span class="hidden sm:inline text-xs font-semibold">{{tr "theme.label"}}</span>
                 <span id="theme-name-indicator" class="badge badge-xs badge-primary font-mono text-[10px]">corporate</span>
                 <svg class="w-3.5 h-3.5 opacity-60 inline-block fill-current" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2048 2048"><path d="M1799 647l-775 775L249 647l64-64 711 711 711-711z"/></svg>
             </div>
             <ul tabindex="0" class="dropdown-content menu bg-base-200 text-base-content rounded-2xl z-50 w-60 p-2 shadow-2xl max-h-[75vh] overflow-y-auto border border-base-300 space-y-1 transponder-stream-scroll" id="theme-dropdown-menu">
-                <li class="menu-title text-xs font-bold px-2 py-1.5 opacity-70">Farbpalette</li>
+                <li class="menu-title text-xs font-bold px-2 py-1.5 opacity-70">{{tr "theme.palette"}}</li>
                 <!-- University of Basel Custom Theme Items -->
                 <li>
                     <label class="btn btn-sm btn-block btn-ghost justify-between font-normal flex items-center px-2 py-1.5 cursor-pointer rounded-lg hover:bg-base-300/80">
@@ -480,17 +486,17 @@
 
         {{if .Channel}}
         <!-- Audio Feedback Toggle Button -->
-        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Signalton einschalten" aria-pressed="false">
+        <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="{{tr "audio.enable"}}" aria-pressed="false">
             <span class="app-icon icon-volume-off w-3.5 h-3.5 shrink-0 sound-icon-off" aria-hidden="true"></span>
             <span class="app-icon icon-volume-high w-3.5 h-3.5 shrink-0 sound-icon-on hidden" aria-hidden="true"></span>
-            <span>Ton</span>
+            <span>{{tr "audio.label"}}</span>
             <span class="sound-toggle-indicator w-2 h-2 rounded-full shrink-0 block bg-base-content/30"></span>
         </button>
 
         <!-- SSE Status Badge -->
         <div id="sse-status-container" class="badge badge-sm badge-outline gap-2 px-3 py-2.5">
             <span id="sse-status-dot" class="w-2 h-2 rounded-full bg-warning"></span>
-            <span id="sse-status-text" class="font-medium">Verbinde SSE...</span>
+            <span id="sse-status-text" class="font-medium">{{tr "sse.connecting"}}</span>
         </div>
         {{end}}
     </div>

@@ -4,8 +4,8 @@
         RFID Desk &copy; 2026 info-age GmbH, Basel
     </div>
     <div class="flex items-center space-x-4 font-mono">
-        <span>Webserver: <span class="server-addr">{{.Addr}}</span></span>
-        <span id="ws-activity-bullet" class="ws-activity-bullet" title="WebSocket Aktivitätsanzeige" aria-label="WebSocket Aktivitätsanzeige">&bull;</span>
-        <span>WSBroker: <span class="broker-addr">{{.WSBroker}}</span></span>
+        <span>{{tr "reader.webserver"}} <span class="server-addr">{{.Addr}}</span></span>
+        <span id="ws-activity-bullet" class="ws-activity-bullet" title="{{tr "websocket.activity"}}" aria-label="{{tr "websocket.activity"}}">&bull;</span>
+        <span>{{tr "reader.broker"}} <span class="broker-addr">{{.WSBroker}}</span></span>
     </div>
 </footer>

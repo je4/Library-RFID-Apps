@@ -3,6 +3,8 @@
  * Controls visual progress modal, button state, countdown safeguards, and HTMX event hooks.
  */
 
+import { t } from './i18n.js';
+
 const AFI_TIMEOUT_MS = 10000; // 10 seconds timeout safeguard
 let afiTimeoutTimer = null;
 let afiCountdownInterval = null;
@@ -57,7 +59,7 @@ export function showAfiModal(title, desc, status) {
 
     let secondsRemaining = Math.round(AFI_TIMEOUT_MS / 1000);
     if (hintEl) {
-        hintEl.textContent = `Timeout-Schutz aktiv (${secondsRemaining}s)`;
+        hintEl.textContent = t('afi.timeoutHint', { seconds: secondsRemaining });
     }
 
     if (typeof overlay.showModal === 'function' && !overlay.open) {
@@ -75,7 +77,7 @@ export function showAfiModal(title, desc, status) {
     afiCountdownInterval = setInterval(() => {
         secondsRemaining--;
         if (secondsRemaining > 0 && hintEl) {
-            hintEl.textContent = `Timeout-Schutz aktiv (${secondsRemaining}s)`;
+            hintEl.textContent = t('afi.timeoutHint', { seconds: secondsRemaining });
         } else {
             clearInterval(afiCountdownInterval);
         }
@@ -86,7 +88,7 @@ export function showAfiModal(title, desc, status) {
         if (isAfiOperationRunning) {
             hideAfiModal();
             showAfiNotification(
-                'Zeitüberschreitung: Das Schreiben der AFI hat das Zeitlimit von ' + (AFI_TIMEOUT_MS / 1000) + 's überschritten. Bitte überprüfen Sie die Verbindung zum RFID-Reader und versuchen Sie es erneut.',
+                t('afi.timeout', { seconds: AFI_TIMEOUT_MS / 1000 }),
                 'error',
                 10000
             );
@@ -140,39 +142,39 @@ export function handleAfiRequestStart(elt, url) {
         }
     }
 
-    let title = 'AFI wird geschrieben...';
-    let desc = 'Bitte warten Sie, bis der Sicherheitsstatus auf dem Lesefeld aktualisiert wurde. Bitte keine Medien vom Lesegerät entfernen.';
-    let status = 'RFID-Schreibbefehl aktiv...';
+    let title = t('afi.title');
+    let desc = t('afi.description');
+    let status = t('afi.status');
 
     if (isClear) {
         if (targetUid) {
-            title = 'Transponder wird geleert...';
-            desc = `Transponder ${targetUid} wird mit leeren Daten überschrieben und entsichert (AFI: C2).`;
-            status = `Leeren (${targetUid})...`;
+            title = t('afi.clearTitle');
+            desc = t('afi.clearUid', { uid: targetUid });
+            status = t('afi.clearUidStatus', { uid: targetUid });
         } else {
-            title = 'Transponder wird geleert...';
-            desc = 'Aufgelegter Transponder wird mit leeren Daten überschrieben und entsichert (AFI: C2).';
-            status = 'Transponder leeren...';
+            title = t('afi.clearTitle');
+            desc = t('afi.clearAll');
+            status = t('afi.clearStatus');
         }
     } else if (isUnsecure) {
         if (targetUid) {
-            title = 'Transponder wird entsichert...';
-            desc = `AFI-Code C2 (Ausgeliehen / EAS deaktiviert) wird auf Transponder ${targetUid} geschrieben.`;
-            status = `Entsichern (${targetUid})...`;
+            title = t('afi.unsecureTitle');
+            desc = t('afi.unsecureUid', { uid: targetUid });
+            status = t('afi.unsecureUidStatus', { uid: targetUid });
         } else {
-            title = 'Medien werden entsichert...';
-            desc = 'AFI-Code C2 (Ausgeliehen / EAS deaktiviert) wird auf alle aufliegenden Medien geschrieben.';
-            status = 'Entsichern aller Medien...';
+            title = t('afi.unsecureAllTitle');
+            desc = t('afi.unsecureAll');
+            status = t('afi.unsecureStatus');
         }
     } else if (isSecure) {
         if (targetUid) {
-            title = 'Transponder wird gesichert...';
-            desc = `AFI-Code 07 (Präsenzbestand / EAS aktiv) wird auf Transponder ${targetUid} geschrieben.`;
-            status = `Sichern (${targetUid})...`;
+            title = t('afi.secureTitle');
+            desc = t('afi.secureUid', { uid: targetUid });
+            status = t('afi.secureUidStatus', { uid: targetUid });
         } else {
-            title = 'Medien werden gesichert...';
-            desc = 'AFI-Code 07 (Präsenzbestand / EAS aktiv) wird auf alle aufliegenden Medien geschrieben.';
-            status = 'Sichern aller Medien...';
+            title = t('afi.secureAllTitle');
+            desc = t('afi.secureAll');
+            status = t('afi.secureStatus');
         }
     }
 
@@ -185,7 +187,7 @@ export function handleAfiRequestEnd(elt, url, isError) {
 
     hideAfiModal();
     if (isError) {
-        showAfiNotification('Fehler bei der Kommunikation mit dem RFID-Server.', 'error', 8000);
+        showAfiNotification(t('afi.error'), 'error', 8000);
     }
 }
 
@@ -256,6 +258,6 @@ export function initAfiModal() {
     document.body.addEventListener('htmx:error', onHtmxError);
     document.body.addEventListener('htmx:timeout', (evt) => {
         onHtmxError(evt);
-        showAfiNotification('Zeitüberschreitung der Netzwerkanfrage (HTMX Timeout).', 'error', 10000);
+        showAfiNotification(t('afi.networkTimeout'), 'error', 10000);
     });
 }

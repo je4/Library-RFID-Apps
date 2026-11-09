@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
+<html lang="{{lang}}" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFID Inventur - {{.ClientName}}</title>
+    <title>{{printf (tr "inventory.title") .ClientName}}</title>
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script src="{{.StaticPath}}/js/theme-init.js"></script>
     <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->
@@ -31,14 +31,14 @@
                 <div class="flex-1 flex flex-wrap sm:flex-nowrap items-center gap-2.5">
                     <div class="flex items-center gap-2 text-sm font-semibold shrink-0 text-base-content/80">
                         <span class="app-icon icon-archive w-4 h-4 text-primary" aria-hidden="true"></span>
-                        <label for="inv-marker-input">Standort / Regal-Marker:</label>
+                        <label for="inv-marker-input">{{tr "inventory.shelfMarker"}}</label>
                     </div>
                     <div class="w-full sm:w-auto flex-1 max-w-md">
                         <input id="inv-marker-input"
                                name="marker"
                                type="text"
                                value="{{.Marker}}"
-                               placeholder="z. B. EG-R04-F02 oder Signatur"
+                               placeholder="{{tr "inventory.markerExample"}}"
                                hx-post="inventory/marker"
                                hx-trigger="input changed delay:300ms, change"
                                hx-swap="none"
@@ -52,7 +52,7 @@
                     <!-- Session Status Indicator -->
                     <div id="session-status-badge" class="badge badge-sm {{if and .SessionActive (not .IsPaused)}}badge-success{{else if .IsPaused}}badge-warning{{else}}badge-ghost{{end}} font-mono font-bold gap-1 px-2.5 py-3">
                         <span id="session-status-dot" class="w-2 h-2 rounded-full {{if and .SessionActive (not .IsPaused)}}bg-success-content animate-pulse{{else if .IsPaused}}bg-warning-content{{else}}bg-base-content/40{{end}}" aria-hidden="true"></span>
-                        <span id="session-status-label">{{if and .SessionActive (not .IsPaused)}}Aktiv{{else if .IsPaused}}Pausiert{{else}}Inaktiv{{end}}</span>
+                        <span id="session-status-label">{{if and .SessionActive (not .IsPaused)}}{{tr "common.active"}}{{else if .IsPaused}}{{tr "common.paused"}}{{else}}{{tr "common.inactive"}}{{end}}</span>
                     </div>
 
                     <!-- Start / Update Session Button -->
@@ -63,10 +63,10 @@
                             hx-swap="innerHTML"
                             type="button"
                             class="btn btn-sm {{if .SessionActive}}btn-outline{{else}}btn-primary shadow-sm{{end}} gap-1.5"
-                            title="Inventur mit aktuellem Marker starten"
+                            title="{{tr "inventory.startMarkerHint"}}"
                             {{if not .Marker}}disabled{{end}}>
                         <span class="app-icon icon-play w-3.5 h-3.5" aria-hidden="true"></span>
-                        <span id="btn-inv-start-label">{{if .SessionActive}}Neustart{{else}}Inventur starten{{end}}</span>
+                        <span id="btn-inv-start-label">{{if .SessionActive}}{{tr "common.restart"}}{{else}}{{tr "inventory.start"}}{{end}}</span>
                     </button>
 
                     <!-- Pause / Resume Button -->
@@ -75,9 +75,9 @@
                             hx-swap="none"
                             type="button"
                             class="btn btn-sm btn-outline border-base-200 gap-1.5"
-                            title="Erfassung vorübergehend pausieren oder fortsetzen (Leertaste)">
+                            title="{{tr "inventory.pauseHint"}}">
                         <span id="btn-inv-pause-icon" class="app-icon {{if .IsPaused}}icon-play{{else}}icon-pause{{end}} w-3.5 h-3.5" aria-hidden="true"></span>
-                        <span id="btn-inv-pause-label">{{if .IsPaused}}Fortsetzen{{else}}Pausieren{{end}}</span>
+                        <span id="btn-inv-pause-label">{{if .IsPaused}}{{tr "common.resume"}}{{else}}{{tr "common.pause"}}{{end}}</span>
                     </button>
 
                     <!-- Reset Session Button -->
@@ -87,9 +87,9 @@
                             hx-swap="innerHTML"
                             type="button"
                             class="btn btn-sm btn-ghost text-error hover:bg-error hover:text-error-content gap-1.5"
-                            title="Aktuelle Sitzung und Zähler zurücksetzen">
+                            title="{{tr "inventory.resetHint"}}">
                         <span class="app-icon icon-trash w-3.5 h-3.5" aria-hidden="true"></span>
-                        <span>Zurücksetzen</span>
+                        <span>{{tr "common.reset"}}</span>
                     </button>
 
                 </div>
@@ -101,14 +101,14 @@
             <div class="mt-3 pt-3 border-t border-base-200/60 flex flex-wrap items-center justify-between text-xs text-base-content/60 font-mono gap-2">
                 <div class="flex items-center gap-2 truncate max-w-2xl">
                     <span class="badge badge-xs badge-info font-bold uppercase">{{.InventoryConf.Webservice.HTTPMethod}}</span>
-                    <span class="truncate" title="{{.InventoryConf.Webservice.TargetURL}}">Ziel: <strong>{{.InventoryConf.Webservice.TargetURL}}</strong></span>
+                    <span class="truncate" title="{{.InventoryConf.Webservice.TargetURL}}">{{tr "library.destination"}} <strong>{{.InventoryConf.Webservice.TargetURL}}</strong></span>
                 </div>
                 <div class="flex items-center gap-3">
                     {{if .ClientName}}
-                    <span>Station: <strong class="text-base-content/80">{{.ClientName}}</strong></span>
+                    <span>{{tr "reader.station"}} <strong class="text-base-content/80">{{.ClientName}}</strong></span>
                     {{end}}
                     {{if .InventoryConf.Webservice.JWTKey}}
-                    <span class="badge badge-xs badge-success gap-1 font-semibold" title="HMAC-SHA256 JWT Authentifizierung aktiv">
+                    <span class="badge badge-xs badge-success gap-1 font-semibold" title="{{tr "webservice.authActive"}}">
                         <span class="w-1.5 h-1.5 rounded-full bg-success-content" aria-hidden="true"></span>
                         JWT Auth
                     </span>
@@ -120,13 +120,13 @@
         </section>
 
         <!-- KPI Metrics Summary Stats Box -->
-        <section class="stats stats-vertical sm:stats-horizontal border border-base-200 bg-base-100 shadow-sm w-full rounded-2xl" aria-label="Inventur Kennzahlen">
+        <section class="stats stats-vertical sm:stats-horizontal border border-base-200 bg-base-100 shadow-sm w-full rounded-2xl" aria-label="{{tr "inventory.statistics"}}">
             <!-- Stat 1: Total Scans -->
             <div class="stat py-3.5 px-4 sm:px-6">
                 <div class="stat-figure text-base-content/30">
                     <span class="app-icon icon-refresh w-5 h-5" aria-hidden="true"></span>
                 </div>
-                <div class="stat-title text-xs font-medium text-base-content/60">Gesamterfassungen</div>
+                <div class="stat-title text-xs font-medium text-base-content/60">{{tr "inventory.totalScans"}}</div>
                 <div id="kpi-total-scans" class="stat-value text-2xl font-mono text-base-content">{{.TotalScans}}</div>
             </div>
 
@@ -135,7 +135,7 @@
                 <div class="stat-figure text-success/50">
                     <span class="app-icon icon-check w-5 h-5 text-success" aria-hidden="true"></span>
                 </div>
-                <div class="stat-title text-xs font-medium text-success">Eindeutige Medien</div>
+                <div class="stat-title text-xs font-medium text-success">{{tr "inventory.uniqueItems"}}</div>
                 <div id="kpi-unique-items" class="stat-value text-2xl font-mono text-success">{{.UniqueItems}}</div>
             </div>
 
@@ -144,7 +144,7 @@
                 <div class="stat-figure text-error/50">
                     <span class="app-icon icon-alert w-5 h-5 text-error" aria-hidden="true"></span>
                 </div>
-                <div class="stat-title text-xs font-medium text-error">Fehler / Leer</div>
+                <div class="stat-title text-xs font-medium text-error">{{tr "inventory.errorsEmpty"}}</div>
                 <div id="kpi-error-tags" class="stat-value text-2xl font-mono text-error">{{.ErrorTags}}</div>
             </div>
 
@@ -153,19 +153,19 @@
                 <div class="stat-figure text-warning/50">
                     <span class="app-icon icon-copy w-5 h-5 text-warning" aria-hidden="true"></span>
                 </div>
-                <div class="stat-title text-xs font-medium text-warning">Dubletten</div>
+                <div class="stat-title text-xs font-medium text-warning">{{tr "inventory.duplicates"}}</div>
                 <div id="kpi-duplicate-tags" class="stat-value text-2xl font-mono text-warning">{{.DuplicateTags}}</div>
             </div>
 
             <!-- Stat 5: Last Scanned Item -->
             <div class="stat py-3.5 px-4 sm:px-6">
-                <div class="stat-title text-xs font-medium text-base-content/60">Letztes Medium</div>
+                <div class="stat-title text-xs font-medium text-base-content/60">{{tr "inventory.lastItem"}}</div>
                 <div id="kpi-last-item" class="mt-1 truncate">
                     {{if .LastItem}}
                         <div class="font-mono font-bold text-sm text-primary truncate">{{if .LastItem.ItemID}}{{.LastItem.ItemID}}{{else}}{{.LastItem.UID}}{{end}}</div>
-                        <div class="text-[11px] text-base-content/60 truncate">{{if .LastItem.ISILName}}{{.LastItem.ISILName}}{{else}}Erfasst{{end}}</div>
+                        <div class="text-[11px] text-base-content/60 truncate">{{if .LastItem.ISILName}}{{.LastItem.ISILName}}{{else}}{{tr "inventory.scanned"}}{{end}}</div>
                     {{else}}
-                        <span class="text-xs text-base-content/40 italic">Noch kein Scan</span>
+                        <span class="text-xs text-base-content/40 italic">{{tr "inventory.noScans"}}</span>
                     {{end}}
                 </div>
             </div>
@@ -187,14 +187,14 @@
             <!-- Table Toolbar -->
             <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
-                    <h2 class="text-base font-semibold">Erfasste Medien dieser Sitzung</h2>
+                    <h2 class="text-base font-semibold">{{tr "inventory.scannedItems"}}</h2>
                     <span id="inv-table-count" class="badge badge-sm badge-outline font-mono">{{len .Items}}</span>
                 </div>
 
                 <div class="flex items-center space-x-2.5">
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
-                        <input id="inv-filter-input" type="text" placeholder="Filtern (F2 / Esc)..." class="input input-sm input-bordered pl-8 pr-12 w-48 sm:w-64 font-mono text-xs">
+                        <input id="inv-filter-input" type="text" placeholder="{{tr "common.filterPlaceholder"}}" class="input input-sm input-bordered pl-8 pr-12 w-48 sm:w-64 font-mono text-xs">
                         <span class="app-icon icon-search w-3.5 h-3.5 text-base-content/50 absolute left-2.5 pointer-events-none" aria-hidden="true"></span>
                         <kbd class="kbd kbd-xs bg-base-200 text-base-content/60 absolute right-2 pointer-events-none">F2</kbd>
                     </div>
@@ -206,14 +206,14 @@
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 bg-base-200 text-base-content/80 font-bold">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Barcode / Item ID</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Transponder UID</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Standort / Marker</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Bibliothek / ISIL</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Teil</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "encode.barcodeLabel"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "tag.uid"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "inventory.marker"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "library.isil"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "encode.part"}}</th>
                             <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">AFI</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Webservice Status</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Zeitstempel</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "webservice.status"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">{{tr "common.timestamp"}}</th>
                         </tr>
                     </thead>
                     <tbody id="inventory-table-body">
@@ -303,8 +303,8 @@
                         if (payload.item) {
                             const lastCard = document.getElementById('kpi-last-item');
                             if (lastCard) {
-                                const label = payload.item.itemId || payload.item.uid || 'Erfasst';
-                                const sub = payload.item.isilName || (payload.item.marker ? 'Standort: ' + payload.item.marker : '');
+                                const label = payload.item.itemId || payload.item.uid || {{tr "inventory.scanned"}};
+                                const sub = payload.item.isilName || (payload.item.marker ? {{tr "library.location"}} + ' ' + payload.item.marker : '');
                                 let statusBadge = '';
                                 if (payload.item.dispatchState === 'error') {
                                     statusBadge = `<div class="mt-1"><span class="badge badge-xs badge-error gap-1 font-semibold" title="${payload.item.dispatchError || 'Webservice-Fehler'}">Webservice-Fehler</span></div>`;
@@ -327,8 +327,8 @@
                                 const alertContainer = document.getElementById('webservice-alert-container');
                                 const alertText = document.getElementById('webservice-alert-text');
                                 if (alertContainer && alertText) {
-                                    const label = payload.item.itemId || payload.item.uid || 'Medium';
-                                    alertText.textContent = `Webservice-Fehler (${label}): ${payload.item.dispatchError}`;
+                                    const label = payload.item.itemId || payload.item.uid || {{tr "item.label"}};
+                                    alertText.textContent = {{tr "webservice.error"}} + ` (${label}): ${payload.item.dispatchError}`;
                                     alertContainer.classList.remove('hidden');
                                 }
                             }
@@ -395,13 +395,13 @@
             function validateMarkerInput() {
                 if (!markerInput || !startBtn) return;
                 const val = markerInput.value.trim();
-                const isSessionActive = startLabel && startLabel.textContent === 'Neustart';
+                const isSessionActive = startLabel && startLabel.textContent === {{tr "common.restart"}};
                 if (val === '') {
                     startBtn.disabled = true;
-                    startBtn.title = 'Bitte Standort / Regal-Marker eingeben, um Inventur zu starten';
+                    startBtn.title = {{tr "inventory.markerRequiredHint"}};
                 } else {
                     startBtn.disabled = false;
-                    startBtn.title = isSessionActive ? 'Inventur neu starten' : 'Inventur mit aktuellem Marker starten';
+                    startBtn.title = isSessionActive ? {{tr "inventory.restart"}} : {{tr "inventory.startMarkerHint"}};
                 }
             }
 
@@ -436,29 +436,29 @@
 
                 if (session.active) {
                     if (session.paused) {
-                        if (statusLabel) statusLabel.textContent = 'Pausiert';
+                        if (statusLabel) statusLabel.textContent = {{tr "common.paused"}};
                         if (statusBadge) statusBadge.className = 'badge badge-sm badge-warning font-mono font-bold gap-1 px-2.5 py-3';
                         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-warning-content';
                         if (pauseBtn) pauseBtn.setAttribute('hx-post', 'inventory/resume');
-                        if (pauseLabel) pauseLabel.textContent = 'Fortsetzen';
+                        if (pauseLabel) pauseLabel.textContent = {{tr "common.resume"}};
                         if (pauseIcon) pauseIcon.className = 'app-icon icon-play w-3.5 h-3.5';
                     } else {
-                        if (statusLabel) statusLabel.textContent = 'Aktiv';
+                        if (statusLabel) statusLabel.textContent = {{tr "common.active"}};
                         if (statusBadge) statusBadge.className = 'badge badge-sm badge-success font-mono font-bold gap-1 px-2.5 py-3';
                         if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-success-content animate-pulse';
                         if (pauseBtn) pauseBtn.setAttribute('hx-post', 'inventory/pause');
-                        if (pauseLabel) pauseLabel.textContent = 'Pausieren';
+                        if (pauseLabel) pauseLabel.textContent = {{tr "common.pause"}};
                         if (pauseIcon) pauseIcon.className = 'app-icon icon-pause w-3.5 h-3.5';
                     }
-                    if (startLabel) startLabel.textContent = 'Neustart';
+                    if (startLabel) startLabel.textContent = {{tr "common.restart"}};
                     if (startBtn) startBtn.className = 'btn btn-sm btn-outline gap-1.5';
                 } else {
-                    if (statusLabel) statusLabel.textContent = 'Inaktiv';
+                    if (statusLabel) statusLabel.textContent = {{tr "common.inactive"}};
                     if (statusBadge) statusBadge.className = 'badge badge-sm badge-ghost font-mono font-bold gap-1 px-2.5 py-3';
                     if (statusDot) statusDot.className = 'w-2 h-2 rounded-full bg-base-content/40';
-                    if (startLabel) startLabel.textContent = 'Inventur starten';
+                    if (startLabel) startLabel.textContent = {{tr "inventory.start"}};
                     if (startBtn) startBtn.className = 'btn btn-sm btn-primary shadow-sm gap-1.5';
-                    if (pauseLabel) pauseLabel.textContent = 'Pausieren';
+                    if (pauseLabel) pauseLabel.textContent = {{tr "common.pause"}};
                     if (pauseBtn) pauseBtn.setAttribute('hx-post', 'inventory/pause');
                     if (pauseIcon) pauseIcon.className = 'app-icon icon-pause w-3.5 h-3.5';
                 }

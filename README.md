@@ -147,6 +147,10 @@ When `[elasticsearch]` is configured, the NFC lists look up each item's barcode 
 
 The server caches successful searches, including empty results, for 15 minutes (up to 10,000 barcodes); failures are not cached. Browser results are cached for five minutes and failed lookups for 30 seconds. A new lookup may therefore show cached data for up to 20 minutes after a catalog change; existing rows are refreshed when they are rendered again.
 
+The Library Desk UI supports German, English, French and Italian. The browser's preferred supported language is used by default; the language selector in the header saves an explicit choice in a cookie. German is the fallback for unsupported languages and untranslated messages. Rebuild and restart the application after changing embedded web assets.
+
+Go and JavaScript share the catalogs in `data/web/static/locales/{de,en,fr,it}.json`. Add the same stable ID to all four files; use `tr` in templates, `translate` in Go, or `t` in JavaScript. Preserve Go `fmt` specifiers and JavaScript `{name}` placeholders in translations. The browser loads the selected catalog and German fallback before initializing the interface.
+
 ---
 
 ## Testing & Quality Assurance

@@ -42,16 +42,17 @@ type Config struct {
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
 type Controller struct {
-	cfg              Config
-	router           *gin.Engine
-	server           http.Server
-	templates        *template.Template
-	logger           zLogger.ZLogger
-	hub              *desk.Hub
-	rfidClient       libraryclient.Client
-	encodeService    *EncodeService
-	inventoryService *InventoryService
-	catalogService   *catalogService
+	cfg               Config
+	router            *gin.Engine
+	server            http.Server
+	templates         *template.Template
+	languageTemplates map[string]*template.Template
+	logger            zLogger.ZLogger
+	hub               *desk.Hub
+	rfidClient        libraryclient.Client
+	encodeService     *EncodeService
+	inventoryService  *InventoryService
+	catalogService    *catalogService
 }
 
 // NewController creates and initializes the Web Controller instance.
@@ -139,12 +140,16 @@ func (ctrl *Controller) init() error {
 		ctrl.router.StaticFS("/static", http.FS(subStatic))
 
 		// Parse embedded HTML templates
-		tmpl, err := template.ParseFS(data.WebFS, "web/templates/*.gohtml")
-		if err != nil {
-			return errors.Wrap(err, "cannot parse embedded web templates")
+		ctrl.languageTemplates = make(map[string]*template.Template)
+		for _, lang := range []string{"de", "en", "fr", "it"} {
+			tmpl, err := template.New("").Funcs(templateFunctions(lang)).ParseFS(data.WebFS, "web/templates/*.gohtml")
+			if err != nil {
+				return errors.Wrap(err, "cannot parse embedded web templates")
+			}
+			ctrl.languageTemplates[lang] = tmpl
 		}
-		ctrl.templates = tmpl
-		ctrl.router.SetHTMLTemplate(tmpl)
+		ctrl.templates = ctrl.languageTemplates["de"]
+		ctrl.router.SetHTMLTemplate(ctrl.templates)
 
 		// Web Index (Channel Selection) route
 		ctrl.router.GET("/", ctrl.handleIndex)

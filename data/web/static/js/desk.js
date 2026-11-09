@@ -11,6 +11,12 @@ import { initShortcuts } from './modules/shortcuts.js';
 import { initCatalog } from './modules/catalog.js';
 
 export function initDesk() {
+    document.getElementById('language-selector')?.addEventListener('change', event => {
+        const language = event.target.value;
+        if (!['de', 'en', 'fr', 'it'].includes(language)) return;
+        document.cookie = `library_desk_language=${language}; Path=/; Max-Age=31536000; SameSite=Lax`;
+        window.location.reload();
+    });
     initAudio();
     initTableActions();
     initIsilFlyout();

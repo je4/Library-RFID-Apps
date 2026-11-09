@@ -3,6 +3,8 @@
  * Manages Web Audio API oscillator with harmonic tones for scan, success, warning, and error events.
  */
 
+import { t } from './i18n.js';
+
 const STORAGE_KEY = 'rfid_audio_enabled';
 
 let beepEnabled = false;
@@ -43,7 +45,7 @@ export function setAudioEnabled(enabled, persist = true) {
     if (soundToggle) {
         soundToggle.classList.toggle('active', beepEnabled);
         soundToggle.setAttribute('aria-pressed', beepEnabled ? 'true' : 'false');
-        soundToggle.setAttribute('title', beepEnabled ? 'Signalton ausschalten (Aktiv - Alt+T)' : 'Signalton einschalten (Inaktiv - Alt+T)');
+        soundToggle.setAttribute('title', t(beepEnabled ? 'audio.off' : 'audio.on'));
     }
     // Only eagerly resume/create audio context if triggered by user interaction (persist === true)
     if (beepEnabled && persist) {

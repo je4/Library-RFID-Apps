@@ -6,12 +6,12 @@
             {{if .ItemID}}
             <div class="inline-flex items-center space-x-1.5 flex-nowrap">
                 <span class="text-sm font-semibold tracking-wide loan-item-id">{{.ItemID}}</span>
-                <button type="button" class="copy-itemid-btn btn btn-ghost btn-xs btn-square" data-itemid="{{.ItemID}}" title="ItemID in Zwischenablage kopieren">
+                <button type="button" class="copy-itemid-btn btn btn-ghost btn-xs btn-square" data-itemid="{{.ItemID}}" title="{{tr "table.copyItemIdHint"}}">
                     <span class="app-icon icon-copy w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></span>
                 </button>
             </div>
             {{else}}
-            <span class="text-sm font-semibold tracking-wide text-base-content/40 italic"><span class="loan-item-id">Keine ItemID</span></span>
+            <span class="text-sm font-semibold tracking-wide text-base-content/40 italic"><span class="loan-item-id">{{tr "item.noItemId"}}</span></span>
             {{end}}
         </div>
         {{if .ItemID}}<div class="catalog-details font-sans whitespace-normal" data-catalog-barcode="{{.ItemID}}" aria-live="polite"></div>{{end}}
@@ -21,7 +21,7 @@
     <td class="py-3 px-4 sm:px-5 font-mono text-xs whitespace-nowrap">
         <div class="badge badge-ghost font-mono text-xs gap-1.5 py-2.5 px-2.5">
             <span class="whitespace-nowrap">{{.UID}}</span>
-            <button type="button" class="copy-uid-btn btn btn-ghost btn-xs btn-square h-5 w-5 min-h-0" data-uid="{{.UID}}" title="UID in Zwischenablage kopieren">
+            <button type="button" class="copy-uid-btn btn btn-ghost btn-xs btn-square h-5 w-5 min-h-0" data-uid="{{.UID}}" title="{{tr "tag.copyUidHint"}}">
                 <span class="app-icon icon-copy w-3.5 h-3.5 flex-shrink-0" aria-hidden="true"></span>
             </button>
         </div>
@@ -31,7 +31,7 @@
     <td class="py-3 px-4 sm:px-5 text-xs font-mono loan-parts-cell whitespace-nowrap">
         {{if .IsMultiPart}}
         <span class="loan-part-indicator badge badge-sm font-mono font-semibold text-xs py-2 px-2.5 inline-flex items-center gap-1.5 shadow-2xs" data-partno="{{.PartNo}}" data-parts="{{.Parts}}">
-            <span class="loan-part-label">Teil {{.PartNo}}/{{.Parts}}</span>
+            <span class="loan-part-label">{{tr "encode.part"}} {{.PartNo}}/{{.Parts}}</span>
             <span class="loan-part-status inline-flex items-center"></span>
         </span>
         {{else}}
@@ -50,7 +50,7 @@
                 <span>{{if .Country}}{{.Country}}-{{end}}{{.ISIL}}</span>
                 {{if .ISILEntry}}
                 <div class="app-isil-info-wrapper relative inline-flex items-center">
-                    <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-primary hover:text-primary-focus transition-colors" title="Bibliotheksdetails anzeigen (Mouseover)">
+                    <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-primary hover:text-primary-focus transition-colors" title="{{tr "library.detailsHint"}}">
                         <img src="{{.StaticPath}}/img/icons/info-circle.svg" class="w-3.5 h-3.5 flex-shrink-0" alt="Info" />
                     </span>
 
@@ -83,15 +83,15 @@
                         <div class="space-y-2 text-[11px] leading-relaxed font-sans">
                             {{if .ISILEntry.Mutterinstitution}}
                             <div>
-                                <span class="text-base-content/60 font-medium">Mutterinstitution:</span>
+                                <span class="text-base-content/60 font-medium">{{tr "library.parentInstitution"}}</span>
                                 <span class="font-medium break-words">{{.ISILEntry.Mutterinstitution}}</span>
                             </div>
                             {{end}}
 
                             {{if or .ISILEntry.Institutionstyp .ISILEntry.Institutionskategorie .ISILEntry.VZSigel}}
                             <div class="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-base-content/70">
-                                {{if .ISILEntry.Institutionstyp}}<span>Typ: <strong>{{.ISILEntry.Institutionstyp}}</strong></span>{{end}}
-                                {{if .ISILEntry.Institutionskategorie}}<span>Kategorie: <strong>{{.ISILEntry.Institutionskategorie}}</strong></span>{{end}}
+                                {{if .ISILEntry.Institutionstyp}}<span>{{tr "library.type"}} <strong>{{.ISILEntry.Institutionstyp}}</strong></span>{{end}}
+                                {{if .ISILEntry.Institutionskategorie}}<span>{{tr "library.category"}} <strong>{{.ISILEntry.Institutionskategorie}}</strong></span>{{end}}
                                 {{if .ISILEntry.VZSigel}}<span>VZ-Sigel: <strong class="font-mono">{{.ISILEntry.VZSigel}}</strong></span>{{end}}
                             </div>
                             {{end}}
@@ -99,10 +99,10 @@
                             <!-- Adresse -->
                             {{if or .ISILEntry.Strasse .ISILEntry.Ortschaft .ISILEntry.Postfach}}
                             <div class="pt-1 border-t border-base-200">
-                                <div class="text-base-content/60 font-medium mb-0.5">Adresse:</div>
+                                <div class="text-base-content/60 font-medium mb-0.5">{{tr "library.address"}}</div>
                                 <div class="pl-2 border-l-2 border-primary/40 space-y-0.5">
                                     {{if .ISILEntry.Strasse}}<div>{{.ISILEntry.Strasse}}{{if .ISILEntry.Adresszusatz}}, {{.ISILEntry.Adresszusatz}}{{end}}</div>{{end}}
-                                    {{if .ISILEntry.Postfach}}<div class="text-[10px] text-base-content/70">Postfach: {{.ISILEntry.Postfach}}</div>{{end}}
+                                    {{if .ISILEntry.Postfach}}<div class="text-[10px] text-base-content/70">{{tr "library.poBox"}} {{.ISILEntry.Postfach}}</div>{{end}}
                                     <div>{{.ISILEntry.Postleitzahl}} {{.ISILEntry.Ortschaft}}{{if .ISILEntry.Kanton}} ({{.ISILEntry.Kanton}}){{end}}</div>
                                     {{if .ISILEntry.Land}}<div class="text-[10px] text-base-content/70">{{.ISILEntry.Land}}</div>{{end}}
                                 </div>
@@ -114,7 +114,7 @@
                             <div class="pt-1 border-t border-base-200 space-y-1">
                                 {{if .ISILEntry.Telefon}}
                                 <div class="flex items-center space-x-1.5">
-                                    <span class="text-base-content/60 w-12 flex-shrink-0">Telefon:</span>
+                                    <span class="text-base-content/60 w-12 flex-shrink-0">{{tr "library.phone"}}</span>
                                     <a href="tel:{{.ISILEntry.Telefon}}" class="font-mono hover:text-primary transition-colors">{{.ISILEntry.Telefon}}</a>
                                 </div>
                                 {{end}}
@@ -139,7 +139,7 @@
                             <!-- Fernleihe -->
                             {{if or .ISILEntry.FernleiheMail .ISILEntry.FernleiheTelefon .ISILEntry.FernleiheOrtschaft}}
                             <div class="pt-1 border-t border-base-200">
-                                <div class="text-base-content/60 font-medium mb-0.5">Fernleihe:</div>
+                                <div class="text-base-content/60 font-medium mb-0.5">{{tr "library.interlibraryLoan"}}</div>
                                 <div class="pl-2 border-l-2 border-secondary/40 space-y-0.5 text-[10px]">
                                     {{if .ISILEntry.FernleiheMail}}<div>Mail: <a href="mailto:{{.ISILEntry.FernleiheMail}}" class="text-primary hover:underline break-all">{{.ISILEntry.FernleiheMail}}</a></div>{{end}}
                                     {{if .ISILEntry.FernleiheTelefon}}<div>Tel: <span class="font-mono">{{.ISILEntry.FernleiheTelefon}}</span></div>{{end}}
@@ -153,11 +153,11 @@
                             <!-- Bestand & Services -->
                             {{if or .ISILEntry.Bibliotheksbestand .ISILEntry.OnlineKatalog .ISILEntry.Zugangsbedingungen .ISILEntry.Zugaenglichkeitsgrad .ISILEntry.Mitgliedschaft}}
                             <div class="pt-1 border-t border-base-200 space-y-1 text-[10px]">
-                                {{if .ISILEntry.Bibliotheksbestand}}<div><span class="text-base-content/60">Bestand:</span> <span class="break-words">{{.ISILEntry.Bibliotheksbestand}}</span></div>{{end}}
-                                {{if .ISILEntry.OnlineKatalog}}<div><span class="text-base-content/60">Katalog:</span> <a href="{{.ISILEntry.OnlineKatalog}}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline break-all">Online-Katalog öffnen</a></div>{{end}}
-                                {{if .ISILEntry.Zugangsbedingungen}}<div><span class="text-base-content/60">Zugang:</span> <span class="break-words">{{.ISILEntry.Zugangsbedingungen}}</span></div>{{end}}
-                                {{if .ISILEntry.Zugaenglichkeitsgrad}}<div><span class="text-base-content/60">Zugänglichkeit:</span> <span class="break-words">{{.ISILEntry.Zugaenglichkeitsgrad}}</span></div>{{end}}
-                                {{if .ISILEntry.Mitgliedschaft}}<div><span class="text-base-content/60">Mitgliedschaft:</span> <span class="break-words">{{.ISILEntry.Mitgliedschaft}}</span></div>{{end}}
+                                {{if .ISILEntry.Bibliotheksbestand}}<div><span class="text-base-content/60">{{tr "library.holdings"}}</span> <span class="break-words">{{.ISILEntry.Bibliotheksbestand}}</span></div>{{end}}
+                                {{if .ISILEntry.OnlineKatalog}}<div><span class="text-base-content/60">{{tr "library.catalog"}}</span> <a href="{{.ISILEntry.OnlineKatalog}}" target="_blank" rel="noopener noreferrer" class="text-primary hover:underline break-all">{{tr "catalog.openOnline"}}</a></div>{{end}}
+                                {{if .ISILEntry.Zugangsbedingungen}}<div><span class="text-base-content/60">{{tr "library.access"}}</span> <span class="break-words">{{.ISILEntry.Zugangsbedingungen}}</span></div>{{end}}
+                                {{if .ISILEntry.Zugaenglichkeitsgrad}}<div><span class="text-base-content/60">{{tr "library.accessibility"}}</span> <span class="break-words">{{.ISILEntry.Zugaenglichkeitsgrad}}</span></div>{{end}}
+                                {{if .ISILEntry.Mitgliedschaft}}<div><span class="text-base-content/60">{{tr "library.membership"}}</span> <span class="break-words">{{.ISILEntry.Mitgliedschaft}}</span></div>{{end}}
                             </div>
                             {{end}}
                         </div>
@@ -176,12 +176,12 @@
         {{if .CRCOk}}
         <span class="inline-flex items-center gap-1.5 text-success font-medium">
             <span class="app-icon icon-check w-3.5 h-3.5" aria-hidden="true"></span>
-            <span>OK (Gültig)</span>
+            <span>{{tr "tag.valid"}}</span>
         </span>
         {{else}}
         <span class="inline-flex items-center gap-1.5 text-error font-medium">
             <span class="app-icon icon-x-mark w-3.5 h-3.5" aria-hidden="true"></span>
-            <span>Fehler</span>
+            <span>{{tr "common.error"}}</span>
         </span>
         {{end}}
     </td>
@@ -191,14 +191,14 @@
         <div class="flex flex-col space-y-1">
             <div class="flex items-center space-x-1.5 flex-wrap gap-1">
                 {{if .AFISecured}}
-                <span class="inline-flex items-center gap-1.5 text-info font-medium" title="AFI 07: Gesichert / Präsenzbestand / EAS aktiv">
+                <span class="inline-flex items-center gap-1.5 text-info font-medium" title="{{tr "afi.securedDescription"}}">
                     <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
-                    <span>Gesichert (07)</span>
+                    <span>{{tr "afi.securedCode"}}</span>
                 </span>
                 {{else if .AFIUnsecured}}
-                <span class="inline-flex items-center gap-1.5 text-success font-medium" title="AFI C2: Entsichert / Ausgeliehen / EAS deaktiviert">
+                <span class="inline-flex items-center gap-1.5 text-success font-medium" title="{{tr "afi.unsecuredDescription"}}">
                     <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
-                    <span>Entsichert (C2)</span>
+                    <span>{{tr "afi.unsecuredCode"}}</span>
                 </span>
                 {{else if .AFI}}
                 <span class="font-mono">AFI: {{.AFI}}</span>
@@ -207,11 +207,11 @@
                 {{end}}
 
                 {{if eq .AFIWriteStatus "success"}}
-                <span class="badge badge-xs badge-success text-[10px]" title="AFI erfolgreich geschrieben">Erfolg</span>
+                <span class="badge badge-xs badge-success text-[10px]" title="{{tr "afi.writeSuccess"}}">{{tr "common.success"}}</span>
                 {{else if eq .AFIWriteStatus "error"}}
-                <span class="badge badge-xs badge-error text-[10px]" title="{{if .AFIWriteError}}{{.AFIWriteError}}{{else}}Fehler beim AFI-Schreiben{{end}}">Fehler</span>
+                <span class="badge badge-xs badge-error text-[10px]" title="{{if .AFIWriteError}}{{.AFIWriteError}}{{else}}{{tr "afi.errorWriting"}}{{end}}">{{tr "common.error"}}</span>
                 {{else if or (eq .AFIWriteStatus "pending") .AFIWritePending}}
-                <span class="badge badge-xs badge-warning text-[10px] animate-pulse">Schreiben...</span>
+                <span class="badge badge-xs badge-warning text-[10px] animate-pulse">{{tr "common.writing"}}</span>
                 {{end}}
             </div>
             {{if and (eq .AFIWriteStatus "error") .AFIWriteError}}
@@ -231,8 +231,8 @@
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="btn btn-xs btn-outline btn-warning"
-                    title="Diesen Transponder einzeln entsichern (C2)"
-                    aria-label="Entsichern">
+                    title="{{tr "afi.unsecureTagHint"}}"
+                    aria-label="{{tr "afi.unsecure"}}">
                 <span class="app-icon icon-lock-open w-3.5 h-3.5" aria-hidden="true"></span>
             </button>
             {{end}}
@@ -242,8 +242,8 @@
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="btn btn-xs btn-outline btn-info"
-                    title="Diesen Transponder einzeln sichern (07)"
-                    aria-label="Sichern">
+                    title="{{tr "afi.secureTagHint"}}"
+                    aria-label="{{tr "afi.secure"}}">
                 <span class="app-icon icon-lock-closed w-3.5 h-3.5" aria-hidden="true"></span>
             </button>
             {{end}}
@@ -252,8 +252,8 @@
                     hx-target="#loan-table-body"
                     hx-swap="innerHTML"
                     class="btn btn-xs btn-outline btn-warning"
-                    title="Diesen Transponder leeren (Daten löschen, AFI entsichern)"
-                    aria-label="Transponder leeren">
+                    title="{{tr "tag.clearHint"}}"
+                    aria-label="{{tr "tag.clearTransponder"}}">
                 <span class="app-icon icon-trash w-3.5 h-3.5" aria-hidden="true"></span>
             </button>
         </div>
@@ -262,6 +262,6 @@
     <!-- Erfassungszeit -->
     <td class="py-3 px-4 sm:px-5 text-xs text-right whitespace-nowrap">
         <div class="font-mono text-base-content/90">{{.TimeFormatted}}</div>
-        <div class="text-[11px] text-base-content/50 time-ago" data-timestamp="{{.Timestamp}}">gerade eben</div>
+        <div class="text-[11px] text-base-content/50 time-ago" data-timestamp="{{.Timestamp}}">{{tr "table.justNow"}}</div>
     </td>
 </tr>

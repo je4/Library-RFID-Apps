@@ -9,6 +9,7 @@ import "embed"
 //go:embed web/static/scss/*.map
 //go:embed web/static/img/*
 //go:embed web/static/js/*
+//go:embed web/static/locales/*.json
 //go:embed web/templates/*
 //go:embed isil-schweiz.csv.bz2
 var WebFS embed.FS

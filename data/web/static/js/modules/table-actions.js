@@ -4,6 +4,8 @@
  * AFI row color highlights, multi-part set completeness checks, and dynamic bulk action counters.
  */
 
+import { t } from './i18n.js';
+
 export function applyFilter() {
     const filterInput = document.getElementById('tag-filter-input');
     const query = (filterInput ? filterInput.value : '').toLowerCase().trim();
@@ -26,13 +28,13 @@ export function updateTimeAgoLabels() {
         if (ts > 0) {
             const diff = now - Math.floor(ts / 1000);
             if (diff < 5) {
-                el.textContent = 'gerade eben';
+                el.textContent = t('table.now');
             } else if (diff < 60) {
-                el.textContent = 'vor ' + diff + 's';
+                el.textContent = t('table.seconds', { count: diff });
             } else if (diff < 3600) {
-                el.textContent = 'vor ' + Math.floor(diff / 60) + 'm';
+                el.textContent = t('table.minutes', { count: Math.floor(diff / 60) });
             } else {
-                el.textContent = 'vor ' + Math.floor(diff / 3600) + 'h';
+                el.textContent = t('table.hours', { count: Math.floor(diff / 3600) });
             }
         }
     });
@@ -99,15 +101,15 @@ export function updateLoanTableEnhancements() {
                 if (hasError) {
                     indicatorEl.classList.add('part-error');
                     statusEl.innerHTML = `<span class="app-icon icon-x-mark text-error w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true"></span>`;
-                    indicatorEl.setAttribute('title', `Fehlerhafter Transponder / Lesefehler bei diesem Teil`);
+                    indicatorEl.setAttribute('title', t('table.partError'));
                 } else if (isComplete) {
                     indicatorEl.classList.add('part-complete');
                     statusEl.innerHTML = `<span class="app-icon icon-check text-success w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true"></span>`;
-                    indicatorEl.setAttribute('title', `Vollständiges Set: Alle ${group.totalParts} Teile liegen auf dem Lesegerät`);
+                    indicatorEl.setAttribute('title', t('table.complete', { total: group.totalParts }));
                 } else {
                     indicatorEl.classList.add('part-incomplete');
                     statusEl.innerHTML = `<span class="app-icon icon-alert-circle text-warning w-3.5 h-3.5 inline-block shrink-0" aria-hidden="true"></span><span class="text-[11px] text-base-content font-bold">(${group.partNumbers.size}/${group.totalParts})</span>`;
-                    indicatorEl.setAttribute('title', `Achtung: Unvollständiges Set (${group.partNumbers.size} von ${group.totalParts} Teilen liegen auf dem Lesegerät)`);
+                    indicatorEl.setAttribute('title', t('table.incomplete', { count: group.partNumbers.size, total: group.totalParts }));
                 }
             } else if (statusEl) {
                 statusEl.innerHTML = '';
@@ -136,26 +138,26 @@ export function updateLoanTableEnhancements() {
     if (unsecureBtn) {
         if (totalCount === 0) {
             unsecureBtn.disabled = true;
-            if (unsecureLabel) unsecureLabel.textContent = 'Entsichern';
+            if (unsecureLabel) unsecureLabel.textContent = t('table.unsecure');
         } else if (countNotUnsecured > 0) {
             unsecureBtn.disabled = false;
-            if (unsecureLabel) unsecureLabel.textContent = totalCount === 1 ? '1 Medium entsichern (C2)' : `Alle ${totalCount} Medien entsichern (C2)`;
+            if (unsecureLabel) unsecureLabel.textContent = totalCount === 1 ? t('table.unsecureOne') : t('table.unsecureAll', { count: totalCount });
         } else {
             unsecureBtn.disabled = true;
-            if (unsecureLabel) unsecureLabel.textContent = 'Bereits alle entsichert (C2)';
+            if (unsecureLabel) unsecureLabel.textContent = t('table.unsecured');
         }
     }
 
     if (secureBtn) {
         if (totalCount === 0) {
             secureBtn.disabled = true;
-            if (secureLabel) secureLabel.textContent = 'Sichern';
+            if (secureLabel) secureLabel.textContent = t('table.secure');
         } else if (countNotSecured > 0) {
             secureBtn.disabled = false;
-            if (secureLabel) secureLabel.textContent = totalCount === 1 ? '1 Medium sichern (07)' : `Alle ${totalCount} Medien sichern (07)`;
+            if (secureLabel) secureLabel.textContent = totalCount === 1 ? t('table.secureOne') : t('table.secureAll', { count: totalCount });
         } else {
             secureBtn.disabled = true;
-            if (secureLabel) secureLabel.textContent = 'Bereits alle gesichert (07)';
+            if (secureLabel) secureLabel.textContent = t('table.secured');
         }
     }
 }
@@ -182,10 +184,10 @@ export function initTableActions() {
             });
 
             const copyLabel = document.getElementById('copy-all-label');
-            const originalLabel = copyLabel ? copyLabel.textContent : 'Item-IDs kopieren';
+            const originalLabel = copyLabel ? copyLabel.textContent : t('table.copy');
 
             if (itemIds.length === 0) {
-                if (copyLabel) copyLabel.textContent = 'Keine IDs vorhanden';
+                if (copyLabel) copyLabel.textContent = t('table.noIds');
                 setTimeout(() => {
                     if (copyLabel) copyLabel.textContent = originalLabel;
                 }, 2000);
@@ -195,7 +197,7 @@ export function initTableActions() {
             const clipboardText = itemIds.join('\n');
             if (navigator.clipboard) {
                 navigator.clipboard.writeText(clipboardText).then(() => {
-                    if (copyLabel) copyLabel.textContent = `Kopiert (${itemIds.length})`;
+                    if (copyLabel) copyLabel.textContent = t('table.copiedCount', { count: itemIds.length });
                     copyAllBtn.classList.add('copied', 'btn-success');
                     setTimeout(() => {
                         if (copyLabel) copyLabel.textContent = originalLabel;
@@ -217,7 +219,8 @@ export function initTableActions() {
                 navigator.clipboard.writeText(textToCopy).then(() => {
                     const originalHtml = btn.innerHTML;
                     btn.classList.add('btn-active');
-                    btn.innerHTML = '<span class="text-success text-xs font-bold">Kopiert!</span>';
+                    btn.innerHTML = '<span class="text-success text-xs font-bold"></span>';
+                    btn.firstElementChild.textContent = t('table.copied');
                     setTimeout(() => {
                         btn.innerHTML = originalHtml;
                         btn.classList.remove('btn-active');

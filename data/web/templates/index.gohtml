@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
+<html lang="{{lang}}" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFID Desk - Channel-Auswahl - {{.ClientName}}</title>
+    <title>{{tr "channel.title"}} - {{.ClientName}}</title>
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script src="{{.StaticPath}}/js/theme-init.js"></script>
     <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->
@@ -26,23 +26,23 @@
             <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <h2 class="text-base font-semibold">Verfügbare Channels</h2>
+                        <h2 class="text-base font-semibold">{{tr "channel.available"}}</h2>
                         <span class="badge badge-sm badge-outline font-mono">{{len .Channels}}</span>
                     </div>
                 </div>
-                <p class="text-xs text-base-content/70">Wählen Sie einen Channel aus, um die Desk- und Ausleihansicht zu öffnen</p>
+                <p class="text-xs text-base-content/70">{{tr "channel.selectHint"}}</p>
             </div>
 
             <div class="p-5 sm:p-6 lg:p-7">
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" id="channel-selection-list">
                     {{range .Channels}}
-                    <a href="{{.}}/" class="card card-border card-sm bg-base-100 hover:bg-base-200/60 border-base-200 shadow-sm hover:shadow-md transition-all duration-200 group flex flex-row items-center justify-between p-4 sm:p-5" title="Channel {{.}} öffnen">
+                    <a href="{{.}}/" class="card card-border card-sm bg-base-100 hover:bg-base-200/60 border-base-200 shadow-sm hover:shadow-md transition-all duration-200 group flex flex-row items-center justify-between p-4 sm:p-5" title="{{tr "channel.label"}} {{.}} {{tr "common.open"}}">
                         <div class="flex items-center space-x-3.5">
                             <div class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0 transition-transform duration-200 group-hover:scale-105">
                                 <span class="app-icon icon-channel w-5 h-5" aria-hidden="true"></span>
                             </div>
                             <div class="flex flex-col">
-                                <span class="badge badge-xs badge-ghost w-fit mb-0.5">Channel</span>
+                                <span class="badge badge-xs badge-ghost w-fit mb-0.5">{{tr "channel.label"}}</span>
                                 <span class="text-base font-bold font-mono group-hover:text-primary transition-colors">{{.}}</span>
                             </div>
                         </div>
@@ -52,7 +52,7 @@
                     </a>
                     {{else}}
                     <div class="col-span-full py-12 text-center text-sm text-base-content/60">
-                        Keine Channels konfiguriert.
+                        {{tr "channel.none"}}
                     </div>
                     {{end}}
                 </div>

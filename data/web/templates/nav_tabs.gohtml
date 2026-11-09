@@ -1,5 +1,5 @@
 <!-- Navigation Tabs for Desk, Loan, Encode & Inventory with Integrated Status Metrics -->
-<nav class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3" aria-label="Hauptnavigation">
+<nav class="w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3" aria-label="{{tr "navigation.main"}}">
     <!-- Tab List -->
     <div role="tablist" class="tabs tabs-boxed bg-base-100 p-1.5 border border-base-200 shadow-sm rounded-2xl flex flex-wrap gap-1.5">
         <!-- Tab 1: Desk (Live-Monitor) -->
@@ -7,9 +7,9 @@
            id="nav-desk-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if not (or .IsLoan .IsEncode .IsInventory)}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zur Live-Übersicht (Desk) - Alt+1">
+           title="{{tr "navigation.deskHint"}}">
             <span class="app-icon icon-home w-4 h-4" aria-hidden="true"></span>
-            <span>Desk</span>
+            <span>{{tr "navigation.desk"}}</span>
             {{if not (or .IsLoan .IsEncode .IsInventory)}}
             <span id="stats-total-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
             {{end}}
@@ -21,9 +21,9 @@
            id="nav-loan-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsLoan}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zum Ausleih- und Rückgabemodus - Alt+2">
+           title="{{tr "navigation.loanHint"}}">
             <span class="app-icon icon-book-open w-4 h-4" aria-hidden="true"></span>
-            <span>Ausleihe &amp; Rückgabe</span>
+            <span>{{tr "navigation.loanReturn"}}</span>
             {{if .IsLoan}}
             <span id="stats-active-tags" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{len .Tags}}</span>
             {{end}}
@@ -35,9 +35,9 @@
            id="nav-encode-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsEncode}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zum RFID-Kodiermodus - Alt+3">
+           title="{{tr "navigation.encodeHint"}}">
             <span class="app-icon icon-tag w-4 h-4" aria-hidden="true"></span>
-            <span>Medium kodieren</span>
+            <span>{{tr "navigation.encode"}}</span>
             <kbd class="hidden md:inline-flex kbd kbd-xs {{if .IsEncode}}bg-primary-content/20 text-primary-content border-none{{else}}bg-base-200 text-base-content/60 border border-base-300{{end}}">Alt+3</kbd>
         </a>
 
@@ -47,9 +47,9 @@
            id="nav-inventory-btn"
            role="tab"
            class="tab h-10 px-4 flex-1 sm:flex-none inline-flex items-center justify-center gap-2 font-medium rounded-xl transition-all {{if .IsInventory}}tab-active !bg-primary !text-primary-content shadow-sm font-semibold{{else}}hover:bg-base-200 text-base-content{{end}}"
-           title="Zum Inventurmodus - Alt+4">
+           title="{{tr "navigation.inventoryHint"}}">
             <span class="app-icon icon-archive w-4 h-4" aria-hidden="true"></span>
-            <span>Inventur</span>
+            <span>{{tr "navigation.inventory"}}</span>
             {{if .IsInventory}}
             <span id="stats-inventory-items" class="badge badge-sm font-mono font-bold ml-0.5 bg-primary-content text-primary border-none">{{.TotalScans}}</span>
             {{end}}
@@ -61,9 +61,9 @@
     <!-- Secondary Info Pills -->
     <div class="hidden sm:flex items-center flex-wrap gap-2 text-xs font-mono">
         <!-- Channel Pill -->
-        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="Aktiver Channel">
+        <div class="nav-stat-pill bg-base-100 border border-base-200 rounded-xl px-3 py-2 flex items-center gap-1.5 shadow-xs text-base-content/80" title="{{tr "channel.active"}}">
             <span class="app-icon icon-channel w-3.5 h-3.5 text-secondary shrink-0" aria-hidden="true"></span>
-            <span class="text-base-content/70">Channel:</span>
+            <span class="text-base-content/70">{{tr "channel.labelColon"}}</span>
             <strong class="text-secondary font-semibold">{{if .Channel}}{{.Channel}}{{else}}all{{end}}</strong>
         </div>
 

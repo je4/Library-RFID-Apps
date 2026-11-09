@@ -1,3 +1,5 @@
+import { t } from './i18n.js';
+
 const cache = new Map();
 const CACHE_LIMIT = 300;
 const SUCCESS_TTL = 5 * 60 * 1000;
@@ -16,7 +18,7 @@ function lookup(barcode) {
     const now = Date.now();
     const cached = cache.get(barcode);
     if (cached && cached.expires > now) return cached.promise;
-    if (now < unavailableUntil) return Promise.resolve({ message: 'Katalog nicht verfügbar' });
+    if (now < unavailableUntil) return Promise.resolve({ message: t('catalog.unavailable') });
 
     const entry = { expires: Infinity };
     entry.promise = fetch(catalogURL(barcode))
@@ -32,7 +34,7 @@ function lookup(barcode) {
         })
         .catch(() => {
             entry.expires = Date.now() + ERROR_TTL;
-            return { message: 'Katalog nicht verfügbar' };
+            return { message: t('catalog.unavailable') };
         });
     cache.delete(barcode);
     cache.set(barcode, entry);
@@ -75,13 +77,13 @@ function sourceRecordURL(id, mappings) {
 function openSourceRecord(url) {
     const dialog = document.createElement('dialog');
     dialog.className = 'modal';
-    dialog.setAttribute('aria-label', 'Quelldaten');
+    dialog.setAttribute('aria-label', t('catalog.source'));
     const box = document.createElement('div');
     box.className = 'modal-box w-11/12 max-w-5xl';
     const heading = document.createElement('h2');
-    heading.textContent = 'Quelldaten';
+    heading.textContent = t('catalog.source');
     const frame = document.createElement('iframe');
-    frame.title = 'Quelldaten auf Swisscovery';
+    frame.title = t('catalog.frame');
     frame.src = url;
     frame.className = 'w-full h-[70vh]';
     const fallback = document.createElement('a');
@@ -89,12 +91,12 @@ function openSourceRecord(url) {
     fallback.target = '_blank';
     fallback.rel = 'noopener noreferrer';
     fallback.className = 'link';
-    fallback.textContent = 'Quelldaten in neuem Tab öffnen';
+    fallback.textContent = t('catalog.open');
     const form = document.createElement('form');
     form.method = 'dialog';
     form.className = 'modal-action';
     const close = document.createElement('button');
-    close.textContent = 'Schliessen';
+    close.textContent = t('catalog.close');
     close.className = 'btn';
     form.appendChild(close);
     box.appendChild(heading);
@@ -106,7 +108,7 @@ function openSourceRecord(url) {
     backdrop.method = 'dialog';
     backdrop.className = 'modal-backdrop';
     const backdropClose = document.createElement('button');
-    backdropClose.textContent = 'Schliessen';
+    backdropClose.textContent = t('catalog.close');
     backdrop.appendChild(backdropClose);
     dialog.appendChild(backdrop);
     dialog.addEventListener('close', () => dialog.remove());
@@ -117,7 +119,7 @@ function openSourceRecord(url) {
 function render(target, result) {
     target.replaceChildren();
     if (result.message || !result.books.length) {
-        target.textContent = result.message || 'Kein Katalogeintrag gefunden';
+        target.textContent = result.message || t('catalog.empty');
         return;
     }
     for (const book of result.books) {
@@ -125,32 +127,32 @@ function render(target, result) {
         const lines = [];
         const titles = values(book.titles, title => title?.title);
         const subtitles = values(book.titles, title => title?.subTitle);
-        if (subtitles.length) lines.push(['Untertitel', subtitles.join(' / ')]);
+        if (subtitles.length) lines.push([t('catalog.subtitle'), subtitles.join(' / ')]);
         const names = values([...(book.personalNames || []), ...(book.corporateNames || [])], group =>
             group && typeof group === 'object' ? Object.values(group).map(name => name?.namePart) : []);
-        if (names.length) lines.push(['Autor', [...new Set(names)].join(', ')]);
+        if (names.length) lines.push([t('catalog.author'), [...new Set(names)].join(', ')]);
         const publications = values(book.publications, publication => publication && [
             ...(publication.place || []), ...(publication.publisher || []), publication.dateString
         ].filter(Boolean).join(', '));
-        if (publications.length) lines.push(['Publikation', publications.join(' / ')]);
+        if (publications.length) lines.push([t('catalog.publication'), publications.join(' / ')]);
         const holdings = values(book.holdings, holding => {
             if (!holding) return [];
             const signatures = values(holding.items, item => item?.itemCallNumber);
             if (holding.callNumber) signatures.push(holding.callNumber);
             return [...new Set(signatures)].map(signature => [signature, holding.library, holding.location].filter(Boolean).join(' – '));
         });
-        if (holdings.length) lines.push(['Signatur', holdings.join(' / ')]);
+        if (holdings.length) lines.push([t('catalog.signature'), holdings.join(' / ')]);
         const detail = document.createElement('div');
         detail.className = 'text-xs font-normal';
         const title = document.createElement('div');
-        title.textContent = titles.join(' / ') || 'Titel nicht verfügbar';
+        title.textContent = titles.join(' / ') || t('catalog.noTitle');
         detail.appendChild(title);
         const sourceURL = sourceRecordURL(book.id, result.sourceRecords);
         if (sourceURL) {
             const link = document.createElement('a');
             link.href = sourceURL;
             link.className = 'link';
-            link.textContent = 'Quelldaten';
+            link.textContent = t('catalog.source');
             link.addEventListener('click', event => {
                 if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
                 event.preventDefault();
@@ -161,7 +163,7 @@ function render(target, result) {
         if (lines.length) {
             const details = document.createElement('details');
             const summary = document.createElement('summary');
-            summary.textContent = 'Weitere Angaben';
+            summary.textContent = t('catalog.details');
             details.appendChild(summary);
             for (const [label, value] of lines) {
                 const row = document.createElement('div');
@@ -177,7 +179,7 @@ function render(target, result) {
         }
         target.appendChild(detail);
     }
-    if (!target.hasChildNodes()) target.textContent = 'Kein Katalogeintrag gefunden';
+    if (!target.hasChildNodes()) target.textContent = t('catalog.empty');
 }
 
 function load(target) {
@@ -185,7 +187,7 @@ function load(target) {
     const barcode = target.dataset.catalogBarcode?.trim();
     if (!barcode) return;
     target.dataset.catalogLoaded = 'true';
-    target.textContent = 'Katalog wird geladen…';
+    target.textContent = t('catalog.loading');
     lookup(barcode).then(result => render(target, result));
 }
 

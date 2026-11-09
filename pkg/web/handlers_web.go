@@ -94,15 +94,7 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		}
 	}
 
-	var errorMsg, successMsg string
-	if errorCount > 0 && successCount > 0 {
-		successMsg = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
-		errorMsg = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
-	} else if errorCount > 0 && successCount == 0 {
-		errorMsg = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
-	}
-
-	return desk.LoanData{
+	data := desk.LoanData{
 		ClientName:        ctrl.cfg.ClientName,
 		WSBroker:          ctrl.cfg.WSBroker,
 		Channels:          ctrl.cfg.Channels,
@@ -113,12 +105,12 @@ func (ctrl *Controller) getLoanData(channel ...string) desk.LoanData {
 		WriteSuccessCount: successCount,
 		WriteErrorCount:   errorCount,
 		FailedItems:       failedItems,
-		ErrorMessage:      errorMsg,
-		SuccessMessage:    successMsg,
 		Skin:              "default",
 		StaticPath:        "../static",
 		InventoryEnabled:  ctrl.cfg.Inventory.Enabled,
 	}
+	success, failure := loanCountMessages(successCount, errorCount)
+	return localizeLoanMessages(data, "de", success, failure)
 }
 
 func getThemeFromCookie(c *gin.Context) string {
@@ -179,7 +171,7 @@ func (ctrl *Controller) handleIndex(c *gin.Context) {
 	data := ctrl.getDeskData()
 	data.Skin = getSkinFromCookie(c)
 	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
-	c.HTML(http.StatusOK, "index.gohtml", data)
+	ctrl.renderHTML(c, http.StatusOK, "index.gohtml", data)
 }
 
 func (ctrl *Controller) handleChannelIndex(c *gin.Context) {
@@ -187,22 +179,26 @@ func (ctrl *Controller) handleChannelIndex(c *gin.Context) {
 	data := ctrl.getDeskData(channel)
 	data.Skin = getSkinFromCookie(c)
 	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
-	c.HTML(http.StatusOK, "desk.gohtml", data)
+	ctrl.renderHTML(c, http.StatusOK, "desk.gohtml", data)
 }
 
 func (ctrl *Controller) handleLoan(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getLoanData(channel)
+	success, failure := loanCountMessages(data.WriteSuccessCount, data.WriteErrorCount)
+	data = localizeLoanMessages(data, requestLanguage(c.Request), success, failure)
 	data.Skin = getSkinFromCookie(c)
 	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
-	c.HTML(http.StatusOK, "loan.gohtml", data)
+	ctrl.renderHTML(c, http.StatusOK, "loan.gohtml", data)
 }
 
 func (ctrl *Controller) handleLoanTagsFragment(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getLoanData(channel)
+	success, failure := loanCountMessages(data.WriteSuccessCount, data.WriteErrorCount)
+	data = localizeLoanMessages(data, requestLanguage(c.Request), success, failure)
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+	if err := ctrl.requestTemplate(c).ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
 		c.String(http.StatusInternalServerError, "error rendering template")
 		return
 	}
@@ -260,14 +256,14 @@ func (ctrl *Controller) handleEncode(c *gin.Context) {
 	data := ctrl.getEncodeData(channel)
 	data.Skin = getSkinFromCookie(c)
 	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
-	c.HTML(http.StatusOK, "encode.gohtml", data)
+	ctrl.renderHTML(c, http.StatusOK, "encode.gohtml", data)
 }
 
 func (ctrl *Controller) handleEncodeTagsFragment(c *gin.Context) {
 	channel := c.Param("channel")
 	data := ctrl.getEncodeData(channel)
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+	if err := ctrl.requestTemplate(c).ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
 		c.String(http.StatusInternalServerError, "error rendering template")
 		return
 	}
@@ -277,7 +273,7 @@ func (ctrl *Controller) handleEncodeTagsFragment(c *gin.Context) {
 // WriteTagPayload defines the JSON/form payload for writing metadata to an RFID tag.
 type WriteTagPayload = WriteTagRequestPayload
 
-func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, payload WriteTagPayload) (gin.H, int) {
+func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, payload WriteTagPayload, language ...string) (gin.H, int) {
 	if ctrl.encodeService == nil {
 		ctrl.encodeService = NewEncodeService(
 			ctrl.hub,
@@ -289,7 +285,11 @@ func (ctrl *Controller) executeWriteTag(ctx context.Context, channel string, pay
 		)
 	}
 
-	res, statusCode := ctrl.encodeService.ExecuteWriteTag(ctx, channel, payload)
+	lang := "de"
+	if len(language) > 0 {
+		lang = language[0]
+	}
+	res, statusCode := ctrl.encodeService.executeWriteTag(ctx, channel, payload, lang)
 	if statusCode == http.StatusOK {
 		ctrl.broadcastLoanTable(channel)
 	}
@@ -302,17 +302,17 @@ func (ctrl *Controller) handleEncodeWrite(c *gin.Context) {
 
 	if c.ContentType() == "application/json" || strings.Contains(c.GetHeader("Content-Type"), "application/json") {
 		if err := c.ShouldBindJSON(&payload); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": "Ungültiges JSON-Payload: " + err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": fmt.Sprintf(translate(requestLanguage(c.Request), "api.invalidJson"), err.Error())})
 			return
 		}
 	} else {
 		if err := c.ShouldBind(&payload); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": "Ungültige Formulardaten: " + err.Error()})
+			c.JSON(http.StatusBadRequest, gin.H{"status": "error", "error": fmt.Sprintf(translate(requestLanguage(c.Request), "api.invalidForm"), err.Error())})
 			return
 		}
 	}
 
-	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
+	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload, requestLanguage(c.Request))
 	c.JSON(statusCode, res)
 }
 
@@ -336,24 +336,24 @@ func (ctrl *Controller) handleEncodeClear(c *gin.Context) {
 		payload.AFI = libraryclient.AFIUnsecured
 	}
 
-	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
+	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload, requestLanguage(c.Request))
 	if c.GetHeader("HX-Request") == "true" {
 		data := ctrl.getLoanData(channel)
 		if statusCode == http.StatusOK {
 			if payload.UID != "" {
-				data.SuccessMessage = fmt.Sprintf("Transponder %s erfolgreich geleert (Felder gelöscht, Status: Entsichert).", payload.UID)
+				data.SuccessMessage = fmt.Sprintf(translate(requestLanguage(c.Request), "tag.clearTagSuccess"), payload.UID)
 			} else {
-				data.SuccessMessage = "Transponder erfolgreich geleert (Felder gelöscht, Status: Entsichert)."
+				data.SuccessMessage = translate(requestLanguage(c.Request), "tag.clearSuccess")
 			}
 		} else {
 			if errStr, ok := res["error"].(string); ok && errStr != "" {
 				data.ErrorMessage = errStr
 			} else {
-				data.ErrorMessage = "Fehler beim Leeren des Transponders."
+				data.ErrorMessage = translate(requestLanguage(c.Request), "tag.clearError")
 			}
 		}
 		var buf bytes.Buffer
-		if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err == nil {
+		if err := ctrl.requestTemplate(c).ExecuteTemplate(&buf, "loan_table.gohtml", data); err == nil {
 			c.Data(statusCode, "text/html; charset=utf-8", buf.Bytes())
 			return
 		}
@@ -475,7 +475,7 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 					} else {
 						errMsg := resp.Data.GetTagError(uid)
 						if errMsg == "" {
-							errMsg = "AFI-Schreibfehler"
+							errMsg = translateGerman("afi.writeError")
 						}
 						ctrl.hub.SetTagAFIResult(uid, afi, false, errMsg)
 						writeErrors = append(writeErrors, fmt.Sprintf("%s: %s", uid, errMsg))
@@ -523,42 +523,43 @@ func (ctrl *Controller) setAFIAndRespond(c *gin.Context, afi string) {
 	data.WriteErrorCount = errorCount
 	data.FailedItems = failedItems
 
-	statusName := libraryclient.AFISecurityStatus(afi)
+	statusName := afiStatusMessage(afi)
+	var successMsg, errorMsg loanMessage
 	if hadSyncWrite {
 		if errorCount == 0 && successCount > 0 {
 			if targetUID != "" {
-				data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) für Transponder %s gesetzt.", statusName, afi, targetUID)
+				successMsg = message("afi.setTagSuccess", statusName, afi, targetUID)
 			} else {
-				data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) für alle %d Medien gesetzt.", statusName, afi, successCount)
+				successMsg = message("afi.setAllSuccess", statusName, afi, successCount)
 			}
 		} else if errorCount > 0 && successCount > 0 {
-			data.SuccessMessage = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
-			data.ErrorMessage = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
+			successMsg, errorMsg = loanCountMessages(successCount, errorCount)
 		} else if errorCount > 0 && successCount == 0 {
 			if targetUID != "" {
-				data.ErrorMessage = fmt.Sprintf("AFI-Schreibvorgang für Transponder %s fehlgeschlagen.", targetUID)
+				errorMsg = message("afi.tagWriteFailed", targetUID)
 			} else {
-				data.ErrorMessage = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
+				errorMsg = message("afi.writeErrors", errorCount)
 			}
 		} else if len(writeErrors) > 0 {
-			data.ErrorMessage = strings.Join(writeErrors, "; ")
+			errorMsg = loanMessage{raw: strings.Join(writeErrors, "; ")}
 		} else {
-			data.SuccessMessage = fmt.Sprintf("AFI erfolgreich auf %s (%s) gesetzt.", statusName, afi)
+			successMsg = message("afi.setSuccess", statusName, afi)
 		}
 		// Broadcast updated loan table via SSE
-		ctrl.broadcastLoanTableWithData(data, channel)
+		ctrl.broadcastLoanTableMessages(data, successMsg, errorMsg, channel)
 	} else {
 		// Asynchronous / broadcast write
 		if targetUID != "" {
-			data.SuccessMessage = fmt.Sprintf("AFI-Schreibbefehl für %s (%s) für Transponder %s an Broker übermittelt.", statusName, afi, targetUID)
+			successMsg = message("afi.tagCommandSent", statusName, afi, targetUID)
 		} else {
-			data.SuccessMessage = fmt.Sprintf("AFI-Schreibbefehl für %s (%s) an Broker übermittelt.", statusName, afi)
+			successMsg = message("afi.commandSent", statusName, afi)
 		}
 	}
 
+	data = localizeLoanMessages(data, requestLanguage(c.Request), successMsg, errorMsg)
 	// Return updated table fragment for HTMX swap
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+	if err := ctrl.requestTemplate(c).ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
 		c.String(http.StatusInternalServerError, "error rendering template")
 		return
 	}
@@ -601,7 +602,7 @@ func (ctrl *Controller) handleClearTags(c *gin.Context) {
 	}
 	// Return empty table template for HTMX replacement
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "tags_table.gohtml", desk.DeskData{Channel: channel, Tags: nil, StaticPath: "../static"}); err != nil {
+	if err := ctrl.requestTemplate(c).ExecuteTemplate(&buf, "tags_table.gohtml", desk.DeskData{Channel: channel, Tags: nil, StaticPath: "../static"}); err != nil {
 		c.String(http.StatusInternalServerError, "error rendering template")
 		return
 	}

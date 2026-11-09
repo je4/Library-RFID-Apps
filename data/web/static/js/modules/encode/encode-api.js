@@ -3,6 +3,8 @@
  * Handles HTTP network communication for tag encoding and tag clearing operations.
  */
 
+import { t } from '../i18n.js';
+
 export class EncodeApiClient {
     constructor(basePath = '') {
         this.basePath = basePath;
@@ -55,7 +57,7 @@ export class EncodeApiClient {
                 console.error('[EncodeApiClient] Failed to parse JSON response (%d ms):', elapsed, jsonErr);
                 return {
                     success: false,
-                    error: `Ungültige Serverantwort (HTTP ${resp.status}): ${jsonErr.message}`
+                    error: t('api.invalid', { status: resp.status, error: jsonErr.message })
                 };
             }
 
@@ -67,7 +69,7 @@ export class EncodeApiClient {
                 };
             }
 
-            const errorMsg = result.error || result.message || `HTTP ${resp.status}: Fehler beim Schreiben`;
+            const errorMsg = result.error || result.message || t('api.writeError', { status: resp.status });
             console.warn('[EncodeApiClient] Write returned failure in %d ms:', elapsed, errorMsg, result);
             return {
                 success: false,
@@ -78,7 +80,7 @@ export class EncodeApiClient {
             console.error('[EncodeApiClient] Network error during write:', netErr);
             return {
                 success: false,
-                error: `Netzwerkfehler: ${netErr.message || 'Verbindung zum Server fehlgeschlagen'}`
+                error: t('api.network', { error: netErr.message || t('api.disconnected') })
             };
         }
     }

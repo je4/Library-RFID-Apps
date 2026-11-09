@@ -4,9 +4,9 @@
         {{if .ItemID}}
             <span class="text-primary font-bold">{{.ItemID}}</span>
         {{else if .IsEmpty}}
-            <span class="badge badge-sm badge-warning font-sans">Leer / Unkodiert</span>
+            <span class="badge badge-sm badge-warning font-sans">{{tr "encode.empty"}}</span>
         {{else}}
-            <span class="text-base-content/40 italic">Keine ID</span>
+            <span class="text-base-content/40 italic">{{tr "item.noId"}}</span>
         {{end}}
         {{if .ItemID}}<div class="catalog-details font-sans whitespace-normal" data-catalog-barcode="{{.ItemID}}" aria-live="polite"></div>{{end}}
     </td>
@@ -36,7 +36,7 @@
                 <span>{{if .Country}}{{.Country}}-{{end}}{{.ISIL}}</span>
                 {{if .ISILEntry}}
                 <div class="app-isil-info-wrapper relative inline-flex items-center">
-                    <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-primary hover:text-primary-focus transition-colors" title="Bibliotheksdetails anzeigen (Mouseover)">
+                    <span class="app-isil-info-btn inline-flex items-center justify-center p-0.5 rounded cursor-pointer text-primary hover:text-primary-focus transition-colors" title="{{tr "library.detailsHint"}}">
                         <img src="{{.StaticPath}}/img/icons/info-circle.svg" class="w-3.5 h-3.5 flex-shrink-0" alt="Info" />
                     </span>
 
@@ -69,7 +69,7 @@
                         <div class="space-y-2 text-[11px] leading-relaxed font-sans">
                             {{if .ISILEntry.Mutterinstitution}}
                             <div>
-                                <span class="text-base-content/60 font-medium">Mutterinstitution:</span>
+                                <span class="text-base-content/60 font-medium">{{tr "library.parentInstitution"}}</span>
                                 <span class="font-medium break-words">{{.ISILEntry.Mutterinstitution}}</span>
                             </div>
                             {{end}}
@@ -78,13 +78,13 @@
                             <div class="grid grid-cols-2 gap-x-2 gap-y-1 pt-1 border-t border-base-200/60">
                                 {{if .ISILEntry.Institutionstyp}}
                                 <div>
-                                    <span class="text-base-content/60">Typ:</span>
+                                    <span class="text-base-content/60">{{tr "library.type"}}</span>
                                     <span>{{.ISILEntry.Institutionstyp}}</span>
                                 </div>
                                 {{end}}
                                 {{if .ISILEntry.Institutionskategorie}}
                                 <div>
-                                    <span class="text-base-content/60">Kategorie:</span>
+                                    <span class="text-base-content/60">{{tr "library.category"}}</span>
                                     <span>{{.ISILEntry.Institutionskategorie}}</span>
                                 </div>
                                 {{end}}
@@ -100,7 +100,7 @@
                             {{if or .ISILEntry.Strasse .ISILEntry.Adresszusatz .ISILEntry.Postfach .ISILEntry.Postleitzahl .ISILEntry.Ortschaft .ISILEntry.Kanton .ISILEntry.Land}}
                             <div class="pt-1 border-t border-base-200/60 text-base-content/80">
                                 {{if .ISILEntry.Strasse}}<div>{{.ISILEntry.Strasse}}{{if .ISILEntry.Adresszusatz}}, {{.ISILEntry.Adresszusatz}}{{end}}</div>{{else if .ISILEntry.Adresszusatz}}<div>{{.ISILEntry.Adresszusatz}}</div>{{end}}
-                                {{if .ISILEntry.Postfach}}<div>Postfach: {{.ISILEntry.Postfach}}</div>{{end}}
+                                {{if .ISILEntry.Postfach}}<div>{{tr "library.poBox"}} {{.ISILEntry.Postfach}}</div>{{end}}
                                 {{if or .ISILEntry.Postleitzahl .ISILEntry.Ortschaft .ISILEntry.Kanton}}<div>{{if .ISILEntry.Postleitzahl}}{{.ISILEntry.Postleitzahl}} {{end}}{{.ISILEntry.Ortschaft}}{{if .ISILEntry.Kanton}} ({{.ISILEntry.Kanton}}){{end}}</div>{{end}}
                                 {{if .ISILEntry.Land}}<div>{{.ISILEntry.Land}}</div>{{end}}
                             </div>
@@ -109,14 +109,14 @@
                             {{if or .ISILEntry.Webseite .ISILEntry.OnlineKatalog}}
                             <div class="flex items-center gap-3 pt-1 border-t border-base-200/60 text-primary">
                                 {{if .ISILEntry.Webseite}}
-                                <a href="{{.ISILEntry.Webseite}}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-1" title="Webseite öffnen">
-                                    <span>Webseite</span>
+                                <a href="{{.ISILEntry.Webseite}}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-1" title="{{tr "library.openWebsite"}}">
+                                    <span>{{tr "library.website"}}</span>
                                     <span class="app-icon icon-external-link w-3 h-3" aria-hidden="true"></span>
                                 </a>
                                 {{end}}
                                 {{if .ISILEntry.OnlineKatalog}}
-                                <a href="{{.ISILEntry.OnlineKatalog}}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-1" title="Online-Katalog öffnen">
-                                    <span>Katalog</span>
+                                <a href="{{.ISILEntry.OnlineKatalog}}" target="_blank" rel="noopener noreferrer" class="hover:underline flex items-center gap-1" title="{{tr "catalog.openOnline"}}">
+                                    <span>{{tr "navigation.catalog"}}</span>
                                     <span class="app-icon icon-external-link w-3 h-3" aria-hidden="true"></span>
                                 </a>
                                 {{end}}
@@ -147,14 +147,14 @@
     <!-- AFI Security Status -->
     <td class="py-3 px-4 sm:px-5 text-xs whitespace-nowrap">
         {{if eq .AFI "07"}}
-            <span class="badge badge-xs badge-success text-[10px] font-semibold gap-1" title="AFI 07 - Gesichert">
+            <span class="badge badge-xs badge-success text-[10px] font-semibold gap-1" title="{{tr "afi.securedLabel"}}">
                 <span class="w-1.5 h-1.5 rounded-full bg-success-content" aria-hidden="true"></span>
-                Gesichert
+                {{tr "afi.secured"}}
             </span>
         {{else if eq .AFI "C2"}}
-            <span class="badge badge-xs badge-warning text-[10px] font-semibold gap-1" title="AFI C2 - Entsichert">
+            <span class="badge badge-xs badge-warning text-[10px] font-semibold gap-1" title="{{tr "afi.unsecuredLabel"}}">
                 <span class="w-1.5 h-1.5 rounded-full bg-warning-content" aria-hidden="true"></span>
-                Entsichert
+                {{tr "afi.unsecured"}}
             </span>
         {{else if .AFI}}
             <span class="badge badge-xs badge-ghost text-[10px] font-mono">{{.AFI}}</span>
@@ -166,35 +166,35 @@
     <!-- Webservice Dispatch Status -->
     <td class="py-3 px-4 sm:px-5 text-xs whitespace-nowrap">
         {{if .IsDuplicate}}
-            <span class="badge badge-xs badge-warning gap-1 font-semibold" title="Dublette: Transponder wurde in dieser Sitzung bereits erfasst">
+            <span class="badge badge-xs badge-warning gap-1 font-semibold" title="{{tr "inventory.duplicateHint"}}">
                 <span class="app-icon icon-copy w-3 h-3" aria-hidden="true"></span>
-                Dublette
+                {{tr "inventory.duplicate"}}
             </span>
         {{else if eq .DispatchState "success"}}
-            <span class="badge badge-xs badge-success gap-1 font-semibold" title="Erfolgreich an Webservice übermittelt (HTTP {{if .HTTPStatus}}{{.HTTPStatus}}{{else}}200{{end}})">
+            <span class="badge badge-xs badge-success gap-1 font-semibold" title="{{tr "webservice.sentSuccess"}} (HTTP {{if .HTTPStatus}}{{.HTTPStatus}}{{else}}200{{end}})">
                 <span class="app-icon icon-check w-3 h-3" aria-hidden="true"></span>
-                Übermittelt
+                {{tr "webservice.sent"}}
             </span>
         {{else if eq .DispatchState "error"}}
             <div class="flex items-center gap-1.5">
-                <span class="badge badge-xs badge-error gap-1 font-semibold" title="{{if .DispatchError}}{{.DispatchError}}{{else}}Webservice-Fehler{{end}}">
+                <span class="badge badge-xs badge-error gap-1 font-semibold" title="{{if .DispatchError}}{{.DispatchError}}{{else}}{{tr "webservice.error"}}{{end}}">
                     <span class="app-icon icon-alert w-3 h-3" aria-hidden="true"></span>
-                    Fehlgeschlagen
+                    {{tr "common.failed"}}
                 </span>
                 <button hx-post="inventory/retry?uid={{.UID}}"
                         hx-swap="none"
                         type="button"
                         class="btn btn-ghost btn-xs px-1 text-primary hover:bg-primary/20"
-                        title="Erneut an Webservice senden">
+                        title="{{tr "webservice.retry"}}">
                     <span class="app-icon icon-refresh w-3 h-3" aria-hidden="true"></span>
                 </button>
             </div>
         {{else if eq .DispatchState "pending"}}
             <span class="badge badge-xs badge-info gap-1 animate-pulse">
-                Wird gesendet...
+                {{tr "webservice.sending"}}
             </span>
         {{else}}
-            <span class="badge badge-xs badge-ghost">Lokal</span>
+            <span class="badge badge-xs badge-ghost">{{tr "common.local"}}</span>
         {{end}}
     </td>
 

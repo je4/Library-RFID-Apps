@@ -6,6 +6,7 @@
 
 import { playBeep, playSuccessSound, playWarningSound, playErrorSound } from './audio.js';
 import { applyFilter, updateLoanTableEnhancements } from './table-actions.js';
+import { t } from './i18n.js';
 
 const MAX_TAG_EVENTS = 100;
 let lastLoanTagCount = 0;
@@ -29,7 +30,7 @@ export function onSSEOpen() {
         statusDot.className = 'w-2 h-2 rounded-full bg-success pulse-indicator';
     }
     if (statusText) {
-        statusText.textContent = 'SSE Verbunden';
+        statusText.textContent = t('sse.connected');
     }
 }
 
@@ -45,7 +46,7 @@ export function onSSEError() {
         statusDot.className = 'w-2 h-2 rounded-full bg-warning';
     }
     if (statusText) {
-        statusText.textContent = 'Verbindung wird wiederhergestellt...';
+        statusText.textContent = t('sse.reconnecting');
     }
 }
 
@@ -92,10 +93,10 @@ export function updateLoanCounters() {
 export function showClearedNotification() {
     const badge = document.getElementById('field-status-badge');
     if (badge) {
-        badge.textContent = 'Lesefeld frei';
+        badge.textContent = t('sse.cleared');
         badge.className = 'badge badge-sm badge-warning badge-outline transition-all';
         setTimeout(() => {
-            badge.textContent = 'Bereit';
+            badge.textContent = t('sse.ready');
             badge.className = 'badge badge-sm badge-outline transition-all';
         }, 3000);
     }
@@ -200,21 +201,21 @@ export function initStreamPause() {
     pauseBtn.addEventListener('click', () => {
         isStreamPaused = !isStreamPaused;
         if (isStreamPaused) {
-            if (pauseLabel) pauseLabel.textContent = 'Pausiert';
+            if (pauseLabel) pauseLabel.textContent = t('sse.paused');
             if (pauseIcon) {
                 pauseIcon.className = 'w-2 h-2 rounded-full bg-warning';
             }
             pauseBtn.classList.add('btn-warning', 'btn-outline');
             pauseBtn.classList.remove('btn-ghost');
-            pauseBtn.setAttribute('title', 'Stream ist angehalten (Klicken zum Fortsetzen)');
+            pauseBtn.setAttribute('title', t('sse.resume'));
         } else {
-            if (pauseLabel) pauseLabel.textContent = 'Live';
+            if (pauseLabel) pauseLabel.textContent = t('sse.live');
             if (pauseIcon) {
                 pauseIcon.className = 'w-2 h-2 rounded-full bg-success pulse-indicator';
             }
             pauseBtn.classList.remove('btn-warning', 'btn-outline');
             pauseBtn.classList.add('btn-ghost');
-            pauseBtn.setAttribute('title', 'Transponder-Stream anhalten / fortsetzen (Pause / Freeze)');
+            pauseBtn.setAttribute('title', t('sse.pause'));
         }
     });
 }

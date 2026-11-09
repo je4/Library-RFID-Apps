@@ -72,8 +72,12 @@ func NewEncodeService(
 
 // ValidateAndNormalize sanitizes and checks input parameters for RFID encoding or clearing.
 func (s *EncodeService) ValidateAndNormalize(payload *WriteTagRequestPayload) error {
+	return s.validateAndNormalize(payload, "de")
+}
+
+func (s *EncodeService) validateAndNormalize(payload *WriteTagRequestPayload, lang string) error {
 	if payload == nil {
-		return fmt.Errorf("payload darf nicht leer sein")
+		return fmt.Errorf("%s", translate(lang, "api.payloadRequired"))
 	}
 
 	payload.UID = strings.TrimSpace(payload.UID)
@@ -101,7 +105,7 @@ func (s *EncodeService) ValidateAndNormalize(payload *WriteTagRequestPayload) er
 
 	payload.ItemID = strings.TrimSpace(payload.ItemID)
 	if payload.ItemID == "" {
-		return fmt.Errorf("Barcode / ItemID darf nicht leer sein")
+		return fmt.Errorf("%s", translate(lang, "encode.barcodeRequired"))
 	}
 
 	payload.Country = strings.TrimSpace(payload.Country)
@@ -206,7 +210,11 @@ func (s *EncodeService) ResolveTarget(channel string, uid string) (targetSource 
 // ExecuteWriteTag validates the payload, sends the write command to the RFID client,
 // and updates the Hub's in-memory tag metadata.
 func (s *EncodeService) ExecuteWriteTag(ctx context.Context, channel string, payload WriteTagRequestPayload) (WriteTagResult, int) {
-	if err := s.ValidateAndNormalize(&payload); err != nil {
+	return s.executeWriteTag(ctx, channel, payload, "de")
+}
+
+func (s *EncodeService) executeWriteTag(ctx context.Context, channel string, payload WriteTagRequestPayload, lang string) (WriteTagResult, int) {
+	if err := s.validateAndNormalize(&payload, lang); err != nil {
 		return WriteTagResult{
 			Status: "error",
 			Error:  err.Error(),
@@ -251,14 +259,14 @@ func (s *EncodeService) ExecuteWriteTag(ctx context.Context, channel string, pay
 			}
 			return WriteTagResult{
 				Status: "error",
-				Error:  fmt.Sprintf("Fehler beim Schreiben des Transponders %s: %v", uid, err),
+				Error:  fmt.Sprintf(translate(lang, "tag.writeError"), uid, err),
 				UID:    uid,
 			}, http.StatusInternalServerError
 		}
 		if resp != nil && !resp.Data.IsSuccess() {
 			errMsg := resp.Data.GetError()
 			if errMsg == "" {
-				errMsg = "Schreibfehler auf Transponder"
+				errMsg = translate(lang, "tag.writeFailure")
 			}
 			if s.logger != nil {
 				s.logger.Warn().Str("uid", uid).Str("error", errMsg).Msg("WriteTag returned failure")
@@ -280,9 +288,9 @@ func (s *EncodeService) ExecuteWriteTag(ctx context.Context, channel string, pay
 		}
 	}
 
-	msg := fmt.Sprintf("Transponder %s erfolgreich beschrieben (Teil %d von %d).", uid, payload.PartNo, payload.Parts)
+	msg := fmt.Sprintf(translate(lang, "tag.writeSuccessPart"), uid, payload.PartNo, payload.Parts)
 	if payload.Clear {
-		msg = fmt.Sprintf("Transponder %s erfolgreich geleert (Felder gelöscht, Status: Entsichert).", uid)
+		msg = fmt.Sprintf(translate(lang, "tag.clearTagSuccess"), uid)
 	}
 
 	return WriteTagResult{

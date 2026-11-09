@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="de" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
+<html lang="{{lang}}" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RFID Ausleihe &amp; Rückgabe - {{.ClientName}}</title>
+    <title>{{printf (tr "loan.title") .ClientName}}</title>
     <!-- Automatic Skin & Dark / Light mode detection to prevent FOUC -->
     <script src="{{.StaticPath}}/js/theme-init.js"></script>
     <!-- Tailwind CSS, DaisyUI, HTMX 4 & SSE Extension (Relative Paths) -->
@@ -30,7 +30,7 @@
             <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <h2 class="text-base font-semibold">Aufliegende Medien auf Reader</h2>
+                        <h2 class="text-base font-semibold">{{tr "reader.items"}}</h2>
                         <span id="loan-tag-count-badge" class="badge badge-sm badge-outline font-mono">{{len .Tags}}</span>
                     </div>
                 </div>
@@ -38,23 +38,23 @@
                 <!-- Primary Action Buttons: Copy All ItemIDs, Entsichern, Sichern -->
                 <div class="flex items-center flex-wrap gap-2">
                     <!-- Copy All Item IDs Button -->
-                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="Alle aufgelisteten Item-IDs in die Zwischenablage kopieren (Alt+C)">
+                    <button id="btn-copy-all-itemids" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="{{tr "table.copyAllIdsHint"}}">
                         <span class="app-icon icon-copy w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span id="copy-all-label">Item-IDs kopieren</span>
+                        <span id="copy-all-label">{{tr "table.copyIds"}}</span>
                         <kbd class="kbd kbd-xs bg-base-200 text-base-content/70 border border-base-300">Alt+C</kbd>
                     </button>
 
                     <!-- Unsecure Button (AFI C2) -->
-                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-warning flex items-center gap-1.5" title="AFI auf C2 (Entsichern / Ausgeliehen / EAS deaktiviert) setzen (Alt+U)">
+                    <button id="btn-unsecure" hx-post="loan/afi/unsecure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-warning flex items-center gap-1.5" title="{{tr "afi.unsecureHint"}}">
                         <span class="app-icon icon-lock-open w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span id="btn-unsecure-label">Entsichern</span>
+                        <span id="btn-unsecure-label">{{tr "afi.unsecure"}}</span>
                         <kbd class="kbd kbd-xs bg-base-200/80 text-base-content/80 border border-warning/40">Alt+U</kbd>
                     </button>
 
                     <!-- Secure Button (AFI 07) -->
-                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info flex items-center gap-1.5" title="AFI auf 07 (Sichern / Präsenzbestand / EAS aktiv) setzen (Alt+S)">
+                    <button id="btn-secure" hx-post="loan/afi/secure" hx-target="#loan-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-outline btn-info flex items-center gap-1.5" title="{{tr "afi.secureHint"}}">
                         <span class="app-icon icon-lock-closed w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span id="btn-secure-label">Sichern</span>
+                        <span id="btn-secure-label">{{tr "afi.secure"}}</span>
                         <kbd class="kbd kbd-xs bg-base-200/80 text-base-content/80 border border-info/40">Alt+S</kbd>
                     </button>
                 </div>
@@ -70,14 +70,14 @@
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 bg-base-200 text-base-content/80 font-bold">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Item ID (Medium)</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Transponder UID</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Teile (Multi-Part)</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Bibliothek / ISIL</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">CRC Prüfsumme</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5">AFI Sicherheitsstatus</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Aktionen</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Erfassungszeit</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "item.id"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "tag.uid"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "encode.parts"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "library.isil"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "tag.crc"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5">{{tr "afi.securityStatus"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "common.actions"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">{{tr "inventory.scanTime"}}</th>
                         </tr>
                     </thead>
                     <tbody id="loan-table-body" sse-swap="loan_tags" data-sse-swap="loan_tags" hx-swap="innerHTML">
@@ -97,18 +97,18 @@
             <div class="mx-auto mb-4 flex items-center justify-center">
                 <span class="loading loading-spinner loading-lg text-primary"></span>
             </div>
-            <h3 id="afi-modal-title" class="font-bold text-lg mb-2">AFI wird geschrieben...</h3>
+            <h3 id="afi-modal-title" class="font-bold text-lg mb-2">{{tr "afi.writing"}}</h3>
             <p id="afi-modal-message" class="text-sm opacity-80 mb-4">
-                Bitte warten Sie, bis der Sicherheitsstatus auf dem Lesefeld aktualisiert wurde. Bitte keine Medien vom Lesegerät entfernen.
+                {{tr "afi.waitHint"}}
             </p>
             <div class="flex items-center justify-center gap-2 mb-3">
                 <span class="badge badge-info badge-outline gap-1 text-xs">
                     <span class="w-2 h-2 rounded-full bg-info animate-ping"></span>
-                    <span id="afi-modal-status-text">RFID-Kommunikation aktiv...</span>
+                    <span id="afi-modal-status-text">{{tr "reader.communicationActive"}}</span>
                 </span>
             </div>
             <div id="afi-modal-timeout-hint" class="text-xs opacity-60">
-                Timeout-Schutz aktiv (10s)
+                {{tr "afi.timeoutProtection"}}
             </div>
         </div>
         <form method="dialog" class="modal-backdrop">

@@ -12,11 +12,13 @@ require (
 	github.com/je4/utils/v2 v2.0.71
 	github.com/je4/wsbrokerclient v0.0.0-20261102113543-7dbcabc7cf8f
 	github.com/maypok86/otter/v2 v2.4.0
+	github.com/nicksnyder/go-i18n/v2 v2.6.1
 	github.com/rs/zerolog v1.35.1
 	github.com/stretchr/testify v1.12.1
 	go.bug.st/serial v1.8.0
 	go.ub.unibas.ch/cloud/certloader/v2 v2.0.29
 	golang.org/x/exp v0.0.0-20261106192419-47ce03d25ef0
+	golang.org/x/text v0.43.0
 )
 
 require (
@@ -68,7 +70,6 @@ require (
 	golang.org/x/crypto v0.58.0 // indirect
 	golang.org/x/net v0.62.0 // indirect
 	golang.org/x/sys v0.49.0 // indirect
-	golang.org/x/text v0.43.0 // indirect
 	google.golang.org/protobuf v1.36.12 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/klog/v2 v2.140.0 // indirect

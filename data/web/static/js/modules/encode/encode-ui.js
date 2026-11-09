@@ -4,6 +4,8 @@
  * and form controls for RFID encoding.
  */
 
+import { t } from '../i18n.js';
+
 export class EncodeUI {
     constructor() {
         this.notificationTimeout = null;
@@ -122,7 +124,7 @@ export class EncodeUI {
         const oldItemEl = this.getElement('overwrite-old-item');
 
         if (uidEl) uidEl.textContent = uid || '';
-        if (oldItemEl) oldItemEl.textContent = oldItemID || 'Unbekannt';
+        if (oldItemEl) oldItemEl.textContent = oldItemID || t('encode.unknown');
 
         if (typeof modal.showModal === 'function' && !modal.open) {
             try { modal.showModal(); } catch (_) { modal.setAttribute('open', ''); }
@@ -167,10 +169,10 @@ export class EncodeUI {
 
         if (statusBadge) {
             if (normalized === '07') {
-                statusBadge.textContent = '07 (Gesichert)';
+                statusBadge.textContent = t('encode.securedBadge');
                 statusBadge.className = 'badge badge-xs badge-info font-mono';
             } else {
-                statusBadge.textContent = 'C2 (Entsichert)';
+                statusBadge.textContent = t('encode.unsecuredBadge');
                 statusBadge.className = 'badge badge-xs badge-warning font-mono';
             }
         }
@@ -180,7 +182,7 @@ export class EncodeUI {
         }
 
         if (afiLabelText) {
-            afiLabelText.textContent = isSecure ? 'Gesichert (07)' : 'Entsichert (C2)';
+            afiLabelText.textContent = t(isSecure ? 'encode.secured' : 'encode.unsecured');
         }
 
         if (afiIcon) {

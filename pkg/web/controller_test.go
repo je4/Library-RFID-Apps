@@ -45,6 +45,13 @@ func TestController_RoutesAndTemplates(t *testing.T) {
 	if recStatic.Code != http.StatusOK {
 		t.Errorf("expected 200 for tailwind CSS, got %d", recStatic.Code)
 	}
+	for _, path := range []string{"/static/locales/de.json", "/static/locales/en.json"} {
+		rec := httptest.NewRecorder()
+		ctrl.router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, path, nil))
+		if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), `"catalog.close":`) {
+			t.Errorf("locale %s: unexpected response %d", path, rec.Code)
+		}
+	}
 
 	reqDaisy := httptest.NewRequest(http.MethodGet, "/static/css/daisyui.min.css", nil)
 	recDaisy := httptest.NewRecorder()

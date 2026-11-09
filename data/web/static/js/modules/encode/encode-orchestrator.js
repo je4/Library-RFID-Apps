@@ -8,6 +8,7 @@ import { EncodeStateMachine, EncodeState } from './encode-state.js';
 import { EncodeApiClient } from './encode-api.js';
 import { EncodeUI } from './encode-ui.js';
 import { playBeep, playSuccessSound, playWarningSound, playErrorSound } from '../audio.js';
+import { t } from '../i18n.js';
 
 export class EncodeOrchestrator {
     constructor(options = {}) {
@@ -29,7 +30,7 @@ export class EncodeOrchestrator {
 
         const barcode = this.ui.getBarcodeInputValue();
         if (!barcode) {
-            this.ui.showNotification('Bitte geben Sie einen Barcode / ItemID ein.', 'error');
+            this.ui.showNotification(t('encode.enterBarcode'), 'error');
             const itemInput = this.ui.getElement('encode-item-id');
             if (itemInput) itemInput.focus();
             return;
@@ -42,10 +43,10 @@ export class EncodeOrchestrator {
         this.state.start(barcode, isil, afi, parts);
 
         this.ui.showProgressModal({
-            title: 'Kodierung startet...',
-            message: `Vorbereitung für Teil 1 von ${this.state.totalParts}...`,
-            stepBadge: `Teil 1 von ${this.state.totalParts}`,
-            statusText: 'Initialisierung...'
+            title: t('encode.starting'),
+            message: t('encode.prepare', { total: this.state.totalParts }),
+            stepBadge: t('encode.partProgress', { part: 1, total: this.state.totalParts }),
+            statusText: t('encode.initializing')
         });
 
         // Trigger first step
@@ -58,7 +59,7 @@ export class EncodeOrchestrator {
      * Stop and abort the active encoding session.
      * @param {string} [userMessage='Kodierung abgebrochen.'] 
      */
-    stopEncoding(userMessage = 'Kodierung abgebrochen.') {
+    stopEncoding(userMessage = t('encode.cancelled')) {
         if (this.transitionTimer) {
             clearTimeout(this.transitionTimer);
             this.transitionTimer = null;
@@ -121,10 +122,10 @@ export class EncodeOrchestrator {
                 this.state.currentPartNo, this.state.totalParts);
             this.state.setWaitingForTag();
             this.ui.showProgressModal({
-                title: `Warte auf Medium ${this.state.currentPartNo} von ${this.state.totalParts}...`,
-                message: `Bitte nächstes Medium (Teil ${this.state.currentPartNo} von ${this.state.totalParts}) auf das RFID-Lesegerät legen.`,
-                stepBadge: `Warte auf Teil ${this.state.currentPartNo} von ${this.state.totalParts}`,
-                statusText: 'Warte auf Transponder...'
+                title: t('encode.waitTitle', { part: this.state.currentPartNo, total: this.state.totalParts }),
+                message: t('encode.waitMessage', { part: this.state.currentPartNo, total: this.state.totalParts }),
+                stepBadge: t('encode.waitPart', { part: this.state.currentPartNo, total: this.state.totalParts }),
+                statusText: t('encode.waitTag')
             });
         }
     }
@@ -143,10 +144,10 @@ export class EncodeOrchestrator {
         const barcode = this.state.currentBarcode;
 
         this.ui.showProgressModal({
-            title: 'Medium wird kodiert...',
-            message: `Schreibe Barcode ${barcode} auf Transponder ${uid}... Bitte nicht entfernen.`,
-            stepBadge: `Teil ${currentPart} von ${totalParts}`,
-            statusText: 'RFID-Schreibbefehl aktiv...'
+            title: t('encode.writing'),
+            message: t('encode.writeMessage', { barcode, uid }),
+            stepBadge: t('encode.partProgress', { part: currentPart, total: totalParts }),
+            statusText: t('encode.writeStatus')
         });
 
         const result = await this.api.writeTag({
@@ -173,10 +174,10 @@ export class EncodeOrchestrator {
             }
         } else {
             this.state.setWritingInFlight(false);
-            const errorMsg = result.error || 'Fehler beim Schreiben des Transponders';
+            const errorMsg = result.error || t('encode.writeError');
             playErrorSound();
-            this.ui.showNotification(`Fehler bei Teil ${currentPart}: ${errorMsg}`, 'error', 10000);
-            this.stopEncoding(`Kodierung bei Teil ${currentPart} fehlgeschlagen.`);
+            this.ui.showNotification(t('encode.partError', { part: currentPart, error: errorMsg }), 'error', 10000);
+            this.stopEncoding(t('encode.failed', { part: currentPart }));
         }
     }
 
@@ -191,13 +192,13 @@ export class EncodeOrchestrator {
         playSuccessSound();
 
         this.ui.showProgressModal({
-            title: 'Kodierung erfolgreich!',
-            message: `Alle ${totalParts} Teile für Barcode ${barcode} wurden erfolgreich programmiert.`,
-            stepBadge: `Fertiggestellt (${totalParts}/${totalParts})`,
-            statusText: 'Vorgang abgeschlossen'
+            title: t('encode.success'),
+            message: t('encode.successMessage', { total: totalParts, barcode }),
+            stepBadge: t('encode.finishedBadge', { total: totalParts }),
+            statusText: t('encode.finished')
         });
 
-        this.ui.showNotification(`Medium ${barcode} (${totalParts} Teile) erfolgreich kodiert.`, 'success', 8000);
+        this.ui.showNotification(t('encode.successNotification', { barcode, total: totalParts }), 'success', 8000);
 
         setTimeout(() => {
             this.ui.hideProgressModal();
@@ -239,7 +240,7 @@ export class EncodeOrchestrator {
      */
     cancelOverwrite() {
         this.state.clearPendingOverwrite();
-        this.stopEncoding('Kodierung abgebrochen.');
+        this.stopEncoding(t('encode.cancelled'));
     }
 
     /**
@@ -252,14 +253,14 @@ export class EncodeOrchestrator {
 
         const activeTags = this.ui.getActiveTransponders();
         if (activeTags.length === 0) {
-            this.ui.showNotification('Kein aktiver Transponder auf dem Lesegerät gefunden. Bitte ein Medium auflegen.', 'error');
+            this.ui.showNotification(t('encode.noTags'), 'error');
             return;
         }
 
         const clearBtn = this.ui.getElement('btn-clear-tag');
         if (clearBtn) clearBtn.disabled = true;
 
-        this.ui.showNotification('Transponder wird geleert (Felder löschen, AFI entsichern)...', 'info');
+        this.ui.showNotification(t('encode.clearing'), 'info');
 
         let successCount = 0;
         let errorCount = 0;
@@ -271,7 +272,7 @@ export class EncodeOrchestrator {
                 successCount++;
             } else {
                 errorCount++;
-                lastError = result.error || 'Fehler beim Leeren';
+                lastError = result.error || t('encode.clearError');
             }
         }
 
@@ -282,15 +283,15 @@ export class EncodeOrchestrator {
             if (errorCount === 0) {
                 this.ui.showNotification(
                     successCount === 1
-                        ? 'Transponder erfolgreich geleert und entsichert (AFI: C2).'
-                        : `Alle ${successCount} Transponder erfolgreich geleert und entsichert (AFI: C2).`,
+                        ? t('encode.clearedOne')
+                        : t('encode.clearedAll', { count: successCount }),
                     'success'
                 );
             } else {
-                this.ui.showNotification(`${successCount} Transponder geleert, ${errorCount} fehlgeschlagen (${lastError}).`, 'error');
+                this.ui.showNotification(t('encode.clearPartial', { success: successCount, errors: errorCount, error: lastError }), 'error');
             }
         } else {
-            this.ui.showNotification(`Fehler beim Leeren des Transponders: ${lastError}`, 'error', 8000);
+            this.ui.showNotification(t('encode.clearFailed', { error: lastError }), 'error', 8000);
         }
     }
 
@@ -423,7 +424,7 @@ export class EncodeOrchestrator {
 
         // Progress modal abort button
         if (stopModalBtn) {
-            stopModalBtn.addEventListener('click', () => this.stopEncoding('Kodierung vom Benutzer gestoppt.'));
+            stopModalBtn.addEventListener('click', () => this.stopEncoding(t('encode.stopped')));
         }
 
         // Overwrite modal buttons

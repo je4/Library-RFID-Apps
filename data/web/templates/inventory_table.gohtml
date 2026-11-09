@@ -8,12 +8,12 @@
             <div class="flex flex-col items-center justify-center gap-2">
                 {{if .SessionActive}}
                     <span class="app-icon icon-play w-8 h-8 text-success animate-pulse" aria-hidden="true"></span>
-                    <p class="font-medium text-sm text-base-content/80">Inventursitzung aktiv{{if .Marker}} (Standort: <span class="font-mono font-bold text-primary">{{.Marker}}</span>){{end}}</p>
-                    <p class="text-xs text-base-content/50">Halten Sie Medien an den RFID-Leser, um die Erfassung zu starten.</p>
+                    <p class="font-medium text-sm text-base-content/80">{{tr "inventory.active"}}{{if .Marker}} ({{tr "library.location"}} <span class="font-mono font-bold text-primary">{{.Marker}}</span>){{end}}</p>
+                    <p class="text-xs text-base-content/50">{{tr "inventory.scanHint"}}</p>
                 {{else}}
                     <span class="app-icon icon-archive w-8 h-8 opacity-40" aria-hidden="true"></span>
-                    <p class="font-medium text-sm">Keine aktive Inventursitzung.</p>
-                    <p class="text-xs text-base-content/40">Geben Sie oben einen Standort/Regal-Marker ein und starten Sie die Sitzung.</p>
+                    <p class="font-medium text-sm">{{tr "inventory.noSession"}}</p>
+                    <p class="text-xs text-base-content/40">{{tr "inventory.startHint"}}</p>
                 {{end}}
             </div>
         </td>

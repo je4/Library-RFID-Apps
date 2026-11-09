@@ -2,6 +2,7 @@ package web
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,6 +13,117 @@ import (
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 )
+
+const sseVariantsMarker = "<!--library-desk-i18n:"
+
+type loanMessage struct {
+	id   string
+	args []any
+	raw  string
+}
+
+func message(id string, args ...any) loanMessage { return loanMessage{id: id, args: args} }
+
+func afiStatusMessage(afi string) loanMessage {
+	switch libraryclient.AFISecurityStatus(afi) {
+	case "Gesichert":
+		return message("afi.secured")
+	case "Entsichert":
+		return message("afi.unsecured")
+	default:
+		return loanMessage{}
+	}
+}
+
+func (m loanMessage) text(lang string) string {
+	if m.raw != "" {
+		return m.raw
+	}
+	if m.id == "" {
+		return ""
+	}
+	args := make([]any, len(m.args))
+	for i, arg := range m.args {
+		if nested, ok := arg.(loanMessage); ok {
+			args[i] = nested.text(lang)
+		} else {
+			args[i] = arg
+		}
+	}
+	text := translate(lang, m.id)
+	if len(args) == 0 {
+		return text
+	}
+	return fmt.Sprintf(text, args...)
+}
+
+func loanCountMessages(successCount, errorCount int) (loanMessage, loanMessage) {
+	if errorCount > 0 && successCount > 0 {
+		return message("afi.itemsUpdatedCount", successCount, successCount+errorCount), message("afi.itemsFailedCount", errorCount, successCount+errorCount)
+	}
+	if errorCount > 0 {
+		return loanMessage{}, message("afi.writeErrors", errorCount)
+	}
+	return loanMessage{}, loanMessage{}
+}
+
+func localizeLoanMessages(data desk.LoanData, lang string, success, failure loanMessage) desk.LoanData {
+	data.SuccessMessage = success.text(lang)
+	data.ErrorMessage = failure.text(lang)
+	return data
+}
+
+// Pack variants alongside the German payload; the HTTP stream removes this metadata.
+func packSSEVariants(data string, variants map[string]string, jsonPayload bool) string {
+	encoded, err := json.Marshal(variants)
+	if err != nil || len(variants) == 0 {
+		return data
+	}
+	value := base64.StdEncoding.EncodeToString(encoded)
+	if jsonPayload && strings.HasSuffix(data, "}") {
+		return data[:len(data)-1] + `,"_libraryDeskI18n":"` + value + `"}`
+	}
+	return data + sseVariantsMarker + value + "-->"
+}
+
+func localizedSSEData(event, data, lang string) string {
+	var encoded string
+	if event == "inventory_tag" {
+		var payload map[string]json.RawMessage
+		if json.Unmarshal([]byte(data), &payload) == nil && payload["_libraryDeskI18n"] != nil {
+			_ = json.Unmarshal(payload["_libraryDeskI18n"], &encoded)
+			delete(payload, "_libraryDeskI18n")
+			if clean, err := json.Marshal(payload); err == nil {
+				data = string(clean)
+			}
+		}
+	} else if (event == "tag_read" || event == "loan_tags") && strings.Contains(data, sseVariantsMarker) && strings.HasSuffix(data, "-->") {
+		i := strings.LastIndex(data, sseVariantsMarker)
+		encoded = strings.TrimSuffix(data[i+len(sseVariantsMarker):], "-->")
+		data = data[:i]
+	}
+	if decoded, err := base64.StdEncoding.DecodeString(encoded); err == nil {
+		var variants map[string]string
+		if json.Unmarshal(decoded, &variants) == nil && variants[lang] != "" {
+			return variants[lang]
+		}
+	}
+	return data
+}
+
+func (ctrl *Controller) sseTemplateVariants(name string, data any) map[string]string {
+	variants := make(map[string]string)
+	for lang, tmpl := range ctrl.languageTemplates {
+		if lang == "de" {
+			continue
+		}
+		var buf bytes.Buffer
+		if tmpl.ExecuteTemplate(&buf, name, data) == nil {
+			variants[lang] = buf.String()
+		}
+	}
+	return variants
+}
 
 // HandleTagRead processes an incoming scan event, persists it in the hub,
 // feeds active inventory sessions if enabled, and broadcasts the rendered HTML fragment via SSE.
@@ -44,7 +156,7 @@ func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 
 	ctrl.hub.Broadcast(&desk.SSEMessage{
 		Event: "tag_read",
-		Data:  buf.String(),
+		Data:  packSSEVariants(buf.String(), ctrl.sseTemplateVariants("tag_row.gohtml", item), false),
 		ID:    item.ID,
 	}, item.Channel)
 
@@ -71,9 +183,21 @@ func (ctrl *Controller) broadcastInventoryTag(payload InventoryTagEventPayload, 
 
 	dataBytes, err := json.Marshal(payload)
 	if err == nil {
+		variants := make(map[string]string)
+		var rows map[string]string
+		if payload.Item != nil {
+			rows = ctrl.sseTemplateVariants("inventory_row.gohtml", payload.Item)
+		}
+		for lang, row := range rows {
+			localized := payload
+			localized.HTMLRow = row
+			if b, err := json.Marshal(localized); err == nil {
+				variants[lang] = string(b)
+			}
+		}
 		ctrl.hub.Broadcast(&desk.SSEMessage{
 			Event: "inventory_tag",
-			Data:  string(dataBytes),
+			Data:  packSSEVariants(string(dataBytes), variants, true),
 		}, channel)
 	}
 
@@ -166,8 +290,8 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIRespo
 		return
 	}
 
-	statusName := libraryclient.AFISecurityStatus(resp.Data.AFI)
-	var successMsg, errorMsg string
+	statusName := afiStatusMessage(resp.Data.AFI)
+	var successMsg, errorMsg loanMessage
 
 	if len(resp.Data.Results) > 0 {
 		successCount := 0
@@ -184,19 +308,18 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIRespo
 					errMsg = resp.Data.GetError()
 				}
 				if errMsg == "" {
-					errMsg = "AFI-Schreibfehler"
+					errMsg = translateGerman("afi.writeError")
 				}
 				ctrl.hub.SetTagAFIResult(res.UID, resp.Data.AFI, false, errMsg)
 				failedList = append(failedList, fmt.Sprintf("%s (%s)", res.UID, errMsg))
 			}
 		}
 		if errorCount == 0 && successCount > 0 {
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medien gesetzt.", statusName, resp.Data.AFI, successCount)
+			successMsg = message("afi.setItemsSuccess", statusName, resp.Data.AFI, successCount)
 		} else if errorCount > 0 && successCount > 0 {
-			successMsg = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
-			errorMsg = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
+			successMsg, errorMsg = loanCountMessages(successCount, errorCount)
 		} else if errorCount > 0 && successCount == 0 {
-			errorMsg = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
+			errorMsg = message("afi.writeErrors", errorCount)
 		}
 	} else if len(resp.Data.SuccessfulUIDs) > 0 || len(resp.Data.FailedUIDs) > 0 {
 		for _, uid := range resp.Data.SuccessfulUIDs {
@@ -209,7 +332,7 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIRespo
 				errMsg = resp.Data.GetError()
 			}
 			if errMsg == "" {
-				errMsg = "AFI-Schreibfehler"
+				errMsg = translateGerman("afi.writeError")
 			}
 			ctrl.hub.SetTagAFIResult(uid, resp.Data.AFI, false, errMsg)
 			failedList = append(failedList, fmt.Sprintf("%s (%s)", uid, errMsg))
@@ -217,59 +340,65 @@ func (ctrl *Controller) HandleWriteAFIResponse(resp *libraryclient.WriteAFIRespo
 		successCount := len(resp.Data.SuccessfulUIDs)
 		errorCount := len(resp.Data.FailedUIDs)
 		if errorCount == 0 && successCount > 0 {
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für %d Medien gesetzt.", statusName, resp.Data.AFI, successCount)
+			successMsg = message("afi.setItemsSuccess", statusName, resp.Data.AFI, successCount)
 		} else if errorCount > 0 && successCount > 0 {
-			successMsg = fmt.Sprintf("%d von %d Medien erfolgreich aktualisiert.", successCount, successCount+errorCount)
-			errorMsg = fmt.Sprintf("%d von %d Medien fehlgeschlagen.", errorCount, successCount+errorCount)
+			successMsg, errorMsg = loanCountMessages(successCount, errorCount)
 		} else if errorCount > 0 && successCount == 0 {
-			errorMsg = fmt.Sprintf("AFI-Schreibvorgang fehlgeschlagen (%d Fehler).", errorCount)
+			errorMsg = message("afi.writeErrors", errorCount)
 		}
 	} else if resp.Data.IsSuccess() {
 		if resp.Data.UID != "" {
 			ctrl.hub.SetTagAFIResult(resp.Data.UID, resp.Data.AFI, true, "")
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) für Transponder %s gesetzt.", statusName, resp.Data.AFI, resp.Data.UID)
+			successMsg = message("afi.setTagSuccess", statusName, resp.Data.AFI, resp.Data.UID)
 		} else {
 			ctrl.hub.UpdateActiveAFI(resp.Data.AFI)
-			successMsg = fmt.Sprintf("AFI erfolgreich auf %s (%s) gesetzt.", statusName, resp.Data.AFI)
+			successMsg = message("afi.setSuccess", statusName, resp.Data.AFI)
 		}
 	} else {
 		errMsg := resp.Data.GetError()
+		var localizedError any = errMsg
 		if errMsg == "" {
-			errMsg = "Unbekannter Fehler beim Schreiben der AFI"
+			localizedError = message("afi.unknownWriteError")
+			errMsg = translateGerman("afi.unknownWriteError")
 		}
 		if resp.Data.UID != "" {
 			ctrl.hub.SetTagAFIResult(resp.Data.UID, resp.Data.AFI, false, errMsg)
-			errorMsg = fmt.Sprintf("Transponder %s: %s", resp.Data.UID, errMsg)
+			errorMsg = message("tag.message", resp.Data.UID, localizedError)
 		} else if len(resp.Data.UIDs) > 0 {
 			for _, uid := range resp.Data.UIDs {
 				ctrl.hub.SetTagAFIResult(uid, resp.Data.AFI, false, errMsg)
 			}
-			errorMsg = fmt.Sprintf("AFI-Schreibvorgang für %d Medien fehlgeschlagen.", len(resp.Data.UIDs))
+			errorMsg = message("afi.itemsWriteFailed", len(resp.Data.UIDs))
 		} else {
-			errorMsg = errMsg
+			if nested, ok := localizedError.(loanMessage); ok {
+				errorMsg = nested
+			} else {
+				errorMsg = loanMessage{raw: errMsg}
+			}
 		}
 	}
 
 	if len(ctrl.cfg.Channels) > 0 {
 		for _, ch := range ctrl.cfg.Channels {
 			loanData := ctrl.getLoanData(ch)
-			loanData.SuccessMessage = successMsg
-			loanData.ErrorMessage = errorMsg
-			ctrl.broadcastLoanTableWithData(loanData, ch)
+			ctrl.broadcastLoanTableMessages(loanData, successMsg, errorMsg, ch)
 		}
 	}
 	globalData := ctrl.getLoanData("")
-	globalData.SuccessMessage = successMsg
-	globalData.ErrorMessage = errorMsg
-	ctrl.broadcastLoanTableWithData(globalData, "")
+	ctrl.broadcastLoanTableMessages(globalData, successMsg, errorMsg, "")
 }
 
 func (ctrl *Controller) broadcastLoanTableWithData(data desk.LoanData, channel ...string) {
+	success, failure := loanCountMessages(data.WriteSuccessCount, data.WriteErrorCount)
+	ctrl.broadcastLoanTableMessages(data, success, failure, channel...)
+}
+
+func (ctrl *Controller) broadcastLoanTableMessages(data desk.LoanData, success, failure loanMessage, channel ...string) {
 	if ctrl.templates == nil {
 		return
 	}
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", data); err != nil {
+	if err := ctrl.templates.ExecuteTemplate(&buf, "loan_table.gohtml", localizeLoanMessages(data, "de", success, failure)); err != nil {
 		if ctrl.logger != nil {
 			ctrl.logger.Error().Err(err).Msg("failed to render loan_table template for SSE")
 		}
@@ -279,9 +408,19 @@ func (ctrl *Controller) broadcastLoanTableWithData(data desk.LoanData, channel .
 	if len(channel) > 0 && channel[0] != "" {
 		ch = channel[0]
 	}
+	variants := make(map[string]string)
+	for lang, tmpl := range ctrl.languageTemplates {
+		if lang == "de" {
+			continue
+		}
+		var localized bytes.Buffer
+		if tmpl.ExecuteTemplate(&localized, "loan_table.gohtml", localizeLoanMessages(data, lang, success, failure)) == nil {
+			variants[lang] = localized.String()
+		}
+	}
 	ctrl.hub.Broadcast(&desk.SSEMessage{
 		Event: "loan_tags",
-		Data:  buf.String(),
+		Data:  packSSEVariants(buf.String(), variants, false),
 	}, ch)
 }
 
@@ -317,6 +456,7 @@ func (ctrl *Controller) handleSSE(c *gin.Context) {
 	flusher.Flush()
 
 	channel := c.Param("channel")
+	lang := requestLanguage(c.Request)
 	msgChan := ctrl.hub.Subscribe(channel)
 	defer ctrl.hub.Unsubscribe(msgChan)
 
@@ -348,7 +488,7 @@ func (ctrl *Controller) handleSSE(c *gin.Context) {
 			}
 
 			// Output each line with 'data: ' prefix
-			lines := strings.Split(msg.Data, "\n")
+			lines := strings.Split(localizedSSEData(msg.Event, msg.Data, lang), "\n")
 			for _, line := range lines {
 				trimmed := strings.TrimRight(line, "\r")
 				if trimmed != "" {

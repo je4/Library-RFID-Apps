@@ -7,6 +7,7 @@ import { EncodeOrchestrator } from './encode/encode-orchestrator.js';
 import { EncodeStateMachine, EncodeState } from './encode/encode-state.js';
 import { EncodeApiClient } from './encode/encode-api.js';
 import { EncodeUI } from './encode/encode-ui.js';
+import { t } from './i18n.js';
 
 // Singleton orchestrator instance
 let orchestratorInstance = null;
@@ -42,7 +43,7 @@ export function startEncoding() {
     getOrchestrator().startEncoding();
 }
 
-export function stopEncoding(userMessage = 'Kodierung abgebrochen.') {
+export function stopEncoding(userMessage = t('encode.cancelled')) {
     getOrchestrator().stopEncoding(userMessage);
 }
 

@@ -81,7 +81,7 @@ func (ctrl *Controller) handleInventory(c *gin.Context) {
 	data.Skin = getSkinFromCookie(c)
 	ctrl.populateThemeInfo(c, &data.Theme, &data.ThemeMode, &data.ThemeLight, &data.ThemeDark)
 
-	c.HTML(http.StatusOK, "inventory.gohtml", data)
+	ctrl.renderHTML(c, http.StatusOK, "inventory.gohtml", data)
 }
 
 func (ctrl *Controller) handleInventoryTagsFragment(c *gin.Context) {
@@ -94,7 +94,7 @@ func (ctrl *Controller) handleInventoryTagsFragment(c *gin.Context) {
 	data := ctrl.getInventoryData(channel)
 
 	var buf bytes.Buffer
-	if err := ctrl.templates.ExecuteTemplate(&buf, "inventory_table.gohtml", data); err != nil {
+	if err := ctrl.requestTemplate(c).ExecuteTemplate(&buf, "inventory_table.gohtml", data); err != nil {
 		c.String(http.StatusInternalServerError, "error rendering inventory table template: %v", err)
 		return
 	}
@@ -113,7 +113,7 @@ func (ctrl *Controller) handleInventoryStartSession(c *gin.Context) {
 
 	marker := strings.TrimSpace(req.Marker)
 	if marker == "" {
-		c.String(http.StatusBadRequest, "Standort / Regal-Marker darf nicht leer sein")
+		c.String(http.StatusBadRequest, "%s", translate(requestLanguage(c.Request), "inventory.markerRequired"))
 		return
 	}
 

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
+<html lang="{{lang}}" translate="no"{{if .Theme}} data-theme="{{.Theme}}"{{end}}{{if .ThemeMode}} data-theme-mode="{{.ThemeMode}}"{{end}}{{if .ThemeLight}} data-theme-light="{{.ThemeLight}}"{{end}}{{if .ThemeDark}} data-theme-dark="{{.ThemeDark}}"{{end}}>
 <head>
     <meta charset="UTF-8">
     <meta name="google" content="notranslate">
@@ -30,29 +30,29 @@
             <div class="px-5 sm:px-6 py-3.5 sm:py-4 border-b border-base-200 flex flex-wrap items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="flex items-center space-x-2">
-                        <h2 class="text-base font-semibold">Live NFC / RFID Transponder Stream</h2>
+                        <h2 class="text-base font-semibold">{{tr "desk.streamTitle"}}</h2>
                         <span id="tag-count-badge" class="badge badge-sm badge-outline font-mono">{{len .Tags}}</span>
                     </div>
                 </div>
 
                 <div class="flex items-center space-x-2.5">
                     <!-- Stream Pause / Freeze Toggle Button -->
-                    <button id="btn-stream-pause" type="button" class="btn btn-sm btn-ghost border border-base-200 flex items-center gap-1.5" title="Transponder-Stream anhalten / fortsetzen (Pause / Freeze)">
+                    <button id="btn-stream-pause" type="button" class="btn btn-sm btn-ghost border border-base-200 flex items-center gap-1.5" title="{{tr "desk.pauseStreamHint"}}">
                         <span id="stream-pause-icon" class="w-2 h-2 rounded-full bg-success pulse-indicator" aria-hidden="true"></span>
-                        <span id="stream-pause-label" class="text-xs font-semibold">Live</span>
+                        <span id="stream-pause-label" class="text-xs font-semibold">{{tr "common.live"}}</span>
                     </button>
 
                     <!-- Filter Input -->
                     <div class="relative flex items-center">
-                        <input id="tag-filter-input" type="text" placeholder="Filtern (F2 / Esc)..." class="input input-sm input-bordered pl-8 pr-12 w-48 sm:w-64 font-mono text-xs">
+                        <input id="tag-filter-input" type="text" placeholder="{{tr "common.filterPlaceholder"}}" class="input input-sm input-bordered pl-8 pr-12 w-48 sm:w-64 font-mono text-xs">
                         <span class="app-icon icon-search w-3.5 h-3.5 text-base-content/50 absolute left-2.5 pointer-events-none" aria-hidden="true"></span>
                         <kbd class="kbd kbd-xs bg-base-200 text-base-content/60 absolute right-2 pointer-events-none">F2</kbd>
                     </div>
 
                     <!-- Clear List Button (HTMX 4 POST) -->
-                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost text-error hover:bg-error hover:text-error-content flex items-center gap-1.5" title="Transponder-Liste leeren">
+                    <button hx-post="tags/clear" hx-target="#tags-table-body" hx-swap="innerHTML" type="button" class="btn btn-sm btn-ghost text-error hover:bg-error hover:text-error-content flex items-center gap-1.5" title="{{tr "tag.clearList"}}">
                         <span class="app-icon icon-trash w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
-                        <span>Leeren</span>
+                        <span>{{tr "common.clear"}}</span>
                     </button>
                 </div>
             </div>
@@ -62,14 +62,14 @@
                 <table class="table table-zebra table-pin-rows w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 bg-base-200 text-base-content/80 font-bold">
                         <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Item ID (Medium)</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Transponder UID</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Reader (Sender)</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Bibliothek / ISIL</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">Teile (Multi-Part)</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">CRC Prüfsumme</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">AFI</th>
-                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Erfassungszeit</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "item.id"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "tag.uid"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "reader.sender"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "library.isil"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "encode.parts"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "tag.crc"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 whitespace-nowrap">{{tr "afi.label"}}</th>
+                            <th scope="col" class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">{{tr "inventory.scanTime"}}</th>
                         </tr>
                     </thead>
                     <tbody id="tags-table-body" sse-swap="tag_read" data-sse-swap="tag_read" hx-swap="afterbegin">
