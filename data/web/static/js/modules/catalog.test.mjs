@@ -47,7 +47,7 @@ test('catalog loads initial and dynamic rows, shares lookups and handles failure
         if (url.searchParams.get('barcode') === 'missing') return { ok: true, json: async () => ({ books: [] }) };
         if (url.searchParams.get('barcode') === 'invalid') return { ok: true, json: async () => ({ books: [{ id: 'oai:alma.41SLSP_FNW:bad&value' }] }) };
         if (url.searchParams.get('barcode') === 'error') return { ok: false, status: 503 };
-        return { ok: true, json: async () => ({ sourceRecords: [{ network: '41SLSP_NETWORK', institutions: { FHNW: '41SLSP_FNW:VU1', ETH: '41SLSP_ETH:ETH' } }], books: [{
+        return { ok: true, json: async () => ({ sourceRecords: [{ network: '41SLSP_NETWORK', baseUrl: url.searchParams.get('barcode') === 'bad-url' ? 'javascript:alert(1)' : url.searchParams.get('barcode') === 'no-url' ? '' : 'https://catalog.example.test/custom/source?existing=1', institutions: { FHNW: '41SLSP_FNW:VU1', ETH: '41SLSP_ETH:ETH' } }], books: [{
             id: url.searchParams.get('barcode') === 'eth' ? 'oai:alma.41SLSP_ETH:123' : url.searchParams.get('barcode') === 'unknown' ? 'oai:alma.UNKNOWN:123' : 'oai:alma.41SLSP_FNW:990048097120205518',
             titles: [{ title: '<img src=x onerror=alert(1)>', subTitle: 'Untertitel' }],
             personalNames: [{ primary: { namePart: 'Autor' } }],
@@ -65,7 +65,8 @@ test('catalog loads initial and dynamic rows, shares lookups and handles failure
     assert.equal(book.children[0].textContent, '<img src=x onerror=alert(1)>');
     const link = book.children[1];
     const source = new URL(link.href);
-    assert.equal(source.origin + source.pathname, 'https://swisscovery.ch/discovery/sourceRecord');
+    assert.equal(source.origin + source.pathname, 'https://catalog.example.test/custom/source');
+    assert.equal(source.searchParams.get('existing'), '1');
     assert.equal(source.searchParams.get('vid'), '41SLSP_FNW:VU1');
     assert.equal(source.searchParams.get('docId'), 'alma990048097120205518');
     assert.equal(source.searchParams.get('recordOwner'), '41SLSP_NETWORK');
@@ -101,6 +102,13 @@ test('catalog loads initial and dynamic rows, shares lookups and handles failure
     await flush();
     assert.equal(unknown.children[0].children[1].tagName, 'details');
 
+    for (const barcode of ['bad-url', 'no-url']) {
+        const row = new Element(barcode);
+        observer([{ addedNodes: [row] }]);
+        await flush();
+        assert.equal(row.children[0].children[1].tagName, 'details');
+    }
+
     const invalid = new Element('invalid');
     observer([{ addedNodes: [invalid] }]);
     await flush();
@@ -117,5 +125,5 @@ test('catalog loads initial and dynamic rows, shares lookups and handles failure
     observer([{ addedNodes: [disabled] }]);
     await flush();
     assert.equal(disabled.textContent, 'Katalog nicht verfügbar');
-    assert.equal(calls.length, 6);
+    assert.equal(calls.length, 8);
 });

@@ -14,7 +14,7 @@ import (
 
 func TestCatalogEndpoint(t *testing.T) {
 	calls := map[string]int{}
-	ctrl, err := NewController(Config{Hub: desk.NewHub(10), Channels: []string{"desk"}, SourceRecords: []SourceRecordMapping{{Network: "network", Institutions: map[string]string{"ETH": "41SLSP_ETH:ETH"}}}, CatalogSearch: func(_ context.Context, barcode string) ([]catalog.Book, error) {
+	ctrl, err := NewController(Config{Hub: desk.NewHub(10), Channels: []string{"desk"}, SourceRecords: []SourceRecordMapping{{Network: "network", BaseURL: "https://example.test/source", Institutions: map[string]string{"ETH": "41SLSP_ETH:ETH"}}}, CatalogSearch: func(_ context.Context, barcode string) ([]catalog.Book, error) {
 		calls[barcode]++
 		switch barcode {
 		case "failure":
@@ -37,7 +37,7 @@ func TestCatalogEndpoint(t *testing.T) {
 		}
 	}
 	request("/desk/catalog?barcode=123", http.StatusOK, `"title":"Example"`)
-	request("/desk/catalog?barcode=123", http.StatusOK, `"sourceRecords":[{"network":"network","institutions":{"ETH":"41SLSP_ETH:ETH"}}]`)
+	request("/desk/catalog?barcode=123", http.StatusOK, `"sourceRecords":[{"network":"network","baseUrl":"https://example.test/source","institutions":{"ETH":"41SLSP_ETH:ETH"}}]`)
 	request("/desk/catalog?barcode=123", http.StatusOK, `"id":"123"`)
 	request("/desk/catalog?barcode=empty", http.StatusOK, `"books":[]`)
 	request("/desk/catalog?barcode=empty", http.StatusOK, `"books":[]`)

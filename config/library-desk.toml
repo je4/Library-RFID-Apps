@@ -11,6 +11,7 @@ max_tags = 100
 # Swisscovery source-record views; the institution code is taken from each view ID.
 [[source_records]]
 network = "41SLSP_NETWORK"
+base_url = "https://swisscovery.ch/discovery/sourceRecord"
 [source_records.institutions]
 "Fachhochschule Nordwestschweiz (FHNW)" = "41SLSP_FNW:VU1"
 "Mediathek Basel" = "41SLSP_FNW:VU1"

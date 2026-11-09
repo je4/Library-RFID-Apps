@@ -14,6 +14,7 @@ import (
 // SourceRecordMapping associates institution names and view IDs with a network.
 type SourceRecordMapping struct {
 	Network      string            `toml:"network" json:"network"`
+	BaseURL      string            `toml:"base_url" json:"baseUrl"`
 	Institutions map[string]string `toml:"institutions" json:"institutions"`
 }
 

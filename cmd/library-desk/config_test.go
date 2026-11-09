@@ -36,7 +36,7 @@ func TestLoadConfig_EmbeddedDefault(t *testing.T) {
 	if conf.MaxTags != 100 {
 		t.Errorf("expected default max_tags 100, got %d", conf.MaxTags)
 	}
-	if len(conf.SourceRecords) != 1 || conf.SourceRecords[0].Network != "41SLSP_NETWORK" || len(conf.SourceRecords[0].Institutions) != 15 || conf.SourceRecords[0].Institutions["ETH Zürich"] != "41SLSP_ETH:ETH" {
+	if len(conf.SourceRecords) != 1 || conf.SourceRecords[0].Network != "41SLSP_NETWORK" || conf.SourceRecords[0].BaseURL != "https://swisscovery.ch/discovery/sourceRecord" || len(conf.SourceRecords[0].Institutions) != 15 || conf.SourceRecords[0].Institutions["ETH Zürich"] != "41SLSP_ETH:ETH" {
 		t.Errorf("unexpected source record mappings: %+v", conf.SourceRecords)
 	}
 	if conf.Themes.Dark != "" && conf.Themes.Dark != "mediathek-dark" {

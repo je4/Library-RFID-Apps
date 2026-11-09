@@ -47,18 +47,25 @@ function values(items, mapper) {
 function sourceRecordURL(id, mappings) {
     const match = typeof id === 'string' && /^oai:alma\.([A-Za-z0-9_]+):(\d+)$/.exec(id);
     if (!match) return null;
-    let view, network;
+    let view, network, baseURL;
     for (const mapping of Array.isArray(mappings) ? mappings : []) {
         for (const candidate of Object.values(mapping?.institutions || {})) {
             if (typeof candidate === 'string' && candidate.split(':')[0] === match[1] && mapping.network) {
-                if (view && (view !== candidate || network !== mapping.network)) return null;
+                if (view && (view !== candidate || network !== mapping.network || baseURL !== mapping.baseUrl)) return null;
                 view = candidate;
                 network = mapping.network;
+                baseURL = mapping.baseUrl;
             }
         }
     }
-    if (!view) return null;
-    const url = new URL('https://swisscovery.ch/discovery/sourceRecord');
+    if (!view || typeof baseURL !== 'string' || !baseURL.trim()) return null;
+    let url;
+    try {
+        url = new URL(baseURL);
+    } catch {
+        return null;
+    }
+    if (!['http:', 'https:'].includes(url.protocol)) return null;
     url.searchParams.set('vid', view);
     url.searchParams.set('docId', 'alma' + match[2]);
     url.searchParams.set('recordOwner', network);
