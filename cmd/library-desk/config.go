@@ -5,6 +5,7 @@ import (
 	"github.com/BurntSushi/toml"
 	"github.com/je4/Library-RFID-Apps/config"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
+	"github.com/je4/Library-RFID-Apps/pkg/web"
 	utilsconfig "github.com/je4/utils/v2/pkg/config"
 	"go.ub.unibas.ch/cloud/certloader/v2/pkg/loader"
 )
@@ -44,20 +45,21 @@ type ElasticSearchConfig struct {
 //   - ClientTLS: mTLS configuration via certloader (MiniVault, File, Env, Dev, or ACME).
 //   - WebTLS: TLS configuration for the local web server.
 type DeskAppConfig struct {
-	Addr          string               `toml:"addr"`
-	ExtAddr       string               `toml:"extaddr"`
-	Name          string               `toml:"name"`
-	WSBroker      string               `toml:"wsbroker"`
-	Channels      []string             `toml:"channels"`
-	DefaultISIL   string               `toml:"default_isil"`
-	DefaultAFI    string               `toml:"default_afi"`
-	MaxTags       int                  `toml:"max_tags"`
-	ReadLimit     int64                `toml:"read_limit"`
-	Themes        ThemeConfig          `toml:"themes"`
-	Inventory     desk.InventoryConfig `toml:"inventory"`
-	ElasticSearch ElasticSearchConfig  `toml:"elasticsearch"`
-	ClientTLS     loader.Config        `toml:"clienttls"`
-	WebTLS        loader.Config        `toml:"webtls"`
+	Addr          string                    `toml:"addr"`
+	ExtAddr       string                    `toml:"extaddr"`
+	Name          string                    `toml:"name"`
+	WSBroker      string                    `toml:"wsbroker"`
+	Channels      []string                  `toml:"channels"`
+	DefaultISIL   string                    `toml:"default_isil"`
+	DefaultAFI    string                    `toml:"default_afi"`
+	MaxTags       int                       `toml:"max_tags"`
+	ReadLimit     int64                     `toml:"read_limit"`
+	Themes        ThemeConfig               `toml:"themes"`
+	Inventory     desk.InventoryConfig      `toml:"inventory"`
+	ElasticSearch ElasticSearchConfig       `toml:"elasticsearch"`
+	SourceRecords []web.SourceRecordMapping `toml:"source_records"`
+	ClientTLS     loader.Config             `toml:"clienttls"`
+	WebTLS        loader.Config             `toml:"webtls"`
 }
 
 // Config is an alias for DeskAppConfig.

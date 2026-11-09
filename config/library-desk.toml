@@ -8,6 +8,26 @@ default_isil = "CH-001596-0"
 default_afi = "07"
 max_tags = 100
 
+# Swisscovery source-record views; the institution code is taken from each view ID.
+[[source_records]]
+network = "41SLSP_NETWORK"
+[source_records.institutions]
+"Fachhochschule Nordwestschweiz (FHNW)" = "41SLSP_FNW:VU1"
+"Mediathek Basel" = "41SLSP_FNW:VU1"
+"ETH Zürich" = "41SLSP_ETH:ETH"
+"Universität Zürich und Zentralbibliothek" = "41SLSP_UZB:UZB"
+"Universität Basel" = "41SLSP_UNIBA:UNIBA"
+"Universität Bern" = "41SLSP_UBE:UBE"
+"Berner Fachhochschule (BFH)" = "41SLSP_BFH:BFH"
+"Universität St. Gallen (HSG)" = "41SLSP_HSG:HSG"
+"Zürcher Hochschule für Angewandte Wissenschaften (ZHAW)" = "41SLSP_ZHAW:ZHAW"
+"Zürcher Hochschule der Künste (ZHdK)" = "41SLSP_ZHDK:ZHDK"
+"Università della Svizzera italiana (USI)" = "41SLSP_USI:USI"
+"SUPSI" = "41SLSP_SUPSI:SUPSI"
+"Université de Genève" = "41SLSP_UNIGE:UNIGE"
+"EPF Lausanne" = "41SLSP_EPFL:EPFL"
+"Kooperative Speicherbibliothek Schweiz" = "41SLSP_VKSS:VKSS"
+
 # Optional Elasticsearch configuration. The API key is read from the environment.
 [elasticsearch]
 endpoint = ["https://elastic.med.campusderkuenste.ch/"]

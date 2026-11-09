@@ -75,6 +75,7 @@ func main() {
 	// 4. Initialize Web Controller with embedded templates and assets
 	webCtrl, err := web.NewController(web.Config{
 		CatalogSearch: catalogSearch,
+		SourceRecords: conf.SourceRecords,
 		Addr:          addr,
 		ExtAddr:       extAddr,
 		ClientName:    conf.Name,

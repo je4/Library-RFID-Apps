@@ -22,6 +22,7 @@ import (
 // Config defines settings for the web dashboard server.
 type Config struct {
 	CatalogSearch func(context.Context, string) ([]catalog.Book, error)
+	SourceRecords []SourceRecordMapping
 	Addr          string
 	ExtAddr       string
 	ClientName    string
