@@ -8,6 +8,7 @@ import { initSSE } from './modules/sse.js';
 import { initThemeSelector } from './modules/theme-selector.js';
 import { initEncodeController } from './modules/encode-controller.js';
 import { initShortcuts } from './modules/shortcuts.js';
+import { initCatalog } from './modules/catalog.js';
 
 export function initDesk() {
     initAudio();
@@ -18,6 +19,7 @@ export function initDesk() {
     initThemeSelector();
     initEncodeController();
     initShortcuts();
+    initCatalog();
 }
 
 if (document.readyState === 'loading') {

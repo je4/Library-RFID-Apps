@@ -13,6 +13,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/je4/Library-RFID-Apps/data"
+	"github.com/je4/Library-RFID-Apps/pkg/catalog"
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/utils/v2/pkg/zLogger"
@@ -20,21 +21,22 @@ import (
 
 // Config defines settings for the web dashboard server.
 type Config struct {
-	Addr        string
-	ExtAddr     string
-	ClientName  string
-	WSBroker    string
-	Channels    []string
-	DefaultISIL string
-	DefaultAFI  string
-	ThemeLight  string
-	ThemeDark   string
-	Inventory   desk.InventoryConfig
-	Hub         *desk.Hub
-	RFIDClient  libraryclient.Client
-	ISILList    map[string]*desk.ISILEntry
-	Logger      zLogger.ZLogger
-	SOAPOnly    bool
+	CatalogSearch func(context.Context, string) ([]catalog.Book, error)
+	Addr          string
+	ExtAddr       string
+	ClientName    string
+	WSBroker      string
+	Channels      []string
+	DefaultISIL   string
+	DefaultAFI    string
+	ThemeLight    string
+	ThemeDark     string
+	Inventory     desk.InventoryConfig
+	Hub           *desk.Hub
+	RFIDClient    libraryclient.Client
+	ISILList      map[string]*desk.ISILEntry
+	Logger        zLogger.ZLogger
+	SOAPOnly      bool
 }
 
 // Controller manages HTTP routes, SSE streaming, and embedded frontend rendering.
@@ -48,6 +50,7 @@ type Controller struct {
 	rfidClient       libraryclient.Client
 	encodeService    *EncodeService
 	inventoryService *InventoryService
+	catalogService   *catalogService
 }
 
 // NewController creates and initializes the Web Controller instance.
@@ -92,6 +95,9 @@ func NewController(cfg Config) (*Controller, error) {
 		rfidClient:       cfg.RFIDClient,
 		encodeService:    encodeService,
 		inventoryService: invService,
+	}
+	if cfg.CatalogSearch != nil {
+		ctrl.catalogService = newCatalogService(cfg.CatalogSearch)
 	}
 
 	if invService != nil {
@@ -171,6 +177,7 @@ func (ctrl *Controller) init() error {
 			channelGroup.GET("", ctrl.handleChannelIndex)
 			channelGroup.GET("/", ctrl.handleChannelIndex)
 			channelGroup.GET("/loan", ctrl.handleLoan)
+			channelGroup.GET("/catalog", ctrl.handleCatalog)
 			channelGroup.GET("/loan/tags", ctrl.handleLoanTagsFragment)
 			channelGroup.POST("/loan/afi/secure", ctrl.handleLoanAFISecure)
 			channelGroup.POST("/loan/afi/unsecure", ctrl.handleLoanAFIUnsecure)

@@ -143,6 +143,10 @@ Circulation desk assistant with web UI, live tag reading, Alma integration, tag 
 library-desk -config config/library-desk.toml
 ```
 
+When `[elasticsearch]` is configured, the NFC lists look up each item's barcode and display available catalog details. Configure `endpoint`, `index`, and `apikey` (for example `%%ELASTIC_APIKEY%%`) as shown in `config/library-desk.toml`. Without an endpoint, catalog lookup is disabled; RFID functions remain available. See [pkg/catalog/README.md](pkg/catalog/README.md) for index requirements.
+
+The server caches successful searches, including empty results, for 15 minutes (up to 10,000 barcodes); failures are not cached. Browser results are cached for five minutes and failed lookups for 30 seconds. A new lookup may therefore show cached data for up to 20 minutes after a catalog change; existing rows are refreshed when they are rendered again.
+
 ---
 
 ## Testing & Quality Assurance

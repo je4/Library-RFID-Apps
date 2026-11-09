@@ -14,6 +14,7 @@
             <span class="text-sm font-semibold tracking-wide text-base-content/40 italic">Keine ItemID</span>
             {{end}}
         </div>
+        {{if .ItemID}}<div class="catalog-details font-sans whitespace-normal" data-catalog-barcode="{{.ItemID}}" aria-live="polite"></div>{{end}}
     </td>
 
     <!-- UID with Copy Button -->
