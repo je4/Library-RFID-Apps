@@ -102,6 +102,13 @@ function openSourceRecord(url) {
     box.appendChild(fallback);
     box.appendChild(form);
     dialog.appendChild(box);
+    const backdrop = document.createElement('form');
+    backdrop.method = 'dialog';
+    backdrop.className = 'modal-backdrop';
+    const backdropClose = document.createElement('button');
+    backdropClose.textContent = 'Schliessen';
+    backdrop.appendChild(backdropClose);
+    dialog.appendChild(backdrop);
     dialog.addEventListener('close', () => dialog.remove());
     document.body.appendChild(dialog);
     dialog.showModal();

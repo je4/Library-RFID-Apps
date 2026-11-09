@@ -77,6 +77,10 @@ test('catalog loads initial and dynamic rows, shares lookups and handles failure
     assert.equal(dialog.open, true);
     assert.equal(dialog.children[0].children[1].src, link.href);
     assert.equal(dialog.children[0].children[2].href, link.href);
+    assert.equal(dialog.children[1].tagName, 'form');
+    assert.equal(dialog.children[1].className, 'modal-backdrop');
+    assert.equal(dialog.children[1].method, 'dialog');
+    assert.equal(dialog.children[1].children[0].tagName, 'button');
     dialog.listeners.close();
     assert.equal(dialog.removed, true);
     const details = book.children[2];
