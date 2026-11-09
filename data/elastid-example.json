@@ -1,0 +1,3925 @@
+{
+  "_index": "fhnw_alma-a",
+  "_id": "oai:alma.41SLSP_FNW:990048097120205518",
+  "_version": 1,
+  "_source": {
+    "mapping": {
+      "classification": {
+        "rvk": [
+          "LI 18250",
+          "LI 67055",
+          "LI 67060",
+          "LM 83403"
+        ],
+        "udc": [
+          "7.037.2"
+        ]
+      },
+      "date": [
+        {
+          "gte": "1992",
+          "lte": "1992"
+        }
+      ],
+      "daterange": [
+        {
+          "gte": "1992",
+          "lte": "1992"
+        }
+      ],
+      "extension": {
+        "localCodeNZ": [
+          "IDSERMedeaSIK"
+        ],
+        "subjectCategoryUbs": [
+          "kh"
+        ]
+      },
+      "identifier": {
+        "isbn": [
+          {
+            "enriched": "9780810961173",
+            "id": "0810961172",
+            "qualifier": [
+              "paperbound H.N. Abrams"
+            ]
+          },
+          {
+            "enriched": "9780870706783",
+            "id": "0870706780",
+            "qualifier": [
+              "pbk., The Museum of Modern Art"
+            ]
+          },
+          {
+            "enriched": "9780870706776",
+            "id": "0870706772",
+            "qualifier": [
+              "hbk., The Museum of Modern Art"
+            ]
+          },
+          {
+            "enriched": "9780810961159",
+            "id": "0810961156",
+            "qualifier": [
+              "clothbound H.N. Abrams"
+            ]
+          },
+          {
+            "enriched": "9783791311906",
+            "id": "3791311905",
+            "qualifier": [
+              "pbk., Prestel-Verlag"
+            ]
+          }
+        ]
+      },
+      "language": [
+        "Englisch"
+      ],
+      "location": {
+        "holding": [
+          {
+            "library": "Mediathek Basel",
+            "location": "E75BI",
+            "callNumber": "KP 502",
+            "items": [
+              {
+                "barcode": "EM000008701401"
+              }
+            ]
+          }
+        ]
+      },
+      "name": {
+        "corporate": [
+          {
+            "rero": {
+              "identifier": "(RERO)A026561065",
+              "namePart": "Museum of Modern Art (New York, N.Y.), Symposium"
+            }
+          }
+        ],
+        "personal": [
+          {
+            "gnd": {
+              "date": "1881-1973",
+              "entityType": [
+                "p",
+                "piz"
+              ],
+              "gender": "male",
+              "identifier": "(DE-588)118594206",
+              "level": "gnd1",
+              "namePart": "Picasso, Pablo",
+              "placeOfActivity": [
+                "Paris"
+              ],
+              "placeOfBirth": [
+                "Málaga"
+              ],
+              "profession": [
+                "Künstler",
+                "Maler",
+                "Grafiker",
+                "Bildhauer",
+                "Bühnenbildner",
+                "Keramiker",
+                "Schriftsteller"
+              ],
+              "useFor": [
+                "d",
+                "f",
+                "g",
+                "l",
+                "s",
+                "z"
+              ],
+              "variant": [
+                "Picasso, Pablo Ruys",
+                "Bikasu, Bablu",
+                "Pi-chia-so",
+                "Pikaso, Pablo",
+                "Pikaso",
+                "Piḳaso",
+                "Pikaso, Pabura",
+                "Pikaso, Pamplo",
+                "Pikaso, Paulos",
+                "Pikasso, Pabura",
+                "Pikasso, Pamplo",
+                "Pikasso, Paulos",
+                "Ruiz Picasso, Pablo",
+                "Ruiz-Picasso, Pablo",
+                "Ruys Picasso, Pablo",
+                "Ruys-Picasso, Pablo",
+                "Saci Pos",
+                "Sacipos",
+                "Picasso, Pablo Ruiz y",
+                "Pikasso, Pablo",
+                "Picasso, Pablo Ruiz",
+                "Ruiz, Pablo",
+                "Ruiz y Picasso, Pablo",
+                "Ruys, Pablo",
+                "Picasso",
+                "Pikasso",
+                "Пикассо"
+              ]
+            }
+          },
+          {
+            "gnd": {
+              "date": "1927-2006",
+              "entityType": [
+                "p",
+                "piz"
+              ],
+              "gender": "male",
+              "identifier": "(DE-588)124126235",
+              "level": "gnd1",
+              "namePart": "Rubin, William",
+              "placeOfBirth": [
+                "Brooklyn, NY"
+              ],
+              "profession": [
+                "Kunsthistoriker",
+                "Kurator"
+              ],
+              "useFor": [
+                "s",
+                "f"
+              ],
+              "variant": [
+                "Rubin, William Stanley",
+                "Rubin, William S."
+              ]
+            }
+          },
+          {
+            "other": {
+              "namePart": "Reff, Theodore"
+            }
+          },
+          {
+            "other": {
+              "namePart": "Varnedoe, Kirk"
+            }
+          },
+          {
+            "other": {
+              "namePart": "Rubin, William S."
+            }
+          },
+          {
+            "idref": {
+              "date": "1927-2006",
+              "identifier": "(IDREF)027114775",
+              "namePart": "Rubin, William Stanley"
+            }
+          },
+          {
+            "gnd": {
+              "date": "1947-",
+              "entityType": [
+                "p",
+                "piz"
+              ],
+              "gender": "female",
+              "identifier": "(DE-588)1056484233",
+              "level": "gnd3",
+              "namePart": "Zelevansky, Lynn",
+              "profession": [
+                "Museumsdirektorin",
+                "Kuratorin"
+              ],
+              "useFor": [
+                "f"
+              ]
+            },
+            "idref": {
+              "date": "1947-....",
+              "identifier": "(IDREF)057002061",
+              "namePart": "Zelevansky, Lynn"
+            }
+          }
+        ]
+      },
+      "note": {
+        "general": [
+          {
+            "main": "This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989"
+          },
+          {
+            "main": "The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York"
+          },
+          {
+            "main": "Ausstellung (New York ; Museum of Modern Art ; 1989/1990)"
+          }
+        ],
+        "statementOfResponsibility": [
+          {
+            "main": "organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+          }
+        ]
+      },
+      "originInfo": {
+        "copyrightDate": [
+          "© 1992"
+        ],
+        "event": {
+          "publication": [
+            {
+              "dateString": "[1992]",
+              "place": [
+                "New York"
+              ],
+              "publisher": [
+                "The Museum of Modern Art"
+              ]
+            }
+          ]
+        }
+      },
+      "physicalDescription": {
+        "extent": [
+          {
+            "dimensions": "28 cm",
+            "extent": "359 p.",
+            "pageNumbers": [
+              359
+            ],
+            "physicalDetails": "ill."
+          }
+        ]
+      },
+      "recordIdentifier": [
+        "(swissbib)240191234-41slsp_network",
+        "(RERO)1592099-41slsp",
+        "(NEBIS)004809712EBI01",
+        "(IDSBB)000900849DSV01",
+        "991156118579705501",
+        "(EXLNZ-41SLSP_NETWORK)991156118579705501",
+        "990048097120205518"
+      ],
+      "subject": {
+        "genre": {
+          "gnd": [
+            "Konferenzschrift",
+            "Ausstellungskatalog"
+          ],
+          "idref": [
+            "Actes de congrès"
+          ],
+          "idsbb": [
+            "Kongressbericht"
+          ],
+          "rdacontent": [
+            "txt"
+          ]
+        },
+        "local": {
+          "all": [
+            "Kongress. USA. New York",
+            "Picasso, Pablo. Kubismus",
+            "Braque, Georges. Besondere Aspekte",
+            "Picasso, Pablo",
+            "Braque, Georges",
+            "Kubismus"
+          ]
+        },
+        "name": {
+          "personal": [
+            {
+              "idref": {
+                "date": "1881-1973",
+                "identifier": "(IDREF)027071790",
+                "namePart": "Picasso, Pablo, artiste"
+              }
+            },
+            {
+              "idref": {
+                "date": "1882-1963",
+                "identifier": "(IDREF)027284050",
+                "namePart": "Braque, Georges"
+              }
+            },
+            {
+              "gnd": {
+                "date": "1882-1963",
+                "entityType": [
+                  "p",
+                  "piz"
+                ],
+                "gender": "male",
+                "identifier": "(DE-588)118514504",
+                "level": "gnd1",
+                "namePart": "Braque, Georges",
+                "placeOfBirth": [
+                  "Argenteuil"
+                ],
+                "profession": [
+                  "Maler",
+                  "Grafiker",
+                  "Bildhauer",
+                  "Bühnenbildner",
+                  "Kunstmaler"
+                ],
+                "useFor": [
+                  "s",
+                  "f",
+                  "z",
+                  "d"
+                ],
+                "variant": [
+                  "Braque, George",
+                  "Braque, G.",
+                  "Brak, Žorž"
+                ]
+              }
+            },
+            {
+              "gnd": {
+                "date": "1881-1973",
+                "entityType": [
+                  "p",
+                  "piz"
+                ],
+                "gender": "male",
+                "identifier": "(DE-588)118594206",
+                "level": "gnd1",
+                "namePart": "Picasso, Pablo",
+                "placeOfActivity": [
+                  "Paris"
+                ],
+                "placeOfBirth": [
+                  "Málaga"
+                ],
+                "profession": [
+                  "Künstler",
+                  "Maler",
+                  "Grafiker",
+                  "Bildhauer",
+                  "Bühnenbildner",
+                  "Keramiker",
+                  "Schriftsteller"
+                ],
+                "useFor": [
+                  "d",
+                  "f",
+                  "g",
+                  "l",
+                  "s",
+                  "z"
+                ],
+                "variant": [
+                  "Picasso, Pablo Ruys",
+                  "Bikasu, Bablu",
+                  "Pi-chia-so",
+                  "Pikaso, Pablo",
+                  "Pikaso",
+                  "Piḳaso",
+                  "Pikaso, Pabura",
+                  "Pikaso, Pamplo",
+                  "Pikaso, Paulos",
+                  "Pikasso, Pabura",
+                  "Pikasso, Pamplo",
+                  "Pikasso, Paulos",
+                  "Ruiz Picasso, Pablo",
+                  "Ruiz-Picasso, Pablo",
+                  "Ruys Picasso, Pablo",
+                  "Ruys-Picasso, Pablo",
+                  "Saci Pos",
+                  "Sacipos",
+                  "Picasso, Pablo Ruiz y",
+                  "Pikasso, Pablo",
+                  "Picasso, Pablo Ruiz",
+                  "Ruiz, Pablo",
+                  "Ruiz y Picasso, Pablo",
+                  "Ruys, Pablo",
+                  "Picasso",
+                  "Pikasso",
+                  "Пикассо"
+                ]
+              }
+            },
+            {
+              "idsbb": {
+                "namePart": "Picasso, Pablo"
+              }
+            },
+            {
+              "idsbb": {
+                "namePart": "Braque, Georges"
+              }
+            }
+          ]
+        },
+        "topic": [
+          {
+            "idref": {
+              "identifier": "(IDREF)027286630",
+              "label": "Cubisme"
+            }
+          },
+          {
+            "idsbb": {
+              "label": "Malerei, Kubismus"
+            }
+          },
+          {
+            "idsbb": {
+              "label": "Braque, Georges"
+            }
+          },
+          {
+            "idsbb": {
+              "label": "Picasso, Pablo"
+            }
+          },
+          {
+            "idsbb": {
+              "label": "Kubismus"
+            }
+          }
+        ]
+      },
+      "titleInfo": {
+        "main": [
+          {
+            "sort": "Picasso and Braque a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]",
+            "subTitle": "a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]",
+            "title": "Picasso and Braque"
+          }
+        ]
+      }
+    },
+    "datafield": [
+      {
+        "tag": "020",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 0810961172",
+          "|q paperbound H.N. Abrams"
+        ]
+      },
+      {
+        "tag": "020",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 0870706780",
+          "|q pbk., The Museum of Modern Art"
+        ]
+      },
+      {
+        "tag": "020",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 0870706772",
+          "|q hbk., The Museum of Modern Art"
+        ]
+      },
+      {
+        "tag": "020",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 0810961156",
+          "|q clothbound H.N. Abrams"
+        ]
+      },
+      {
+        "tag": "020",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 3791311905",
+          "|q pbk., Prestel-Verlag"
+        ]
+      },
+      {
+        "tag": "035",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a (swissbib)240191234-41slsp_network"
+        ]
+      },
+      {
+        "tag": "035",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 240191234",
+          "|9 ExL"
+        ]
+      },
+      {
+        "tag": "035",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a (RERO)1592099-41slsp"
+        ]
+      },
+      {
+        "tag": "035",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a (NEBIS)004809712EBI01"
+        ]
+      },
+      {
+        "tag": "035",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a (IDSBB)000900849DSV01"
+        ]
+      },
+      {
+        "tag": "035",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a (EXLNZ-41SLSP_NETWORK)991156118579705501"
+        ]
+      },
+      {
+        "tag": "040",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a RERO labcud",
+          "|d CH-ZuSLS"
+        ]
+      },
+      {
+        "tag": "072",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a ba",
+          "|2 rero"
+        ]
+      },
+      {
+        "tag": "072",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a kh",
+          "|2 SzZuIDS BS/BE"
+        ]
+      },
+      {
+        "tag": "080",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a 7.037.2"
+        ]
+      },
+      {
+        "tag": "084",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 9,11",
+          "|a 9,10",
+          "|2 ssgn"
+        ]
+      },
+      {
+        "tag": "084",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a LI 18250",
+          "|2 rvk"
+        ]
+      },
+      {
+        "tag": "084",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a LI 67055",
+          "|2 rvk"
+        ]
+      },
+      {
+        "tag": "084",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a LI 67060",
+          "|2 rvk"
+        ]
+      },
+      {
+        "tag": "084",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a LM 83403",
+          "|2 rvk"
+        ]
+      },
+      {
+        "tag": "245",
+        "ind1": "0",
+        "ind2": "0",
+        "subfield": [
+          "|a Picasso and Braque",
+          "|b a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]",
+          "|c organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+        ]
+      },
+      {
+        "tag": "264",
+        "ind1": " ",
+        "ind2": "1",
+        "subfield": [
+          "|a New York",
+          "|b The Museum of Modern Art",
+          "|c [1992]"
+        ]
+      },
+      {
+        "tag": "264",
+        "ind1": " ",
+        "ind2": "4",
+        "subfield": [
+          "|c © 1992"
+        ]
+      },
+      {
+        "tag": "300",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a 359 p.",
+          "|b ill.",
+          "|c 28 cm"
+        ]
+      },
+      {
+        "tag": "336",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|b txt",
+          "|2 rdacontent"
+        ]
+      },
+      {
+        "tag": "337",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|b n",
+          "|2 rdamedia"
+        ]
+      },
+      {
+        "tag": "338",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|b nc",
+          "|2 rdacarrier"
+        ]
+      },
+      {
+        "tag": "500",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989"
+        ]
+      },
+      {
+        "tag": "500",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York"
+        ]
+      },
+      {
+        "tag": "500",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Ausstellung (New York ; Museum of Modern Art ; 1989/1990)"
+        ]
+      },
+      {
+        "tag": "600",
+        "ind1": "1",
+        "ind2": "7",
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|c artiste",
+          "|d 1881-1973",
+          "|0 (IDREF)027071790",
+          "|2 idref"
+        ]
+      },
+      {
+        "tag": "600",
+        "ind1": "1",
+        "ind2": "7",
+        "subfield": [
+          "|a Braque, Georges",
+          "|d 1882-1963",
+          "|0 (IDREF)027284050",
+          "|2 idref"
+        ]
+      },
+      {
+        "tag": "600",
+        "ind1": "1",
+        "ind2": "7",
+        "subfield": [
+          "|a Braque, Georges",
+          "|d 1882-1963",
+          "|0 (DE-588)118514504",
+          "|2 gnd"
+        ]
+      },
+      {
+        "tag": "600",
+        "ind1": "1",
+        "ind2": "7",
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|d 1881-1973",
+          "|0 (DE-588)118594206",
+          "|2 gnd"
+        ]
+      },
+      {
+        "tag": "600",
+        "ind1": "1",
+        "ind2": "7",
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|x Braque, Georges",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ]
+      },
+      {
+        "tag": "600",
+        "ind1": "1",
+        "ind2": "7",
+        "subfield": [
+          "|a Braque, Georges",
+          "|x Picasso, Pablo",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ]
+      },
+      {
+        "tag": "650",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a Cubisme",
+          "|0 (IDREF)027286630",
+          "|2 idref"
+        ]
+      },
+      {
+        "tag": "650",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a Malerei",
+          "|x Kubismus",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ]
+      },
+      {
+        "tag": "655",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a Actes de congrès",
+          "|0 (IDREF)02886431X",
+          "|2 idref"
+        ]
+      },
+      {
+        "tag": "655",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a Konferenzschrift",
+          "|z New York (NY)",
+          "|y 1989",
+          "|2 gnd-content"
+        ]
+      },
+      {
+        "tag": "655",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a Konferenzschrift",
+          "|z New York, NY",
+          "|y 1989",
+          "|2 gnd-content"
+        ]
+      },
+      {
+        "tag": "655",
+        "ind1": " ",
+        "ind2": "7",
+        "subfield": [
+          "|a Ausstellungskatalog",
+          "|z New York, NY",
+          "|y 1989/1990",
+          "|2 gnd-content"
+        ]
+      },
+      {
+        "tag": "690",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Kongress. USA. New York",
+          "|2 uzb-US"
+        ]
+      },
+      {
+        "tag": "690",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Picasso, Pablo. Kubismus",
+          "|2 uzb-US"
+        ]
+      },
+      {
+        "tag": "690",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Braque, Georges. Besondere Aspekte",
+          "|2 uzb-US"
+        ]
+      },
+      {
+        "tag": "690",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|2 ubs-A5"
+        ]
+      },
+      {
+        "tag": "690",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Braque, Georges",
+          "|2 ubs-A5"
+        ]
+      },
+      {
+        "tag": "690",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a Kubismus",
+          "|2 ubs-A5"
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|d 1881-1973",
+          "|0 (DE-588)118594206"
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Rubin, William",
+          "|d 1927-2006",
+          "|0 (DE-588)124126235"
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Reff, Theodore"
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Varnedoe, Kirk"
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Rubin, William S."
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Rubin, William Stanley",
+          "|d 1927-2006",
+          "|0 (IDREF)027114775"
+        ]
+      },
+      {
+        "tag": "700",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|a Zelevansky, Lynn",
+          "|d 1947-",
+          "|0 (DE-588)1056484233",
+          "|6 880-03"
+        ]
+      },
+      {
+        "tag": "880",
+        "ind1": "1",
+        "ind2": " ",
+        "subfield": [
+          "|6 700-03",
+          "|a Zelevansky, Lynn",
+          "|d 1947-....",
+          "|0 (IDREF)057002061"
+        ]
+      },
+      {
+        "tag": "710",
+        "ind1": "2",
+        "ind2": " ",
+        "subfield": [
+          "|a Museum of Modern Art (New York, N.Y.)",
+          "|b Symposium",
+          "|d 1989",
+          "|c New York, N.Y.",
+          "|0 (RERO)A026561065"
+        ]
+      },
+      {
+        "tag": "900",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|a IDSERMedeaSIK"
+        ]
+      },
+      {
+        "tag": "852",
+        "ind1": "4",
+        "ind2": " ",
+        "subfield": [
+          "|b E75",
+          "|c E75BI",
+          "|j KP 502",
+          "|8 2221668440005518",
+          "|9 FNW"
+        ]
+      },
+      {
+        "tag": "949",
+        "ind1": " ",
+        "ind2": " ",
+        "subfield": [
+          "|3 2221668440005518",
+          "|o BOOK",
+          "|2 EM000008701401",
+          "|c E75BI",
+          "|1 2321668430005518",
+          "|p 04",
+          "|j KP 502",
+          "|b E75",
+          "|9 FNW"
+        ]
+      }
+    ],
+    "sets": [
+      "E60_RapidILL_BOOK",
+      "E44_RapidILL_BOOK",
+      "fhnw_ful_set",
+      "E50_RapidILL_BOOK"
+    ],
+    "flags": [
+      "all",
+      "nz_data"
+    ],
+    "acl": {
+      "content": [
+        "global/guest"
+      ],
+      "meta": [
+        "global/guest"
+      ],
+      "preview": [
+        "global/guest"
+      ]
+    },
+    "type": "document",
+    "fieldlists": {
+      "245": [
+        "00$$aPicasso and Braque$$ba symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]$$corganized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky|"
+      ],
+      "264": [
+        "#1$$aNew York$$bThe Museum of Modern Art$$c[1992]|",
+        "#4$$c© 1992|"
+      ],
+      "300": [
+        "##$$a359 p.$$bill.$$c28 cm|"
+      ],
+      "336": [
+        "##$$btxt$$2rdacontent|"
+      ],
+      "337": [
+        "##$$bn$$2rdamedia|"
+      ],
+      "338": [
+        "##$$bnc$$2rdacarrier|"
+      ],
+      "500": [
+        "##$$aThis volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989|",
+        "##$$aThe symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York|",
+        "##$$aAusstellung (New York ; Museum of Modern Art ; 1989/1990)|"
+      ],
+      "600": [
+        "17$$aPicasso, Pablo$$cartiste$$d1881-1973$$0(IDREF)027071790$$2idref|",
+        "17$$aBraque, Georges$$d1882-1963$$0(IDREF)027284050$$2idref|",
+        "17$$aBraque, Georges$$d1882-1963$$0(DE-588)118514504$$2gnd|",
+        "17$$aPicasso, Pablo$$d1881-1973$$0(DE-588)118594206$$2gnd|",
+        "17$$aPicasso, Pablo$$xBraque, Georges$$vKongressbericht$$2idsbb|",
+        "17$$aBraque, Georges$$xPicasso, Pablo$$vKongressbericht$$2idsbb|"
+      ],
+      "650": [
+        "#7$$aCubisme$$0(IDREF)027286630$$2idref|",
+        "#7$$aMalerei$$xKubismus$$vKongressbericht$$2idsbb|"
+      ],
+      "655": [
+        "#7$$aActes de congrès$$0(IDREF)02886431X$$2idref|",
+        "#7$$aKonferenzschrift$$zNew York (NY)$$y1989$$2gnd-content|",
+        "#7$$aKonferenzschrift$$zNew York, NY$$y1989$$2gnd-content|",
+        "#7$$aAusstellungskatalog$$zNew York, NY$$y1989/1990$$2gnd-content|"
+      ],
+      "690": [
+        "##$$aKongress. USA. New York$$2uzb-US|",
+        "##$$aPicasso, Pablo. Kubismus$$2uzb-US|",
+        "##$$aBraque, Georges. Besondere Aspekte$$2uzb-US|",
+        "##$$aPicasso, Pablo$$2ubs-A5|",
+        "##$$aBraque, Georges$$2ubs-A5|",
+        "##$$aKubismus$$2ubs-A5|"
+      ],
+      "700": [
+        "1#$$aPicasso, Pablo$$d1881-1973$$0(DE-588)118594206|",
+        "1#$$aRubin, William$$d1927-2006$$0(DE-588)124126235|",
+        "1#$$aReff, Theodore|",
+        "1#$$aVarnedoe, Kirk|",
+        "1#$$aRubin, William S.|",
+        "1#$$aRubin, William Stanley$$d1927-2006$$0(IDREF)027114775|",
+        "1#$$aZelevansky, Lynn$$d1947-$$0(DE-588)1056484233$$6880-03|"
+      ],
+      "710": [
+        "2#$$aMuseum of Modern Art (New York, N.Y.)$$bSymposium$$d1989$$cNew York, N.Y.$$0(RERO)A026561065|"
+      ],
+      "852": [
+        "4#$$bE75$$cE75BI$$jKP 502$$82221668440005518$$9FNW|"
+      ],
+      "880": [
+        "1#$$6700-03$$aZelevansky, Lynn$$d1947-....$$0(IDREF)057002061|"
+      ],
+      "900": [
+        "##$$aIDSERMedeaSIK|"
+      ],
+      "949": [
+        "##$$32221668440005518$$oBOOK$$2EM000008701401$$cE75BI$$12321668430005518$$p04$$jKP 502$$bE75$$9FNW|"
+      ],
+      "020": [
+        "##$$a0810961172$$qpaperbound H.N. Abrams|",
+        "##$$a0870706780$$qpbk., The Museum of Modern Art|",
+        "##$$a0870706772$$qhbk., The Museum of Modern Art|",
+        "##$$a0810961156$$qclothbound H.N. Abrams|",
+        "##$$a3791311905$$qpbk., Prestel-Verlag|"
+      ],
+      "035": [
+        "##$$a(swissbib)240191234-41slsp_network|",
+        "##$$a240191234$$9ExL|",
+        "##$$a(RERO)1592099-41slsp|",
+        "##$$a(NEBIS)004809712EBI01|",
+        "##$$a(IDSBB)000900849DSV01|",
+        "##$$a(EXLNZ-41SLSP_NETWORK)991156118579705501|"
+      ],
+      "040": [
+        "##$$aRERO labcud$$dCH-ZuSLS|"
+      ],
+      "072": [
+        "#7$$aba$$2rero|",
+        "#7$$akh$$2SzZuIDS BS/BE|"
+      ],
+      "080": [
+        "1#$$a7.037.2|"
+      ],
+      "084": [
+        "##$$a9,11$$a9,10$$2ssgn|",
+        "##$$aLI 18250$$2rvk|",
+        "##$$aLI 67055$$2rvk|",
+        "##$$aLI 67060$$2rvk|",
+        "##$$aLM 83403$$2rvk|"
+      ]
+    },
+    "oai_id": [
+      "oai:alma.41SLSP_FNW:990048097120205518"
+    ],
+    "LDR": {
+      "leader_06_typeOfRecord": "a",
+      "leader_07_bibliographicStatus": "m",
+      "leader_17_encodingLevel": " ",
+      "leader_19_multipartLevel": " ",
+      "leader_full": "03373nam a2200745 c 4500"
+    },
+    "id": "oai:alma.41SLSP_FNW:990048097120205518",
+    "controlfield": {
+      "001": "990048097120205518",
+      "005": "20260320120800.0",
+      "008": "201012t19921992xxu||||| |||| 00| ||eng d",
+      "008_06_typeOfDate": "t",
+      "008_07-10_dateFirst": "1992",
+      "008_11-14_dateSecond": "1992",
+      "008_15-17_country": "xxu",
+      "008_23or29_formOfItem": " ",
+      "008_35-37_language": "eng"
+    },
+    "facet": {
+      "strings": [
+        {
+          "name": "language",
+          "string": [
+            "Englisch"
+          ]
+        },
+        {
+          "name": "library",
+          "string": [
+            "Mediathek Basel"
+          ]
+        }
+      ],
+      "agents": [
+        {
+          "name": "author",
+          "agent": [
+            {
+              "label": "Picasso, Pablo (1881-1973)",
+              "identifier": [
+                "(DE-588)118594206"
+              ],
+              "search": [
+                "Picasso, Pablo",
+                "Picasso, Pablo Ruys",
+                "Bikasu, Bablu",
+                "Pi-chia-so",
+                "Pikaso, Pablo",
+                "Pikaso",
+                "Piḳaso",
+                "Pikaso, Pabura",
+                "Pikaso, Pamplo",
+                "Pikaso, Paulos",
+                "Pikasso, Pabura",
+                "Pikasso, Pamplo",
+                "Pikasso, Paulos",
+                "Ruiz Picasso, Pablo",
+                "Ruiz-Picasso, Pablo",
+                "Ruys Picasso, Pablo",
+                "Ruys-Picasso, Pablo",
+                "Saci Pos",
+                "Sacipos",
+                "Picasso, Pablo Ruiz y",
+                "Pikasso, Pablo",
+                "Picasso, Pablo Ruiz",
+                "Ruiz, Pablo",
+                "Ruiz y Picasso, Pablo",
+                "Ruys, Pablo",
+                "Picasso",
+                "Pikasso",
+                "Пикассо"
+              ]
+            },
+            {
+              "label": "Rubin, William (1927-2006)",
+              "identifier": [
+                "(DE-588)124126235"
+              ],
+              "search": [
+                "Rubin, William",
+                "Rubin, William Stanley",
+                "Rubin, William S."
+              ]
+            },
+            {
+              "label": "Reff, Theodore",
+              "identifier": [
+                "(noid)Reff, Theodore"
+              ],
+              "search": [
+                "Reff, Theodore"
+              ]
+            },
+            {
+              "label": "Varnedoe, Kirk",
+              "identifier": [
+                "(noid)Varnedoe, Kirk"
+              ],
+              "search": [
+                "Varnedoe, Kirk"
+              ]
+            },
+            {
+              "label": "Rubin, William S.",
+              "identifier": [
+                "(noid)Rubin, William S."
+              ],
+              "search": [
+                "Rubin, William S."
+              ]
+            },
+            {
+              "label": "Rubin, William Stanley (1927-2006)",
+              "identifier": [
+                "(IDREF)027114775"
+              ],
+              "search": [
+                "Rubin, William Stanley"
+              ]
+            },
+            {
+              "label": "Zelevansky, Lynn (1947-)",
+              "identifier": [
+                "(DE-588)1056484233"
+              ],
+              "search": [
+                "Zelevansky, Lynn"
+              ]
+            },
+            {
+              "label": "Zelevansky, Lynn (1947-)",
+              "identifier": [
+                "(IDREF)057002061"
+              ],
+              "search": [
+                "Zelevansky, Lynn"
+              ]
+            },
+            {
+              "label": "Museum of Modern Art (New York, N.Y.), Symposium",
+              "identifier": [
+                "(RERO)A026561065"
+              ],
+              "search": [
+                "Museum of Modern Art (New York, N.Y.), Symposium"
+              ]
+            }
+          ]
+        }
+      ],
+      "concepts": [
+        {
+          "name": "topic",
+          "concept": [
+            {
+              "label": "Braque, Georges (1882-1963)",
+              "identifier": [
+                "(DE-588)118514504"
+              ],
+              "search": [
+                "Braque, Georges",
+                "Braque, George",
+                "Braque, G.",
+                "Brak, Žorž"
+              ]
+            },
+            {
+              "label": "Picasso, Pablo (1881-1973)",
+              "identifier": [
+                "(DE-588)118594206"
+              ],
+              "search": [
+                "Picasso, Pablo",
+                "Picasso, Pablo Ruys",
+                "Bikasu, Bablu",
+                "Pi-chia-so",
+                "Pikaso, Pablo",
+                "Pikaso",
+                "Piḳaso",
+                "Pikaso, Pabura",
+                "Pikaso, Pamplo",
+                "Pikaso, Paulos",
+                "Pikasso, Pabura",
+                "Pikasso, Pamplo",
+                "Pikasso, Paulos",
+                "Ruiz Picasso, Pablo",
+                "Ruiz-Picasso, Pablo",
+                "Ruys Picasso, Pablo",
+                "Ruys-Picasso, Pablo",
+                "Saci Pos",
+                "Sacipos",
+                "Picasso, Pablo Ruiz y",
+                "Pikasso, Pablo",
+                "Picasso, Pablo Ruiz",
+                "Ruiz, Pablo",
+                "Ruiz y Picasso, Pablo",
+                "Ruys, Pablo",
+                "Picasso",
+                "Pikasso",
+                "Пикассо"
+              ]
+            },
+            {
+              "label": "Picasso, Pablo",
+              "identifier": [
+                "(noid)Picasso, Pablo"
+              ],
+              "search": [
+                "Picasso, Pablo"
+              ]
+            },
+            {
+              "label": "Braque, Georges",
+              "identifier": [
+                "(noid)Braque, Georges"
+              ],
+              "search": [
+                "Braque, Georges"
+              ]
+            },
+            {
+              "label": "Malerei, Kubismus",
+              "identifier": [
+                "(noid)Malerei, Kubismus"
+              ],
+              "search": [
+                "Malerei, Kubismus"
+              ]
+            },
+            {
+              "label": "Kubismus",
+              "identifier": [
+                "(noid)Kubismus"
+              ],
+              "search": [
+                "Kubismus"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    "timestamp": "2026-10-23T09:18:58Z"
+  },
+  "fields": {
+    "mapping.classification.rvk": [
+      "LI 18250",
+      "LI 67055",
+      "LI 67060",
+      "LM 83403"
+    ],
+    "mapping.originInfo.event.publication.dateString": [
+      "[1992]"
+    ],
+    "mapping.physicalDescription.extent.extent": [
+      "359 p."
+    ],
+    "fieldlists.500": [
+      "##$$aThis volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989|",
+      "##$$aThe symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York|",
+      "##$$aAusstellung (New York ; Museum of Modern Art ; 1989/1990)|"
+    ],
+    "mapping.subject.name.personal.idref.date": [
+      "1881-1973",
+      "1882-1963"
+    ],
+    "mapping.subject.topic.idsbb.label": [
+      "Malerei, Kubismus",
+      "Braque, Georges",
+      "Picasso, Pablo",
+      "Kubismus"
+    ],
+    "copyfields.name.personal.gnd.level": [
+      "gnd1",
+      "gnd1",
+      "gnd3"
+    ],
+    "fieldlists.900": [
+      "##$$aIDSERMedeaSIK|"
+    ],
+    "acl.preview": [
+      "global/guest"
+    ],
+    "mapping.physicalDescription.extent.physicalDetails": [
+      "ill."
+    ],
+    "copyfields.subject.name.personal.gnd.identifier": [
+      "(DE-588)118514504",
+      "(DE-588)118594206"
+    ],
+    "type": [
+      "document"
+    ],
+    "search.code.keyword": [
+      "IDSERMedeaSIK"
+    ],
+    "acl.content": [
+      "global/guest"
+    ],
+    "mapping.subject.name.personal.idref.identifier": [
+      "(IDREF)027071790",
+      "(IDREF)027284050"
+    ],
+    "search.subjectIdentifier": [
+      "(DE-588)118514504",
+      "(DE-588)118594206",
+      "(IDREF)027286630",
+      "(IDREF)027071790",
+      "(IDREF)027284050"
+    ],
+    "copyfields.name.personal.gnd.profession": [
+      "Künstler",
+      "Maler",
+      "Grafiker",
+      "Bildhauer",
+      "Bühnenbildner",
+      "Keramiker",
+      "Schriftsteller",
+      "Kunsthistoriker",
+      "Kurator",
+      "Museumsdirektorin",
+      "Kuratorin"
+    ],
+    "search.publication.keyword": [
+      "The Museum of Modern Art",
+      "New York"
+    ],
+    "copyfields.name.personal.gnd.date": [
+      "1881-1973",
+      "1927-2006",
+      "1947-"
+    ],
+    "fieldlists.072": [
+      "#7$$aba$$2rero|",
+      "#7$$akh$$2SzZuIDS BS/BE|"
+    ],
+    "id": [
+      "oai:alma.41SLSP_FNW:990048097120205518"
+    ],
+    "search.subjectIdentifier.keyword": [
+      "(DE-588)118514504",
+      "(DE-588)118594206",
+      "(IDREF)027286630",
+      "(IDREF)027071790",
+      "(IDREF)027284050"
+    ],
+    "mapping.language": [
+      "Englisch"
+    ],
+    "mapping.subject.topic.idref.identifier": [
+      "(IDREF)027286630"
+    ],
+    "fieldlists.336": [
+      "##$$btxt$$2rdacontent|"
+    ],
+    "fieldlists.852": [
+      "4#$$bE75$$cE75BI$$jKP 502$$82221668440005518$$9FNW|"
+    ],
+    "fieldlists.338": [
+      "##$$bnc$$2rdacarrier|"
+    ],
+    "datafield": [
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 0810961172",
+          "|q paperbound H.N. Abrams"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "020"
+        ],
+        "subfield.keyword": [
+          "|a 0810961172",
+          "|q paperbound H.N. Abrams"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 0870706780",
+          "|q pbk., The Museum of Modern Art"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "020"
+        ],
+        "subfield.keyword": [
+          "|a 0870706780",
+          "|q pbk., The Museum of Modern Art"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 0870706772",
+          "|q hbk., The Museum of Modern Art"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "020"
+        ],
+        "subfield.keyword": [
+          "|a 0870706772",
+          "|q hbk., The Museum of Modern Art"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 0810961156",
+          "|q clothbound H.N. Abrams"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "020"
+        ],
+        "subfield.keyword": [
+          "|a 0810961156",
+          "|q clothbound H.N. Abrams"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 3791311905",
+          "|q pbk., Prestel-Verlag"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "020"
+        ],
+        "subfield.keyword": [
+          "|a 3791311905",
+          "|q pbk., Prestel-Verlag"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a (swissbib)240191234-41slsp_network"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "035"
+        ],
+        "subfield.keyword": [
+          "|a (swissbib)240191234-41slsp_network"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 240191234",
+          "|9 ExL"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "035"
+        ],
+        "subfield.keyword": [
+          "|a 240191234",
+          "|9 ExL"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a (RERO)1592099-41slsp"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "035"
+        ],
+        "subfield.keyword": [
+          "|a (RERO)1592099-41slsp"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a (NEBIS)004809712EBI01"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "035"
+        ],
+        "subfield.keyword": [
+          "|a (NEBIS)004809712EBI01"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a (IDSBB)000900849DSV01"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "035"
+        ],
+        "subfield.keyword": [
+          "|a (IDSBB)000900849DSV01"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a (EXLNZ-41SLSP_NETWORK)991156118579705501"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "035"
+        ],
+        "subfield.keyword": [
+          "|a (EXLNZ-41SLSP_NETWORK)991156118579705501"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a RERO labcud",
+          "|d CH-ZuSLS"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "040"
+        ],
+        "subfield.keyword": [
+          "|a RERO labcud",
+          "|d CH-ZuSLS"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a ba",
+          "|2 rero"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "072"
+        ],
+        "subfield.keyword": [
+          "|a ba",
+          "|2 rero"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a kh",
+          "|2 SzZuIDS BS/BE"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "072"
+        ],
+        "subfield.keyword": [
+          "|a kh",
+          "|2 SzZuIDS BS/BE"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 7.037.2"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "080"
+        ],
+        "subfield.keyword": [
+          "|a 7.037.2"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 9,11",
+          "|a 9,10",
+          "|2 ssgn"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "084"
+        ],
+        "subfield.keyword": [
+          "|a 9,11",
+          "|a 9,10",
+          "|2 ssgn"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a LI 18250",
+          "|2 rvk"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "084"
+        ],
+        "subfield.keyword": [
+          "|a LI 18250",
+          "|2 rvk"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a LI 67055",
+          "|2 rvk"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "084"
+        ],
+        "subfield.keyword": [
+          "|a LI 67055",
+          "|2 rvk"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a LI 67060",
+          "|2 rvk"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "084"
+        ],
+        "subfield.keyword": [
+          "|a LI 67060",
+          "|2 rvk"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a LM 83403",
+          "|2 rvk"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "084"
+        ],
+        "subfield.keyword": [
+          "|a LM 83403",
+          "|2 rvk"
+        ]
+      },
+      {
+        "ind2": [
+          "0"
+        ],
+        "subfield": [
+          "|a Picasso and Braque",
+          "|b a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]",
+          "|c organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+        ],
+        "ind1": [
+          "0"
+        ],
+        "tag": [
+          "245"
+        ],
+        "subfield.keyword": [
+          "|a Picasso and Braque",
+          "|b a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]",
+          "|c organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+        ]
+      },
+      {
+        "ind2": [
+          "1"
+        ],
+        "subfield": [
+          "|a New York",
+          "|b The Museum of Modern Art",
+          "|c [1992]"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "264"
+        ],
+        "subfield.keyword": [
+          "|a New York",
+          "|b The Museum of Modern Art",
+          "|c [1992]"
+        ]
+      },
+      {
+        "ind2": [
+          "4"
+        ],
+        "subfield": [
+          "|c © 1992"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "264"
+        ],
+        "subfield.keyword": [
+          "|c © 1992"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a 359 p.",
+          "|b ill.",
+          "|c 28 cm"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "300"
+        ],
+        "subfield.keyword": [
+          "|a 359 p.",
+          "|b ill.",
+          "|c 28 cm"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|b txt",
+          "|2 rdacontent"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "336"
+        ],
+        "subfield.keyword": [
+          "|b txt",
+          "|2 rdacontent"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|b n",
+          "|2 rdamedia"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "337"
+        ],
+        "subfield.keyword": [
+          "|b n",
+          "|2 rdamedia"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|b nc",
+          "|2 rdacarrier"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "338"
+        ],
+        "subfield.keyword": [
+          "|b nc",
+          "|2 rdacarrier"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "500"
+        ],
+        "subfield.keyword": [
+          "|a This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "500"
+        ],
+        "subfield.keyword": [
+          "|a The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Ausstellung (New York ; Museum of Modern Art ; 1989/1990)"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "500"
+        ],
+        "subfield.keyword": [
+          "|a Ausstellung (New York ; Museum of Modern Art ; 1989/1990)"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|c artiste",
+          "|d 1881-1973",
+          "|0 (IDREF)027071790",
+          "|2 idref"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "600"
+        ],
+        "subfield.keyword": [
+          "|a Picasso, Pablo",
+          "|c artiste",
+          "|d 1881-1973",
+          "|0 (IDREF)027071790",
+          "|2 idref"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Braque, Georges",
+          "|d 1882-1963",
+          "|0 (IDREF)027284050",
+          "|2 idref"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "600"
+        ],
+        "subfield.keyword": [
+          "|a Braque, Georges",
+          "|d 1882-1963",
+          "|0 (IDREF)027284050",
+          "|2 idref"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Braque, Georges",
+          "|d 1882-1963",
+          "|0 (DE-588)118514504",
+          "|2 gnd"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "600"
+        ],
+        "subfield.keyword": [
+          "|a Braque, Georges",
+          "|d 1882-1963",
+          "|0 (DE-588)118514504",
+          "|2 gnd"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|d 1881-1973",
+          "|0 (DE-588)118594206",
+          "|2 gnd"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "600"
+        ],
+        "subfield.keyword": [
+          "|a Picasso, Pablo",
+          "|d 1881-1973",
+          "|0 (DE-588)118594206",
+          "|2 gnd"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|x Braque, Georges",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "600"
+        ],
+        "subfield.keyword": [
+          "|a Picasso, Pablo",
+          "|x Braque, Georges",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Braque, Georges",
+          "|x Picasso, Pablo",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "600"
+        ],
+        "subfield.keyword": [
+          "|a Braque, Georges",
+          "|x Picasso, Pablo",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Cubisme",
+          "|0 (IDREF)027286630",
+          "|2 idref"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "650"
+        ],
+        "subfield.keyword": [
+          "|a Cubisme",
+          "|0 (IDREF)027286630",
+          "|2 idref"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Malerei",
+          "|x Kubismus",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "650"
+        ],
+        "subfield.keyword": [
+          "|a Malerei",
+          "|x Kubismus",
+          "|v Kongressbericht",
+          "|2 idsbb"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Actes de congrès",
+          "|0 (IDREF)02886431X",
+          "|2 idref"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "655"
+        ],
+        "subfield.keyword": [
+          "|a Actes de congrès",
+          "|0 (IDREF)02886431X",
+          "|2 idref"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Konferenzschrift",
+          "|z New York (NY)",
+          "|y 1989",
+          "|2 gnd-content"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "655"
+        ],
+        "subfield.keyword": [
+          "|a Konferenzschrift",
+          "|z New York (NY)",
+          "|y 1989",
+          "|2 gnd-content"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Konferenzschrift",
+          "|z New York, NY",
+          "|y 1989",
+          "|2 gnd-content"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "655"
+        ],
+        "subfield.keyword": [
+          "|a Konferenzschrift",
+          "|z New York, NY",
+          "|y 1989",
+          "|2 gnd-content"
+        ]
+      },
+      {
+        "ind2": [
+          "7"
+        ],
+        "subfield": [
+          "|a Ausstellungskatalog",
+          "|z New York, NY",
+          "|y 1989/1990",
+          "|2 gnd-content"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "655"
+        ],
+        "subfield.keyword": [
+          "|a Ausstellungskatalog",
+          "|z New York, NY",
+          "|y 1989/1990",
+          "|2 gnd-content"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Kongress. USA. New York",
+          "|2 uzb-US"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "690"
+        ],
+        "subfield.keyword": [
+          "|a Kongress. USA. New York",
+          "|2 uzb-US"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Picasso, Pablo. Kubismus",
+          "|2 uzb-US"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "690"
+        ],
+        "subfield.keyword": [
+          "|a Picasso, Pablo. Kubismus",
+          "|2 uzb-US"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Braque, Georges. Besondere Aspekte",
+          "|2 uzb-US"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "690"
+        ],
+        "subfield.keyword": [
+          "|a Braque, Georges. Besondere Aspekte",
+          "|2 uzb-US"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|2 ubs-A5"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "690"
+        ],
+        "subfield.keyword": [
+          "|a Picasso, Pablo",
+          "|2 ubs-A5"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Braque, Georges",
+          "|2 ubs-A5"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "690"
+        ],
+        "subfield.keyword": [
+          "|a Braque, Georges",
+          "|2 ubs-A5"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Kubismus",
+          "|2 ubs-A5"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "690"
+        ],
+        "subfield.keyword": [
+          "|a Kubismus",
+          "|2 ubs-A5"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Picasso, Pablo",
+          "|d 1881-1973",
+          "|0 (DE-588)118594206"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Picasso, Pablo",
+          "|d 1881-1973",
+          "|0 (DE-588)118594206"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Rubin, William",
+          "|d 1927-2006",
+          "|0 (DE-588)124126235"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Rubin, William",
+          "|d 1927-2006",
+          "|0 (DE-588)124126235"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Reff, Theodore"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Reff, Theodore"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Varnedoe, Kirk"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Varnedoe, Kirk"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Rubin, William S."
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Rubin, William S."
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Rubin, William Stanley",
+          "|d 1927-2006",
+          "|0 (IDREF)027114775"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Rubin, William Stanley",
+          "|d 1927-2006",
+          "|0 (IDREF)027114775"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Zelevansky, Lynn",
+          "|d 1947-",
+          "|0 (DE-588)1056484233",
+          "|6 880-03"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "700"
+        ],
+        "subfield.keyword": [
+          "|a Zelevansky, Lynn",
+          "|d 1947-",
+          "|0 (DE-588)1056484233",
+          "|6 880-03"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|6 700-03",
+          "|a Zelevansky, Lynn",
+          "|d 1947-....",
+          "|0 (IDREF)057002061"
+        ],
+        "ind1": [
+          "1"
+        ],
+        "tag": [
+          "880"
+        ],
+        "subfield.keyword": [
+          "|6 700-03",
+          "|a Zelevansky, Lynn",
+          "|d 1947-....",
+          "|0 (IDREF)057002061"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a Museum of Modern Art (New York, N.Y.)",
+          "|b Symposium",
+          "|d 1989",
+          "|c New York, N.Y.",
+          "|0 (RERO)A026561065"
+        ],
+        "ind1": [
+          "2"
+        ],
+        "tag": [
+          "710"
+        ],
+        "subfield.keyword": [
+          "|a Museum of Modern Art (New York, N.Y.)",
+          "|b Symposium",
+          "|d 1989",
+          "|c New York, N.Y.",
+          "|0 (RERO)A026561065"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|a IDSERMedeaSIK"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "900"
+        ],
+        "subfield.keyword": [
+          "|a IDSERMedeaSIK"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|b E75",
+          "|c E75BI",
+          "|j KP 502",
+          "|8 2221668440005518",
+          "|9 FNW"
+        ],
+        "ind1": [
+          "4"
+        ],
+        "tag": [
+          "852"
+        ],
+        "subfield.keyword": [
+          "|b E75",
+          "|c E75BI",
+          "|j KP 502",
+          "|8 2221668440005518",
+          "|9 FNW"
+        ]
+      },
+      {
+        "ind2": [
+          " "
+        ],
+        "subfield": [
+          "|3 2221668440005518",
+          "|o BOOK",
+          "|2 EM000008701401",
+          "|c E75BI",
+          "|1 2321668430005518",
+          "|p 04",
+          "|j KP 502",
+          "|b E75",
+          "|9 FNW"
+        ],
+        "ind1": [
+          " "
+        ],
+        "tag": [
+          "949"
+        ],
+        "subfield.keyword": [
+          "|3 2221668440005518",
+          "|o BOOK",
+          "|2 EM000008701401",
+          "|c E75BI",
+          "|1 2321668430005518",
+          "|p 04",
+          "|j KP 502",
+          "|b E75",
+          "|9 FNW"
+        ]
+      }
+    ],
+    "fieldlists.337": [
+      "##$$bn$$2rdamedia|"
+    ],
+    "search.authorIdentifier": [
+      "(DE-588)118594206",
+      "(DE-588)124126235",
+      "(DE-588)1056484233",
+      "(IDREF)027114775",
+      "(IDREF)057002061",
+      "(RERO)A026561065"
+    ],
+    "search.subject": [
+      "Actes de congrès",
+      "Kongressbericht",
+      "Picasso, Pablo, artiste",
+      "Braque, Georges",
+      "Braque, George",
+      "Braque, G.",
+      "Brak, Žorž",
+      "Picasso, Pablo Ruys",
+      "Bikasu, Bablu",
+      "Pi-chia-so",
+      "Pikaso, Pablo",
+      "Pikaso",
+      "Piḳaso",
+      "Pikaso, Pabura",
+      "Pikaso, Pamplo",
+      "Pikaso, Paulos",
+      "Pikasso, Pabura",
+      "Pikasso, Pamplo",
+      "Pikasso, Paulos",
+      "Ruiz Picasso, Pablo",
+      "Ruiz-Picasso, Pablo",
+      "Ruys Picasso, Pablo",
+      "Ruys-Picasso, Pablo",
+      "Saci Pos",
+      "Sacipos",
+      "Picasso, Pablo Ruiz y",
+      "Pikasso, Pablo",
+      "Picasso, Pablo Ruiz",
+      "Ruiz, Pablo",
+      "Ruiz y Picasso, Pablo",
+      "Ruys, Pablo",
+      "Picasso",
+      "Pikasso",
+      "Пикассо",
+      "Picasso, Pablo",
+      "Braque, Georges",
+      "Malerei, Kubismus",
+      "Braque, Georges",
+      "Picasso, Pablo",
+      "Kubismus",
+      "1882-1963",
+      "1881-1973",
+      "Konferenzschrift",
+      "Ausstellungskatalog",
+      "txt",
+      "Braque, Georges",
+      "Picasso, Pablo",
+      "1881-1973",
+      "1882-1963",
+      "Kongress. USA. New York",
+      "Picasso, Pablo. Kubismus",
+      "Braque, Georges. Besondere Aspekte",
+      "Picasso, Pablo",
+      "Braque, Georges",
+      "Kubismus",
+      "Cubisme"
+    ],
+    "copyfields.name.corporate.rero.identifier": [
+      "(RERO)A026561065"
+    ],
+    "copyfields.name.personal.gnd.identifier": [
+      "(DE-588)118594206",
+      "(DE-588)124126235",
+      "(DE-588)1056484233"
+    ],
+    "mapping.identifier.isbn.enriched": [
+      "9780810961173",
+      "9780870706783",
+      "9780870706776",
+      "9780810961159",
+      "9783791311906"
+    ],
+    "copyfields.name.personal.gnd.placeOfActivity": [
+      "Paris"
+    ],
+    "mapping.daterange": [
+      {
+        "lte": "19920101",
+        "gte": "19920101"
+      }
+    ],
+    "controlfield.008_07-10_dateFirst": [
+      "1992"
+    ],
+    "fieldlists.600": [
+      "17$$aPicasso, Pablo$$cartiste$$d1881-1973$$0(IDREF)027071790$$2idref|",
+      "17$$aBraque, Georges$$d1882-1963$$0(IDREF)027284050$$2idref|",
+      "17$$aBraque, Georges$$d1882-1963$$0(DE-588)118514504$$2gnd|",
+      "17$$aPicasso, Pablo$$d1881-1973$$0(DE-588)118594206$$2gnd|",
+      "17$$aPicasso, Pablo$$xBraque, Georges$$vKongressbericht$$2idsbb|",
+      "17$$aBraque, Georges$$xPicasso, Pablo$$vKongressbericht$$2idsbb|"
+    ],
+    "copyfields.subject.name.personal.gnd.placeOfActivity": [
+      "Paris"
+    ],
+    "controlfield.008": [
+      "201012t19921992xxu||||| |||| 00| ||eng d"
+    ],
+    "flags": [
+      "all",
+      "nz_data"
+    ],
+    "mapping.location.holding.items.barcode": [
+      "EM000008701401"
+    ],
+    "controlfield.005": [
+      "20260320120800.0"
+    ],
+    "acl.content.keyword": [
+      "global/guest"
+    ],
+    "controlfield.001": [
+      "990048097120205518"
+    ],
+    "mapping.physicalDescription.extent.pageNumbers": [
+      359
+    ],
+    "search.code": [
+      "IDSERMedeaSIK"
+    ],
+    "search.callNumber.keyword": [
+      "KP 502"
+    ],
+    "copyfields.subject.name.personal.gnd.namePart": [
+      "Braque, Georges",
+      "Picasso, Pablo"
+    ],
+    "search.author": [
+      "Reff, Theodore",
+      "Varnedoe, Kirk",
+      "Rubin, William S.",
+      "Rubin, William Stanley",
+      "Zelevansky, Lynn",
+      "1927-2006",
+      "1947-....",
+      "Picasso, Pablo Ruys",
+      "Bikasu, Bablu",
+      "Pi-chia-so",
+      "Pikaso, Pablo",
+      "Pikaso",
+      "Piḳaso",
+      "Pikaso, Pabura",
+      "Pikaso, Pamplo",
+      "Pikaso, Paulos",
+      "Pikasso, Pabura",
+      "Pikasso, Pamplo",
+      "Pikasso, Paulos",
+      "Ruiz Picasso, Pablo",
+      "Ruiz-Picasso, Pablo",
+      "Ruys Picasso, Pablo",
+      "Ruys-Picasso, Pablo",
+      "Saci Pos",
+      "Sacipos",
+      "Picasso, Pablo Ruiz y",
+      "Pikasso, Pablo",
+      "Picasso, Pablo Ruiz",
+      "Ruiz, Pablo",
+      "Ruiz y Picasso, Pablo",
+      "Ruys, Pablo",
+      "Picasso",
+      "Pikasso",
+      "Пикассо",
+      "Rubin, William Stanley",
+      "Rubin, William S.",
+      "1881-1973",
+      "1927-2006",
+      "1947-",
+      "Picasso, Pablo",
+      "Rubin, William",
+      "Zelevansky, Lynn",
+      "Museum of Modern Art (New York, N.Y.), Symposium"
+    ],
+    "fieldlists.690": [
+      "##$$aKongress. USA. New York$$2uzb-US|",
+      "##$$aPicasso, Pablo. Kubismus$$2uzb-US|",
+      "##$$aBraque, Georges. Besondere Aspekte$$2uzb-US|",
+      "##$$aPicasso, Pablo$$2ubs-A5|",
+      "##$$aBraque, Georges$$2ubs-A5|",
+      "##$$aKubismus$$2ubs-A5|"
+    ],
+    "controlfield.008_15-17_country": [
+      "xxu"
+    ],
+    "timestamp": [
+      "2026-10-23T09:18:58.000Z"
+    ],
+    "fieldlists.710": [
+      "2#$$aMuseum of Modern Art (New York, N.Y.)$$bSymposium$$d1989$$cNew York, N.Y.$$0(RERO)A026561065|"
+    ],
+    "mapping.titleInfo.main.sort.keyword": [
+      "Picasso and Braque a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]"
+    ],
+    "sets": [
+      "E60_RapidILL_BOOK",
+      "E44_RapidILL_BOOK",
+      "fhnw_ful_set",
+      "E50_RapidILL_BOOK"
+    ],
+    "LDR.leader_07_bibliographicStatus": [
+      "m"
+    ],
+    "controlfield.008_06_typeOfDate": [
+      "t"
+    ],
+    "mapping.identifier.isbn.id": [
+      "0810961172",
+      "0870706780",
+      "0870706772",
+      "0810961156",
+      "3791311905"
+    ],
+    "mapping.recordIdentifier": [
+      "(swissbib)240191234-41slsp_network",
+      "(RERO)1592099-41slsp",
+      "(NEBIS)004809712EBI01",
+      "(IDSBB)000900849DSV01",
+      "991156118579705501",
+      "(EXLNZ-41SLSP_NETWORK)991156118579705501",
+      "990048097120205518"
+    ],
+    "mapping.originInfo.event.publication.publisher": [
+      "The Museum of Modern Art"
+    ],
+    "mapping.classification.udc": [
+      "7.037.2"
+    ],
+    "oai_id": [
+      "oai:alma.41SLSP_FNW:990048097120205518"
+    ],
+    "search.authorIdentifier.keyword": [
+      "(DE-588)118594206",
+      "(DE-588)124126235",
+      "(DE-588)1056484233",
+      "(IDREF)027114775",
+      "(IDREF)057002061",
+      "(RERO)A026561065"
+    ],
+    "facet.strings": [
+      {
+        "name": [
+          "language"
+        ],
+        "string": [
+          "Englisch"
+        ],
+        "string.keyword": [
+          "Englisch"
+        ]
+      },
+      {
+        "name": [
+          "library"
+        ],
+        "string": [
+          "Mediathek Basel"
+        ],
+        "string.keyword": [
+          "Mediathek Basel"
+        ]
+      }
+    ],
+    "copyfields.name.corporate.rero.namePart": [
+      "Museum of Modern Art (New York, N.Y.), Symposium"
+    ],
+    "fieldlists.040": [
+      "##$$aRERO labcud$$dCH-ZuSLS|"
+    ],
+    "mapping.physicalDescription.extent.dimensions": [
+      "28 cm"
+    ],
+    "copyfields.subject.name.personal.gnd.profession": [
+      "Maler",
+      "Grafiker",
+      "Bildhauer",
+      "Bühnenbildner",
+      "Kunstmaler",
+      "Künstler",
+      "Maler",
+      "Grafiker",
+      "Bildhauer",
+      "Bühnenbildner",
+      "Keramiker",
+      "Schriftsteller"
+    ],
+    "mapping.extension.localCodeNZ": [
+      "IDSERMedeaSIK"
+    ],
+    "fieldlists.300": [
+      "##$$a359 p.$$bill.$$c28 cm|"
+    ],
+    "fieldlists.700": [
+      "1#$$aPicasso, Pablo$$d1881-1973$$0(DE-588)118594206|",
+      "1#$$aRubin, William$$d1927-2006$$0(DE-588)124126235|",
+      "1#$$aReff, Theodore|",
+      "1#$$aVarnedoe, Kirk|",
+      "1#$$aRubin, William S.|",
+      "1#$$aRubin, William Stanley$$d1927-2006$$0(IDREF)027114775|",
+      "1#$$aZelevansky, Lynn$$d1947-$$0(DE-588)1056484233$$6880-03|"
+    ],
+    "mapping.identifier.isbn.qualifier": [
+      "paperbound H.N. Abrams",
+      "pbk., The Museum of Modern Art",
+      "hbk., The Museum of Modern Art",
+      "clothbound H.N. Abrams",
+      "pbk., Prestel-Verlag"
+    ],
+    "search.classification.keyword": [
+      "kh",
+      "LI 18250",
+      "LI 67055",
+      "LI 67060",
+      "LM 83403",
+      "7.037.2"
+    ],
+    "acl.meta": [
+      "global/guest"
+    ],
+    "LDR.leader_17_encodingLevel": [
+      " "
+    ],
+    "search.author.keyword": [
+      "Reff, Theodore",
+      "Varnedoe, Kirk",
+      "Rubin, William S.",
+      "Rubin, William Stanley",
+      "Zelevansky, Lynn",
+      "1927-2006",
+      "1947-....",
+      "Picasso, Pablo Ruys",
+      "Bikasu, Bablu",
+      "Pi-chia-so",
+      "Pikaso, Pablo",
+      "Pikaso",
+      "Piḳaso",
+      "Pikaso, Pabura",
+      "Pikaso, Pamplo",
+      "Pikaso, Paulos",
+      "Pikasso, Pabura",
+      "Pikasso, Pamplo",
+      "Pikasso, Paulos",
+      "Ruiz Picasso, Pablo",
+      "Ruiz-Picasso, Pablo",
+      "Ruys Picasso, Pablo",
+      "Ruys-Picasso, Pablo",
+      "Saci Pos",
+      "Sacipos",
+      "Picasso, Pablo Ruiz y",
+      "Pikasso, Pablo",
+      "Picasso, Pablo Ruiz",
+      "Ruiz, Pablo",
+      "Ruiz y Picasso, Pablo",
+      "Ruys, Pablo",
+      "Picasso",
+      "Pikasso",
+      "Пикассо",
+      "Rubin, William Stanley",
+      "Rubin, William S.",
+      "1881-1973",
+      "1927-2006",
+      "1947-",
+      "Picasso, Pablo",
+      "Rubin, William",
+      "Zelevansky, Lynn",
+      "Museum of Modern Art (New York, N.Y.), Symposium"
+    ],
+    "fieldlists.949": [
+      "##$$32221668440005518$$oBOOK$$2EM000008701401$$cE75BI$$12321668430005518$$p04$$jKP 502$$bE75$$9FNW|"
+    ],
+    "search.title.keyword": [
+      "Picasso and Braque",
+      "a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]"
+    ],
+    "controlfield.008_11-14_dateSecond": [
+      "1992"
+    ],
+    "search.subject.keyword": [
+      "Actes de congrès",
+      "Kongressbericht",
+      "Picasso, Pablo, artiste",
+      "Braque, Georges",
+      "Braque, George",
+      "Braque, G.",
+      "Brak, Žorž",
+      "Picasso, Pablo Ruys",
+      "Bikasu, Bablu",
+      "Pi-chia-so",
+      "Pikaso, Pablo",
+      "Pikaso",
+      "Piḳaso",
+      "Pikaso, Pabura",
+      "Pikaso, Pamplo",
+      "Pikaso, Paulos",
+      "Pikasso, Pabura",
+      "Pikasso, Pamplo",
+      "Pikasso, Paulos",
+      "Ruiz Picasso, Pablo",
+      "Ruiz-Picasso, Pablo",
+      "Ruys Picasso, Pablo",
+      "Ruys-Picasso, Pablo",
+      "Saci Pos",
+      "Sacipos",
+      "Picasso, Pablo Ruiz y",
+      "Pikasso, Pablo",
+      "Picasso, Pablo Ruiz",
+      "Ruiz, Pablo",
+      "Ruiz y Picasso, Pablo",
+      "Ruys, Pablo",
+      "Picasso",
+      "Pikasso",
+      "Пикассо",
+      "Picasso, Pablo",
+      "Braque, Georges",
+      "Malerei, Kubismus",
+      "Braque, Georges",
+      "Picasso, Pablo",
+      "Kubismus",
+      "1882-1963",
+      "1881-1973",
+      "Konferenzschrift",
+      "Ausstellungskatalog",
+      "txt",
+      "Braque, Georges",
+      "Picasso, Pablo",
+      "1881-1973",
+      "1882-1963",
+      "Kongress. USA. New York",
+      "Picasso, Pablo. Kubismus",
+      "Braque, Georges. Besondere Aspekte",
+      "Picasso, Pablo",
+      "Braque, Georges",
+      "Kubismus",
+      "Cubisme"
+    ],
+    "search.identifier": [
+      "EM000008701401",
+      "(swissbib)240191234-41slsp_network",
+      "(RERO)1592099-41slsp",
+      "(NEBIS)004809712EBI01",
+      "(IDSBB)000900849DSV01",
+      "991156118579705501",
+      "(EXLNZ-41SLSP_NETWORK)991156118579705501",
+      "990048097120205518",
+      "9780810961173",
+      "9780870706783",
+      "9780870706776",
+      "9780810961159",
+      "9783791311906",
+      "0810961172",
+      "0870706780",
+      "0870706772",
+      "0810961156",
+      "3791311905",
+      "990048097120205518"
+    ],
+    "search.title": [
+      "Picasso and Braque",
+      "a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]"
+    ],
+    "mapping.location.holding.location": [
+      "E75BI"
+    ],
+    "fieldlists.035": [
+      "##$$a(swissbib)240191234-41slsp_network|",
+      "##$$a240191234$$9ExL|",
+      "##$$a(RERO)1592099-41slsp|",
+      "##$$a(NEBIS)004809712EBI01|",
+      "##$$a(IDSBB)000900849DSV01|",
+      "##$$a(EXLNZ-41SLSP_NETWORK)991156118579705501|"
+    ],
+    "fieldlists.655": [
+      "#7$$aActes de congrès$$0(IDREF)02886431X$$2idref|",
+      "#7$$aKonferenzschrift$$zNew York (NY)$$y1989$$2gnd-content|",
+      "#7$$aKonferenzschrift$$zNew York, NY$$y1989$$2gnd-content|",
+      "#7$$aAusstellungskatalog$$zNew York, NY$$y1989/1990$$2gnd-content|"
+    ],
+    "mapping.name.corporate": [
+      {
+        "rero.identifier": [
+          "(RERO)A026561065"
+        ],
+        "rero.namePart": [
+          "Museum of Modern Art (New York, N.Y.), Symposium"
+        ]
+      }
+    ],
+    "mapping.date.gte": [
+      "1992-01-01T00:00:00.000Z"
+    ],
+    "facet.concepts": [
+      {
+        "concept.search": [
+          "Braque, Georges",
+          "Braque, George",
+          "Braque, G.",
+          "Brak, Žorž",
+          "Picasso, Pablo",
+          "Picasso, Pablo Ruys",
+          "Bikasu, Bablu",
+          "Pi-chia-so",
+          "Pikaso, Pablo",
+          "Pikaso",
+          "Piḳaso",
+          "Pikaso, Pabura",
+          "Pikaso, Pamplo",
+          "Pikaso, Paulos",
+          "Pikasso, Pabura",
+          "Pikasso, Pamplo",
+          "Pikasso, Paulos",
+          "Ruiz Picasso, Pablo",
+          "Ruiz-Picasso, Pablo",
+          "Ruys Picasso, Pablo",
+          "Ruys-Picasso, Pablo",
+          "Saci Pos",
+          "Sacipos",
+          "Picasso, Pablo Ruiz y",
+          "Pikasso, Pablo",
+          "Picasso, Pablo Ruiz",
+          "Ruiz, Pablo",
+          "Ruiz y Picasso, Pablo",
+          "Ruys, Pablo",
+          "Picasso",
+          "Pikasso",
+          "Пикассо",
+          "Picasso, Pablo",
+          "Braque, Georges",
+          "Malerei, Kubismus",
+          "Kubismus"
+        ],
+        "name": [
+          "topic"
+        ],
+        "concept.identifier": [
+          "(DE-588)118514504",
+          "(DE-588)118594206",
+          "(noid)Picasso, Pablo",
+          "(noid)Braque, Georges",
+          "(noid)Malerei, Kubismus",
+          "(noid)Kubismus"
+        ],
+        "concept.label": [
+          "Braque, Georges (1882-1963)",
+          "Picasso, Pablo (1881-1973)",
+          "Picasso, Pablo",
+          "Braque, Georges",
+          "Malerei, Kubismus",
+          "Kubismus"
+        ],
+        "concept.label.keyword": [
+          "Braque, Georges (1882-1963)",
+          "Picasso, Pablo (1881-1973)",
+          "Picasso, Pablo",
+          "Braque, Georges",
+          "Malerei, Kubismus",
+          "Kubismus"
+        ]
+      }
+    ],
+    "copyfields.name.personal.idref.identifier": [
+      "(IDREF)027114775",
+      "(IDREF)057002061"
+    ],
+    "mapping.subject.genre.rdacontent": [
+      "txt"
+    ],
+    "copyfields.subject.name.personal.gnd.placeOfBirth": [
+      "Argenteuil",
+      "Málaga"
+    ],
+    "mapping.subject.topic.idref.label": [
+      "Cubisme"
+    ],
+    "mapping.subject.name.personal.idsbb.namePart": [
+      "Picasso, Pablo",
+      "Braque, Georges"
+    ],
+    "copyfields.name.personal.other.namePart": [
+      "Reff, Theodore",
+      "Varnedoe, Kirk",
+      "Rubin, William S."
+    ],
+    "search.callNumber": [
+      "KP 502"
+    ],
+    "mapping.subject.name.personal.idref.namePart": [
+      "Picasso, Pablo, artiste",
+      "Braque, Georges"
+    ],
+    "copyfields.name.personal.idref.date": [
+      "1927-2006",
+      "1947-...."
+    ],
+    "mapping.titleInfo.main.title": [
+      "Picasso and Braque"
+    ],
+    "copyfields.name.personal.gnd.namePart": [
+      "Picasso, Pablo",
+      "Rubin, William",
+      "Zelevansky, Lynn"
+    ],
+    "mapping.subject.local.all": [
+      "Kongress. USA. New York",
+      "Picasso, Pablo. Kubismus",
+      "Braque, Georges. Besondere Aspekte",
+      "Picasso, Pablo",
+      "Braque, Georges",
+      "Kubismus"
+    ],
+    "LDR.leader_06_typeOfRecord": [
+      "a"
+    ],
+    "copyfields.name.personal.idref.namePart": [
+      "Rubin, William Stanley",
+      "Zelevansky, Lynn"
+    ],
+    "fieldlists.020": [
+      "##$$a0810961172$$qpaperbound H.N. Abrams|",
+      "##$$a0870706780$$qpbk., The Museum of Modern Art|",
+      "##$$a0870706772$$qhbk., The Museum of Modern Art|",
+      "##$$a0810961156$$qclothbound H.N. Abrams|",
+      "##$$a3791311905$$qpbk., Prestel-Verlag|"
+    ],
+    "facet.agents": [
+      {
+        "name": [
+          "author"
+        ],
+        "agent.label.keyword": [
+          "Picasso, Pablo (1881-1973)",
+          "Rubin, William (1927-2006)",
+          "Reff, Theodore",
+          "Varnedoe, Kirk",
+          "Rubin, William S.",
+          "Rubin, William Stanley (1927-2006)",
+          "Zelevansky, Lynn (1947-)",
+          "Zelevansky, Lynn (1947-)",
+          "Museum of Modern Art (New York, N.Y.), Symposium"
+        ],
+        "agent.identifier": [
+          "(DE-588)118594206",
+          "(DE-588)124126235",
+          "(noid)Reff, Theodore",
+          "(noid)Varnedoe, Kirk",
+          "(noid)Rubin, William S.",
+          "(IDREF)027114775",
+          "(DE-588)1056484233",
+          "(IDREF)057002061",
+          "(RERO)A026561065"
+        ],
+        "agent.label": [
+          "Picasso, Pablo (1881-1973)",
+          "Rubin, William (1927-2006)",
+          "Reff, Theodore",
+          "Varnedoe, Kirk",
+          "Rubin, William S.",
+          "Rubin, William Stanley (1927-2006)",
+          "Zelevansky, Lynn (1947-)",
+          "Zelevansky, Lynn (1947-)",
+          "Museum of Modern Art (New York, N.Y.), Symposium"
+        ],
+        "agent.search": [
+          "Picasso, Pablo",
+          "Picasso, Pablo Ruys",
+          "Bikasu, Bablu",
+          "Pi-chia-so",
+          "Pikaso, Pablo",
+          "Pikaso",
+          "Piḳaso",
+          "Pikaso, Pabura",
+          "Pikaso, Pamplo",
+          "Pikaso, Paulos",
+          "Pikasso, Pabura",
+          "Pikasso, Pamplo",
+          "Pikasso, Paulos",
+          "Ruiz Picasso, Pablo",
+          "Ruiz-Picasso, Pablo",
+          "Ruys Picasso, Pablo",
+          "Ruys-Picasso, Pablo",
+          "Saci Pos",
+          "Sacipos",
+          "Picasso, Pablo Ruiz y",
+          "Pikasso, Pablo",
+          "Picasso, Pablo Ruiz",
+          "Ruiz, Pablo",
+          "Ruiz y Picasso, Pablo",
+          "Ruys, Pablo",
+          "Picasso",
+          "Pikasso",
+          "Пикассо",
+          "Rubin, William",
+          "Rubin, William Stanley",
+          "Rubin, William S.",
+          "Reff, Theodore",
+          "Varnedoe, Kirk",
+          "Rubin, William S.",
+          "Rubin, William Stanley",
+          "Zelevansky, Lynn",
+          "Zelevansky, Lynn",
+          "Museum of Modern Art (New York, N.Y.), Symposium"
+        ]
+      }
+    ],
+    "fieldlists.264": [
+      "#1$$aNew York$$bThe Museum of Modern Art$$c[1992]|",
+      "#4$$c© 1992|"
+    ],
+    "mapping.note.general.main": [
+      "This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989",
+      "The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York",
+      "Ausstellung (New York ; Museum of Modern Art ; 1989/1990)"
+    ],
+    "mapping.subject.genre.idsbb": [
+      "Kongressbericht"
+    ],
+    "fieldlists.245": [
+      "00$$aPicasso and Braque$$ba symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]$$corganized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky|"
+    ],
+    "search.publication": [
+      "The Museum of Modern Art",
+      "New York"
+    ],
+    "search.identifier.keyword": [
+      "EM000008701401",
+      "(swissbib)240191234-41slsp_network",
+      "(RERO)1592099-41slsp",
+      "(NEBIS)004809712EBI01",
+      "(IDSBB)000900849DSV01",
+      "991156118579705501",
+      "(EXLNZ-41SLSP_NETWORK)991156118579705501",
+      "990048097120205518",
+      "9780810961173",
+      "9780870706783",
+      "9780870706776",
+      "9780810961159",
+      "9783791311906",
+      "0810961172",
+      "0870706780",
+      "0870706772",
+      "0810961156",
+      "3791311905",
+      "990048097120205518"
+    ],
+    "mapping.note.statementOfResponsibility.main": [
+      "organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+    ],
+    "search.classification": [
+      "kh",
+      "LI 18250",
+      "LI 67055",
+      "LI 67060",
+      "LM 83403",
+      "7.037.2"
+    ],
+    "copyfields.subject.name.personal.gnd.level": [
+      "gnd1",
+      "gnd1"
+    ],
+    "mapping.name.personal": [
+      {
+        "gnd.useFor": [
+          "d",
+          "f",
+          "g",
+          "l",
+          "s",
+          "z"
+        ],
+        "gnd.namePart": [
+          "Picasso, Pablo"
+        ],
+        "gnd.identifier": [
+          "(DE-588)118594206"
+        ],
+        "gnd.variant": [
+          "Picasso, Pablo Ruys",
+          "Bikasu, Bablu",
+          "Pi-chia-so",
+          "Pikaso, Pablo",
+          "Pikaso",
+          "Piḳaso",
+          "Pikaso, Pabura",
+          "Pikaso, Pamplo",
+          "Pikaso, Paulos",
+          "Pikasso, Pabura",
+          "Pikasso, Pamplo",
+          "Pikasso, Paulos",
+          "Ruiz Picasso, Pablo",
+          "Ruiz-Picasso, Pablo",
+          "Ruys Picasso, Pablo",
+          "Ruys-Picasso, Pablo",
+          "Saci Pos",
+          "Sacipos",
+          "Picasso, Pablo Ruiz y",
+          "Pikasso, Pablo",
+          "Picasso, Pablo Ruiz",
+          "Ruiz, Pablo",
+          "Ruiz y Picasso, Pablo",
+          "Ruys, Pablo",
+          "Picasso",
+          "Pikasso",
+          "Пикассо"
+        ],
+        "gnd.placeOfActivity": [
+          "Paris"
+        ],
+        "gnd.level": [
+          "gnd1"
+        ],
+        "gnd.placeOfBirth": [
+          "Málaga"
+        ],
+        "gnd.gender": [
+          "male"
+        ],
+        "gnd.date": [
+          "1881-1973"
+        ],
+        "gnd.entityType": [
+          "p",
+          "piz"
+        ],
+        "gnd.profession": [
+          "Künstler",
+          "Maler",
+          "Grafiker",
+          "Bildhauer",
+          "Bühnenbildner",
+          "Keramiker",
+          "Schriftsteller"
+        ]
+      },
+      {
+        "gnd.useFor": [
+          "s",
+          "f"
+        ],
+        "gnd.namePart": [
+          "Rubin, William"
+        ],
+        "gnd.identifier": [
+          "(DE-588)124126235"
+        ],
+        "gnd.variant": [
+          "Rubin, William Stanley",
+          "Rubin, William S."
+        ],
+        "gnd.level": [
+          "gnd1"
+        ],
+        "gnd.placeOfBirth": [
+          "Brooklyn, NY"
+        ],
+        "gnd.gender": [
+          "male"
+        ],
+        "gnd.date": [
+          "1927-2006"
+        ],
+        "gnd.entityType": [
+          "p",
+          "piz"
+        ],
+        "gnd.profession": [
+          "Kunsthistoriker",
+          "Kurator"
+        ]
+      },
+      {
+        "other.namePart": [
+          "Reff, Theodore"
+        ]
+      },
+      {
+        "other.namePart": [
+          "Varnedoe, Kirk"
+        ]
+      },
+      {
+        "other.namePart": [
+          "Rubin, William S."
+        ]
+      },
+      {
+        "idref.identifier": [
+          "(IDREF)027114775"
+        ],
+        "idref.namePart": [
+          "Rubin, William Stanley"
+        ],
+        "idref.date": [
+          "1927-2006"
+        ]
+      },
+      {
+        "gnd.useFor": [
+          "f"
+        ],
+        "gnd.namePart": [
+          "Zelevansky, Lynn"
+        ],
+        "gnd.identifier": [
+          "(DE-588)1056484233"
+        ],
+        "idref.identifier": [
+          "(IDREF)057002061"
+        ],
+        "gnd.level": [
+          "gnd3"
+        ],
+        "idref.namePart": [
+          "Zelevansky, Lynn"
+        ],
+        "gnd.gender": [
+          "female"
+        ],
+        "gnd.date": [
+          "1947-"
+        ],
+        "gnd.entityType": [
+          "p",
+          "piz"
+        ],
+        "gnd.profession": [
+          "Museumsdirektorin",
+          "Kuratorin"
+        ],
+        "idref.date": [
+          "1947-...."
+        ]
+      }
+    ],
+    "mapping.extension.subjectCategoryUbs": [
+      "kh"
+    ],
+    "mapping.originInfo.event.publication.place": [
+      "New York"
+    ],
+    "acl.meta.keyword": [
+      "global/guest"
+    ],
+    "mapping.location.holding.library": [
+      "Mediathek Basel"
+    ],
+    "fieldlists.650": [
+      "#7$$aCubisme$$0(IDREF)027286630$$2idref|",
+      "#7$$aMalerei$$xKubismus$$vKongressbericht$$2idsbb|"
+    ],
+    "mapping.subject.genre.idref": [
+      "Actes de congrès"
+    ],
+    "mapping.date.lte": [
+      "1992-01-01T00:00:00.000Z"
+    ],
+    "LDR.leader_full": [
+      "03373nam a2200745 c 4500"
+    ],
+    "LDR.leader_19_multipartLevel": [
+      " "
+    ],
+    "controlfield.008_23or29_formOfItem": [
+      " "
+    ],
+    "search.addfields.keyword": [
+      "28 cm",
+      "ill.",
+      "359 p.",
+      "This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989",
+      "The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York",
+      "Ausstellung (New York ; Museum of Modern Art ; 1989/1990)",
+      "organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+    ],
+    "mapping.titleInfo.main.subTitle": [
+      "a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]"
+    ],
+    "acl.preview.keyword": [
+      "global/guest"
+    ],
+    "copyfields.subject.name.personal.gnd.date": [
+      "1882-1963",
+      "1881-1973"
+    ],
+    "mapping.location.holding.callNumber": [
+      "KP 502"
+    ],
+    "copyfields.name.personal.gnd.placeOfBirth": [
+      "Málaga",
+      "Brooklyn, NY"
+    ],
+    "mapping.subject.name.personal.gnd": [
+      {
+        "date": [
+          "1882-1963"
+        ],
+        "profession": [
+          "Maler",
+          "Grafiker",
+          "Bildhauer",
+          "Bühnenbildner",
+          "Kunstmaler"
+        ],
+        "identifier": [
+          "(DE-588)118514504"
+        ],
+        "placeOfBirth": [
+          "Argenteuil"
+        ],
+        "gender": [
+          "male"
+        ],
+        "level": [
+          "gnd1"
+        ],
+        "entityType": [
+          "p",
+          "piz"
+        ],
+        "variant": [
+          "Braque, George",
+          "Braque, G.",
+          "Brak, Žorž"
+        ],
+        "useFor": [
+          "s",
+          "f",
+          "z",
+          "d"
+        ],
+        "namePart": [
+          "Braque, Georges"
+        ]
+      },
+      {
+        "date": [
+          "1881-1973"
+        ],
+        "profession": [
+          "Künstler",
+          "Maler",
+          "Grafiker",
+          "Bildhauer",
+          "Bühnenbildner",
+          "Keramiker",
+          "Schriftsteller"
+        ],
+        "identifier": [
+          "(DE-588)118594206"
+        ],
+        "placeOfBirth": [
+          "Málaga"
+        ],
+        "gender": [
+          "male"
+        ],
+        "level": [
+          "gnd1"
+        ],
+        "entityType": [
+          "p",
+          "piz"
+        ],
+        "variant": [
+          "Picasso, Pablo Ruys",
+          "Bikasu, Bablu",
+          "Pi-chia-so",
+          "Pikaso, Pablo",
+          "Pikaso",
+          "Piḳaso",
+          "Pikaso, Pabura",
+          "Pikaso, Pamplo",
+          "Pikaso, Paulos",
+          "Pikasso, Pabura",
+          "Pikasso, Pamplo",
+          "Pikasso, Paulos",
+          "Ruiz Picasso, Pablo",
+          "Ruiz-Picasso, Pablo",
+          "Ruys Picasso, Pablo",
+          "Ruys-Picasso, Pablo",
+          "Saci Pos",
+          "Sacipos",
+          "Picasso, Pablo Ruiz y",
+          "Pikasso, Pablo",
+          "Picasso, Pablo Ruiz",
+          "Ruiz, Pablo",
+          "Ruiz y Picasso, Pablo",
+          "Ruys, Pablo",
+          "Picasso",
+          "Pikasso",
+          "Пикассо"
+        ],
+        "useFor": [
+          "d",
+          "f",
+          "g",
+          "l",
+          "s",
+          "z"
+        ],
+        "placeOfActivity": [
+          "Paris"
+        ],
+        "namePart": [
+          "Picasso, Pablo"
+        ]
+      }
+    ],
+    "fieldlists.080": [
+      "1#$$a7.037.2|"
+    ],
+    "search.addfields": [
+      "28 cm",
+      "ill.",
+      "359 p.",
+      "This volume comprises the proceedings of a symposium held at The Museum of Modern Art, New York, November 10-13, 1989",
+      "The symposium was hold in conjunction with the exhibition \"Picasso and Braque: pioneering cubism\", shown September 24, 1989 - January 16, 1990, at The Museum of Modern Art, New York",
+      "Ausstellung (New York ; Museum of Modern Art ; 1989/1990)",
+      "organized by William Rubin ; moderated by Kirk Varnedoe ; proceedings ed. by Lynn Zelevansky"
+    ],
+    "mapping.titleInfo.main.sort": [
+      "Picasso and Braque a symposium [held at the Museum of Modern Art, New York, November 10-13, 1989, in conjunction with the exhibition Picasso and Braque...]"
+    ],
+    "mapping.subject.genre.gnd": [
+      "Konferenzschrift",
+      "Ausstellungskatalog"
+    ],
+    "fieldlists.084": [
+      "##$$a9,11$$a9,10$$2ssgn|",
+      "##$$aLI 18250$$2rvk|",
+      "##$$aLI 67055$$2rvk|",
+      "##$$aLI 67060$$2rvk|",
+      "##$$aLM 83403$$2rvk|"
+    ],
+    "controlfield.008_35-37_language": [
+      "eng"
+    ],
+    "fieldlists.880": [
+      "1#$$6700-03$$aZelevansky, Lynn$$d1947-....$$0(IDREF)057002061|"
+    ],
+    "mapping.originInfo.copyrightDate": [
+      "© 1992"
+    ]
+  }
+}

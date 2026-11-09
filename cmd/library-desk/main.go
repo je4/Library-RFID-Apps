@@ -35,6 +35,12 @@ func main() {
 	loggerZero := zerolog.New(output).With().Timestamp().Str("app", "library-desk").Logger()
 	var logger zLogger.ZLogger = &loggerZero
 
+	elasticClient, err := newElasticClient(conf.ElasticSearch)
+	if err != nil {
+		logger.Fatal().Err(err).Msg("cannot initialize Elasticsearch client")
+	}
+	_ = elasticClient // Reserved for Elasticsearch-backed features.
+
 	addr := conf.Addr
 	if addr == "" {
 		addr = "localhost:8762"

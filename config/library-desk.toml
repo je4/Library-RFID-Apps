@@ -8,6 +8,12 @@ default_isil = "CH-001596-0"
 default_afi = "07"
 max_tags = 100
 
+# Optional Elasticsearch configuration. The API key is read from the environment.
+[elasticsearch]
+endpoint = ["https://elastic.med.campusderkuenste.ch/"]
+index = "fhnw_alma-full"
+apikey = "%%ELASTIC_APIKEY%%"
+
 [themes]
 #dark = "mediathek-dark"
 #light = "mediathek-light"
