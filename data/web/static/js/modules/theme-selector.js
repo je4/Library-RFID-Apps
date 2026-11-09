@@ -5,6 +5,11 @@
  */
 
 export const THEMES = [
+    { id: 'unibas-light', name: 'Uni Basel Light', type: 'light' },
+    { id: 'unibas-dark',  name: 'Uni Basel Dark',  type: 'dark' },
+    { id: 'fhnw-light', name: 'FHNW Light', type: 'light' },
+    { id: 'fhnw-dark',  name: 'FHNW Dark',  type: 'dark' },
+
     // --- Mediathek Custom Themes ---
     { id: 'mediathek-light', name: 'Mediathek Light', type: 'light' },
     { id: 'mediathek-dark',  name: 'Mediathek Dark',  type: 'dark' },
@@ -49,6 +54,8 @@ export const THEMES = [
 ];
 
 const DARK_THEME_IDS = new Set([
+    'unibas-dark',
+    'fhnw-dark',
     'mediathek-dark',
     'dark', 'synthwave', 'halloween', 'forest', 'black',
     'luxury', 'dracula', 'business', 'night', 'coffee',

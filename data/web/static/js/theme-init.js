@@ -4,6 +4,8 @@
  */
 (function() {
     var DARK_THEMES = [
+        'unibas-dark',
+        'fhnw-dark',
         'mediathek-dark',
         'dark', 'synthwave', 'halloween', 'forest', 'black',
         'luxury', 'dracula', 'business', 'night', 'coffee',

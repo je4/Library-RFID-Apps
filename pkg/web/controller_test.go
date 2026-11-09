@@ -2020,6 +2020,11 @@ func TestController_SkinCookieAndHeaderSelector(t *testing.T) {
 		if !strings.Contains(body, `class="theme-controller`) {
 			t.Errorf("expected %s to contain .theme-controller", path)
 		}
+		for _, theme := range []string{"fhnw-light", "fhnw-dark", "unibas-light", "unibas-dark"} {
+			if !strings.Contains(body, `class="theme-controller hidden" value="`+theme+`"`) {
+				t.Errorf("expected %s to contain %s theme option", path, theme)
+			}
+		}
 		if !strings.Contains(body, `value="mediathek-light"`) {
 			t.Errorf("expected %s to contain mediathek-light theme option", path)
 		}

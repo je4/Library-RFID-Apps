@@ -42,3 +42,8 @@
 [data-theme="abyss"] {
     --color-bg-overlay: linear-gradient(135deg, rgba(15, 23, 42, 0.55) 0%, rgba(3, 7, 18, 0.68) 100%);
 }
+
+[data-theme="fhnw-dark"],
+[data-theme="unibas-dark"] {
+    --color-bg-overlay: none;
+}

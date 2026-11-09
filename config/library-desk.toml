@@ -36,6 +36,12 @@ index = "fhnw_alma-full"
 apikey = "%%ELASTIC_APIKEY%%"
 
 [themes]
+# Optional: University of Basel design in light and dark mode
+#dark = "unibas-dark"
+#light = "unibas-light"
+# Optional: FHNW design in light and dark mode
+#dark = "fhnw-dark"
+#light = "fhnw-light"
 #dark = "mediathek-dark"
 #light = "mediathek-light"
 

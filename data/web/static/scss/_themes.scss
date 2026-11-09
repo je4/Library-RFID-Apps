@@ -26,6 +26,146 @@
 }
 
 // ==========================================================================
+// University of Basel Theme Definitions
+// ==========================================================================
+
+[data-theme="unibas-light"],
+[data-theme="unibas-dark"] {
+    --radius-selector: 0px;
+    --radius-field: 0px;
+    --radius-box: 0px;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+    --color-bg-image: none;
+    --color-bg-overlay: none;
+}
+
+[data-theme="unibas-light"] {
+    color-scheme: light;
+    --color-base-100: #ffffff;
+    --color-base-200: #edf5f4;
+    --color-base-300: #d3e8e5;
+    --color-base-content: #2d373c;
+    --color-primary: #075d56;
+    --color-primary-content: #ffffff;
+    --color-secondary: #a5d7d2;
+    --color-secondary-content: #172f30;
+    --color-accent: #075d56;
+    --color-accent-content: #ffffff;
+    --color-neutral: #2d373c;
+    --color-neutral-content: #ffffff;
+    --color-info: #2563a0;
+    --color-info-content: #ffffff;
+    --color-success: #287044;
+    --color-success-content: #ffffff;
+    --color-warning: #855800;
+    --color-warning-content: #ffffff;
+    --color-error: #b00430;
+    --color-error-content: #ffffff;
+}
+
+[data-theme="unibas-dark"] {
+    color-scheme: dark;
+    --color-base-100: #115e59;
+    --color-base-200: #0c4946;
+    --color-base-300: #093b39;
+    --color-base-content: #ffffff;
+    --color-primary: #a5d7d2;
+    --color-primary-content: #102f2d;
+    --color-secondary: #d7edeb;
+    --color-secondary-content: #102f2d;
+    --color-accent: #a5d7d2;
+    --color-accent-content: #102f2d;
+    --color-neutral: #d7edeb;
+    --color-neutral-content: #102f2d;
+    --color-info: #a7d5ff;
+    --color-info-content: #102f2d;
+    --color-success: #a8e8bd;
+    --color-success-content: #102f2d;
+    --color-warning: #ffda84;
+    --color-warning-content: #302000;
+    --color-error: #ffb4bc;
+    --color-error-content: #42000e;
+}
+
+// ==========================================================================
+// FHNW Theme Definitions
+// ==========================================================================
+
+[data-theme="fhnw-light"],
+[data-theme="fhnw-dark"] {
+    --color-primary: #fde70e;
+    --color-primary-content: #000000;
+    --color-secondary: #333333;
+    --color-secondary-content: #ffffff;
+    --color-accent: #fde70e;
+    --color-accent-content: #000000;
+    --color-info: #2563a0;
+    --color-info-content: #ffffff;
+    --color-success: #287044;
+    --color-success-content: #ffffff;
+    --color-warning: #fde70e;
+    --color-warning-content: #000000;
+    --color-error: #b42318;
+    --color-error-content: #ffffff;
+    --radius-selector: 0px;
+    --radius-field: 0px;
+    --radius-box: 0px;
+    --size-selector: 0.25rem;
+    --size-field: 0.25rem;
+    --border: 1px;
+    --depth: 0;
+    --noise: 0;
+    --color-bg-image: none;
+    --color-bg-overlay: none;
+}
+
+[data-theme="fhnw-light"] {
+    color-scheme: light;
+    --color-base-100: #ffffff;
+    --color-base-200: #f2f2f2;
+    --color-base-300: #dedede;
+    --color-base-content: #111111;
+    --color-neutral: #222222;
+    --color-neutral-content: #ffffff;
+}
+
+[data-theme="fhnw-light"] {
+    .text-primary,
+    .text-accent,
+    .text-warning,
+    #sound-toggle.active {
+        color: #333333;
+    }
+
+    .btn-outline.btn-warning {
+        color: #333333;
+        border-color: #333333;
+    }
+}
+
+[data-theme="fhnw-dark"] {
+    color-scheme: dark;
+    --color-base-100: #171717;
+    --color-base-200: #242424;
+    --color-base-300: #383838;
+    --color-base-content: #ffffff;
+    --color-neutral: #eeeeee;
+    --color-neutral-content: #111111;
+    --color-secondary: #dedede;
+    --color-secondary-content: #111111;
+    --color-info: #8bc5ff;
+    --color-info-content: #111111;
+    --color-success: #86d9a0;
+    --color-success-content: #111111;
+    --color-error: #ff9a91;
+    --color-error-content: #111111;
+}
+
+// ==========================================================================
 // Mediathek Light Theme Definition
 // Combines Nord Polar Night & Frost palette with ergonomic 3D-box tokens
 // ==========================================================================
