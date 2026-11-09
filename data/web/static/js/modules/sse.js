@@ -224,6 +224,10 @@ export function initSSE() {
     document.addEventListener('htmx:sseOpen', onSSEOpen);
     document.addEventListener('htmx:sseError', onSSEError);
 
+    const source = document.body._htmx_sse?.sseSource;
+    if (source?.readyState === 1) onSSEOpen();
+    else if (source?.readyState === 2) onSSEError();
+
     document.body.addEventListener('htmx:sseMessage', handleSSEMessage);
 
     // Stream Pause interceptor for live tag reads in desk view
