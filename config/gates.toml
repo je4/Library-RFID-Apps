@@ -1,0 +1,29 @@
+name = "mediathek:gates:01"
+#wsbroker = "https://localhost:8765"
+wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
+channels = ["mediathek01", "gates"]
+
+[clienttls]
+type = "minivault"
+
+[clienttls.minivault]
+#baseurl = "https://localhost:8759/api/v1"
+baseurl = "https://minivault.grpc-system.k8s.ub.unibas.ch/api/v1"
+parenttoken = "%%PARENT_TOKEN%%"
+tokentype = "client_cert"
+tokenpolicies = ["wsbroker.client"]
+certtype = "client_cert"
+uris = ["wsbroker:client:mediathek:gates:01", "wsbroker:channel:mediathek01", "wsbroker:channel:gates"]
+ca = ["certs/minivault_switch.ca.pem", "certs/minivault.ca.pem"]
+usesystempool = false
+
+# Gate Readers Configuration (Multiple gate passages / antennas can be configured)
+[[gates]]
+id = "gate-01"
+device_id = "feig-gate-01"
+device_type = "feig-isc-prh101"
+port = "COM4"
+baud_rate = 38400
+channels = ["mediathek01", "gates"]
+enabled = true
+reconnect_sec = 3
