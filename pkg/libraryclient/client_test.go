@@ -133,6 +133,25 @@ func TestLibraryClient_RFIDEventDispatch(t *testing.T) {
 	assert.Len(t, anyEventReceived, 5)
 }
 
+func TestLibraryClient_TagReadTimeDispatch(t *testing.T) {
+	client, err := New(newFakeBroker("test-client"))
+	require.NoError(t, err)
+
+	var received *TagReadEvent
+	client.OnTagRead(func(evt *TagReadEvent) { received = evt })
+	raw, err := wsbrokerclient.NewRawEvent(EventTagRead, "rfid-daemon", "test-client", map[string]any{
+		"uid": "E001", "time": "2026-11-12T09:59:00Z",
+	})
+	require.NoError(t, err)
+	_, err = client.HandleEvent(raw)
+	require.NoError(t, err)
+	require.NotNil(t, received)
+	require.NotNil(t, received.Data.Time)
+	want, err := time.Parse(time.RFC3339, "2026-11-12T09:59:00Z")
+	require.NoError(t, err)
+	assert.True(t, received.Data.Time.Equal(want))
+}
+
 func TestLibraryClient_BarcodeEventDispatch(t *testing.T) {
 	fakeBroker := newFakeBroker("test-client")
 	client, err := New(fakeBroker)

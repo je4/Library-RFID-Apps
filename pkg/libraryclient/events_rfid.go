@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"slices"
 	"strings"
+	"time"
 
 	"emperror.dev/errors"
 	"github.com/je4/wsbrokerclient"
@@ -73,21 +74,22 @@ func AFISecurityStatus(afi string) string {
 
 // TagReadData represents the RFID transponder payload (ISO 15693 / ISO 28560-2).
 type TagReadData struct {
-	ReaderID   string `json:"readerId,omitempty"`
-	UID        string `json:"uid"`
-	ItemID     string `json:"itemId"`
-	ISIL       string `json:"isil,omitempty"`
-	Country    string `json:"country,omitempty"`
-	CRCOk      bool   `json:"crcOk"`
-	IsCRCValid bool   `json:"isCrcValid"`
-	CRC        string `json:"crc,omitempty"`
-	TagName    string `json:"tagName,omitempty"`
-	Raw        string `json:"raw,omitempty"`
-	Parts      *int   `json:"parts,omitempty"`
-	PartNo     *int   `json:"partNo,omitempty"`
-	UsageType  *int   `json:"usageType,omitempty"`
-	Version    *int   `json:"version,omitempty"`
-	AFI        string `json:"afi,omitempty"`
+	ReaderID   string     `json:"readerId,omitempty"`
+	UID        string     `json:"uid"`
+	ItemID     string     `json:"itemId"`
+	ISIL       string     `json:"isil,omitempty"`
+	Country    string     `json:"country,omitempty"`
+	CRCOk      bool       `json:"crcOk"`
+	IsCRCValid bool       `json:"isCrcValid"`
+	CRC        string     `json:"crc,omitempty"`
+	TagName    string     `json:"tagName,omitempty"`
+	Raw        string     `json:"raw,omitempty"`
+	Parts      *int       `json:"parts,omitempty"`
+	PartNo     *int       `json:"partNo,omitempty"`
+	UsageType  *int       `json:"usageType,omitempty"`
+	Version    *int       `json:"version,omitempty"`
+	AFI        string     `json:"afi,omitempty"`
+	Time       *time.Time `json:"time,omitempty"`
 }
 
 // GetReaderID returns the logical reader identifier.

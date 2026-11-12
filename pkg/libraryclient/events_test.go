@@ -1,7 +1,9 @@
 package libraryclient
 
 import (
+	"encoding/json"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -23,6 +25,42 @@ func TestRFID_AFIHelpers(t *testing.T) {
 	assert.Equal(t, "Gesichert", AFISecurityStatus("07"))
 	assert.Equal(t, "Entsichert", AFISecurityStatus("C2"))
 	assert.Equal(t, "", AFISecurityStatus("00"))
+}
+
+func TestRFID_TagReadTimeJSON(t *testing.T) {
+	for _, tc := range []struct {
+		name    string
+		payload string
+		want    string
+	}{
+		{"with time", `{"uid":"E001","time":"2026-11-12T09:59:00.123Z"}`, "2026-11-12T09:59:00.123Z"},
+		{"without time", `{"uid":"E001"}`, ""},
+		{"null time", `{"uid":"E001","time":null}`, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			var data TagReadData
+			if !assert.NoError(t, json.Unmarshal([]byte(tc.payload), &data)) {
+				return
+			}
+			if tc.want == "" {
+				assert.Nil(t, data.Time)
+			} else if assert.NotNil(t, data.Time) {
+				want, err := time.Parse(time.RFC3339Nano, tc.want)
+				assert.NoError(t, err)
+				assert.True(t, data.Time.Equal(want))
+			}
+			encoded, err := json.Marshal(data)
+			if assert.NoError(t, err) {
+				if tc.want == "" {
+					assert.NotContains(t, string(encoded), `"time"`)
+				} else {
+					assert.Contains(t, string(encoded), `"time":"`+tc.want+`"`)
+				}
+			}
+		})
+	}
+	var data TagReadData
+	assert.Error(t, json.Unmarshal([]byte(`{"uid":"E001","time":"invalid"}`), &data))
 }
 
 func TestRFID_TagReadData(t *testing.T) {
