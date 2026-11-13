@@ -36,6 +36,8 @@ func TestRFID_TagReadTimeJSON(t *testing.T) {
 		{"with time", `{"uid":"E001","time":"2026-11-12T09:59:00.123Z"}`, "2026-11-12T09:59:00.123Z"},
 		{"without time", `{"uid":"E001"}`, ""},
 		{"null time", `{"uid":"E001","time":null}`, ""},
+		{"empty time", `{"uid":"E001","time":""}`, ""},
+		{"invalid time", `{"uid":"E001","time":"invalid"}`, ""},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			var data TagReadData
@@ -59,8 +61,6 @@ func TestRFID_TagReadTimeJSON(t *testing.T) {
 			}
 		})
 	}
-	var data TagReadData
-	assert.Error(t, json.Unmarshal([]byte(`{"uid":"E001","time":"invalid"}`), &data))
 }
 
 func TestRFID_TagReadData(t *testing.T) {

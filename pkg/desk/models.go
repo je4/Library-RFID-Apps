@@ -49,12 +49,16 @@ func NewTagItem(tag *libraryclient.TagReadEvent) *TagItem {
 		return &TagItem{}
 	}
 
-	readTime := tag.Timestamp
-	if readTime.IsZero() {
-		readTime = time.Now()
+	eventTime := tag.Timestamp
+	if eventTime.IsZero() {
+		eventTime = time.Now()
+	}
+	displayTime := eventTime
+	if tag.Data.Time != nil && !tag.Data.Time.IsZero() {
+		displayTime = *tag.Data.Time
 	}
 
-	ts := readTime.UnixMilli()
+	ts := displayTime.UnixMilli()
 
 	crcOk := tag.Data.IsCRCValidStatus()
 	crcStatus := "Fehler"
@@ -80,7 +84,7 @@ func NewTagItem(tag *libraryclient.TagReadEvent) *TagItem {
 	afiSecurityStatus := libraryclient.AFISecurityStatus(afi)
 
 	// Create unique scan row ID
-	rowID := fmt.Sprintf("%s-%d", strings.ReplaceAll(tag.Data.UID, ":", ""), ts)
+	rowID := fmt.Sprintf("%s-%d", strings.ReplaceAll(tag.Data.UID, ":", ""), eventTime.UnixMilli())
 
 	readerID := tag.Data.GetReaderID()
 	if readerID == "" {
@@ -104,13 +108,13 @@ func NewTagItem(tag *libraryclient.TagReadEvent) *TagItem {
 		AFISecurityStatus: afiSecurityStatus,
 		UsageType:         tag.Data.GetUsageType(),
 		Timestamp:         ts,
-		TimeFormatted:     readTime.Format("15:04:05"),
-		DateFormatted:     readTime.Format("02.01.2006"),
+		TimeFormatted:     displayTime.Format("15:04:05"),
+		DateFormatted:     displayTime.Format("02.01.2006"),
 		Raw:               tag.Data.Raw,
 		ReaderID:          readerID,
 		Source:            tag.Source,
 		Channel:           tag.Channel,
-		ReadTime:          readTime,
+		ReadTime:          eventTime,
 		StaticPath:        "../static",
 	}
 }

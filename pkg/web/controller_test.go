@@ -16,6 +16,8 @@ import (
 	"github.com/je4/Library-RFID-Apps/pkg/desk"
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
 	"github.com/je4/wsbrokerclient"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestController_RoutesAndTemplates(t *testing.T) {
@@ -2659,6 +2661,82 @@ func TestReaderIDRenderingInDeskTable(t *testing.T) {
 	}
 	if !strings.Contains(body2, `title="Reader: desk-pad-02"`) {
 		t.Errorf("expected body to contain title attribute for ReaderID, got: %s", body2)
+	}
+}
+
+func TestController_HandleTagReadOnGatesChannel(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	hub := desk.NewHub(10, nil)
+	hub.Start(ctx)
+	defer hub.Close()
+
+	ctrl, err := NewController(Config{
+		Addr:       "localhost:8764",
+		ClientName: "gates-tag-read-test",
+		WSBroker:   "wss://broker.example.com",
+		Channels:   []string{"mediathek01", "gates"},
+		Hub:        hub,
+	})
+	require.NoError(t, err)
+
+	gatesEvents := hub.Subscribe("gates")
+	defer hub.Unsubscribe(gatesEvents)
+	mediathekEvents := hub.Subscribe("mediathek01")
+	defer hub.Unsubscribe(mediathekEvents)
+
+	eventTime := time.Date(2026, 11, 13, 14, 8, 20, 0, time.UTC)
+	displayTime := time.Date(2026, 11, 13, 14, 30, 45, 0, time.UTC)
+	var tagData libraryclient.TagReadData
+	require.NoError(t, json.Unmarshal([]byte(`{"uid":"E004010000000001","itemId":"GATES-ITEM-1","time":"2026-11-13T14:30:45Z"}`), &tagData))
+	require.NotNil(t, tagData.Time)
+	assert.Equal(t, displayTime, *tagData.Time)
+	ctrl.HandleTagRead(&libraryclient.TagReadEvent{
+		BaseEvent: wsbrokerclient.BaseEvent{
+			Channel:   "gates",
+			Timestamp: eventTime,
+		},
+		Data: tagData,
+	})
+
+	if got := hub.Count("gates"); got != 1 {
+		t.Fatalf("expected one tag stored for gates, got %d", got)
+	}
+	if got := hub.Count("mediathek01"); got != 0 {
+		t.Fatalf("expected no tags stored for mediathek01, got %d", got)
+	}
+	storedTags := hub.GetTags("gates")
+	require.Len(t, storedTags, 1)
+	assert.Equal(t, eventTime, storedTags[0].ReadTime)
+	assert.Equal(t, displayTime.UnixMilli(), storedTags[0].Timestamp)
+	assert.Equal(t, "14:30:45", storedTags[0].TimeFormatted)
+
+	rec := httptest.NewRecorder()
+	ctrl.router.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/gates/", nil))
+	require.Equal(t, http.StatusOK, rec.Code)
+	assert.Contains(t, rec.Body.String(), "GATES-ITEM-1")
+	assert.Contains(t, rec.Body.String(), "14:30:45")
+
+	select {
+	case msg := <-gatesEvents:
+		require.NotNil(t, msg)
+		assert.Equal(t, "tag_read", msg.Event)
+		assert.Contains(t, msg.Data, "GATES-ITEM-1")
+		assert.Contains(t, msg.Data, "14:30:45")
+	case <-time.After(2 * time.Second):
+		t.Fatal("timed out waiting for gates tag_read SSE message")
+	}
+
+	for {
+		select {
+		case msg := <-mediathekEvents:
+			if msg != nil && msg.Event == "tag_read" {
+				t.Fatalf("unexpected tag_read event on mediathek01: %#v", msg)
+			}
+		default:
+			return
+		}
 	}
 }
 

@@ -148,7 +148,9 @@ func New(brokerClient wsbrokerclient.ClientInterface, opts ...Option) (*LibraryC
 
 	// Register listener for incoming events from WSBroker
 	unsub := brokerClient.OnEvent(func(rawEvt *wsbrokerclient.RawEvent) {
-		_, _ = c.HandleEvent(rawEvt)
+		if _, err := c.HandleEvent(rawEvt); err != nil && c.logger != nil {
+			c.logger.Error().Err(err).Msg("failed to handle incoming event")
+		}
 	})
 	c.brokerUnsub = unsub
 

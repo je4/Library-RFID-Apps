@@ -152,6 +152,69 @@ func TestLibraryClient_TagReadTimeDispatch(t *testing.T) {
 	assert.True(t, received.Data.Time.Equal(want))
 }
 
+func TestLibraryClient_TagReadOptionalTimeDispatch(t *testing.T) {
+	tests := []struct {
+		name     string
+		payload  map[string]any
+		wantTime string
+		wantErr  bool
+	}{
+		{
+			name:     "valid time",
+			payload:  map[string]any{"uid": "E001", "time": "2026-11-12T09:59:00Z"},
+			wantTime: "2026-11-12T09:59:00Z",
+		},
+		{
+			name:    "missing time",
+			payload: map[string]any{"uid": "E001"},
+		},
+		{
+			name:    "empty time",
+			payload: map[string]any{"uid": "E001", "time": ""},
+		},
+		{
+			name:    "invalid time",
+			payload: map[string]any{"uid": "E001", "time": "not-a-time"},
+		},
+		{
+			name:    "invalid payload field",
+			payload: map[string]any{"uid": 123, "time": "not-a-time"},
+			wantErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			client, err := New(newFakeBroker("test-client"))
+			require.NoError(t, err)
+
+			var received *TagReadEvent
+			client.OnTagRead(func(evt *TagReadEvent) { received = evt })
+			raw, err := wsbrokerclient.NewRawEvent(EventTagRead, "rfid-daemon", "test-client", tt.payload)
+			require.NoError(t, err)
+
+			_, err = client.HandleEvent(raw)
+			if tt.wantErr {
+				require.Error(t, err)
+				assert.Nil(t, received)
+				return
+			}
+
+			require.NoError(t, err)
+			require.NotNil(t, received)
+			if tt.wantTime == "" {
+				assert.Nil(t, received.Data.Time)
+				return
+			}
+
+			require.NotNil(t, received.Data.Time)
+			want, err := time.Parse(time.RFC3339, tt.wantTime)
+			require.NoError(t, err)
+			assert.True(t, received.Data.Time.Equal(want))
+		})
+	}
+}
+
 func TestLibraryClient_BarcodeEventDispatch(t *testing.T) {
 	fakeBroker := newFakeBroker("test-client")
 	client, err := New(fakeBroker)

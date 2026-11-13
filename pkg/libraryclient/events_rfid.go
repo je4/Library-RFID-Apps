@@ -1,6 +1,7 @@
 package libraryclient
 
 import (
+	"encoding/json"
 	"fmt"
 	"slices"
 	"strings"
@@ -90,6 +91,32 @@ type TagReadData struct {
 	Version    *int       `json:"version,omitempty"`
 	AFI        string     `json:"afi,omitempty"`
 	Time       *time.Time `json:"time,omitempty"`
+}
+
+// UnmarshalJSON treats the optional tag timestamp as best-effort while keeping
+// the rest of the payload strictly validated.
+func (d *TagReadData) UnmarshalJSON(data []byte) error {
+	type tagReadDataAlias TagReadData
+	var payload struct {
+		*tagReadDataAlias
+		Time json.RawMessage `json:"time"`
+	}
+	payload.tagReadDataAlias = (*tagReadDataAlias)(d)
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	d.Time = nil
+	rawTime := strings.TrimSpace(string(payload.Time))
+	if rawTime == "" || rawTime == "null" {
+		return nil
+	}
+
+	var tagTime time.Time
+	if err := json.Unmarshal(payload.Time, &tagTime); err == nil {
+		d.Time = &tagTime
+	}
+	return nil
 }
 
 // GetReaderID returns the logical reader identifier.

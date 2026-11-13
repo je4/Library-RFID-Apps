@@ -151,6 +151,7 @@ Emitted when an ISO 15693 / ISO 28560-2 transponder is placed onto the antenna f
   "crc": "OK",
   "tagName": "BookTransponder",
   "raw": "...",
+  "time": "2026-10-31T15:44:00Z",
   "parts": 1,
   "partNo": 1,
   "usageType": 1,
@@ -170,6 +171,7 @@ Emitted when an ISO 15693 / ISO 28560-2 transponder is placed onto the antenna f
 | `crcOk` | bool | True if ISO 28560-2 CRC-16 checksum matches. |
 | `isCrcValid` | bool | Alternative boolean flag for CRC validity. |
 | `crc` | string | CRC status text (`"OK"`, `"INVALID"`). |
+| `time` | string | Optional RFC 3339 timestamp of the tag read; when present, this is used as the displayed recording time. Missing or invalid values are ignored. |
 | `parts` | int | Total number of parts in multi-part media set (default: 1). |
 | `partNo` | int | 1-based part index of this item (default: 1). |
 | `usageType` | int | ISO 28560-2 usage type (1 = circulating item). |
