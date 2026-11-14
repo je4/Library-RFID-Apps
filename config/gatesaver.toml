@@ -1,0 +1,16 @@
+name = "mediathek:gatesaver:01"
+wsbroker = "https://localhost:8765"
+channels = ["gates"]
+
+[clienttls]
+type = "minivault"
+
+[clienttls.minivault]
+baseurl = "https://localhost:8759/api/v1"
+parenttoken = "%%PARENT_TOKEN%%"
+tokentype = "client_cert"
+tokenpolicies = ["wsbroker.client"]
+certtype = "client_cert"
+uris = ["wsbroker:client:mediathek:gatesaver:01", "wsbroker:channel:gates"]
+ca = ["certs/minivault.ca.pem"]
+usesystempool = false

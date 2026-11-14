@@ -14,5 +14,5 @@ var AlmaProxyConfigTOML string
 //go:embed selfcheckout.toml
 var SelfcheckoutConfigTOML string
 
-//go:embed gates.toml
-var GatesConfigTOML string
+//go:embed gatesaver.toml
+var GatesaverConfigTOML string
