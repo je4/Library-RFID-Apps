@@ -1,0 +1,58 @@
+name = "mediathek:mockreader:01"
+wsbroker = "https://localhost:8765"
+channels = ["mediathek01", "gates"]
+read_limit = 1048576
+
+# Reader Hardware Simulation
+reader_id = "mock-reader-01"
+device_id = "mock-feig-lrm2500"
+device_type = "mock-rfid-reader"
+
+# Tag Emission Settings
+# Interval between tag generation cycles (e.g. "2s", "1500ms")
+interval = "2s"
+# Randomize interval between min_interval and max_interval
+random_interval = false
+min_interval = "1s"
+max_interval = "4s"
+
+# AFI Security Mode: "random" (mal offen, mal geschlossen), "open" (entsichert / "C2"), "closed" (gesichert / "07")
+afi_mode = "random"
+# Probability for AFI to be closed/secured ("07") when afi_mode is "random" (0.0 to 1.0)
+afi_secured_probability = 0.5
+
+# Automatically send rfid/tags_cleared event after tag_duration
+send_clear_event = true
+tag_duration = "1s"
+
+# Default Library ISIL and Country
+isil = "CH-001596-0"
+country = "CH"
+crc_ok = true
+
+# Preconfigured Barcodes / ItemIDs to simulate
+barcodes = [
+    "31145000012345",
+    "31145000012346",
+    "31145000012347",
+    "31145000098765",
+    "E004010000000001",
+    "UB-BS-2024-001",
+    "UB-BS-2024-002",
+    "BC-987654321",
+    "A1029384756",
+    "9783161484100"
+]
+
+[clienttls]
+type = "minivault"
+
+[clienttls.minivault]
+baseurl = "https://localhost:8759/api/v1"
+parenttoken = "%%PARENT_TOKEN%%"
+tokentype = "client_cert"
+tokenpolicies = ["wsbroker.client"]
+certtype = "client_cert"
+uris = ["wsbroker:client:mediathek:mockreader:01", "wsbroker:channel:mediathek01", "wsbroker:channel:gates"]
+ca = ["certs/minivault.ca.pem"]
+usesystempool = false

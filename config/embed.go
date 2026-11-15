@@ -16,3 +16,6 @@ var SelfcheckoutConfigTOML string
 
 //go:embed gatesaver.toml
 var GatesaverConfigTOML string
+
+//go:embed mockreader.toml
+var MockreaderConfigTOML string
