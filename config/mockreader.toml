@@ -1,5 +1,5 @@
 name = "mediathek:mockreader:01"
-wsbroker = "https://localhost:8765"
+wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
 channels = ["mediathek01", "gates"]
 read_limit = 1048576
 
@@ -12,9 +12,9 @@ device_type = "mock-rfid-reader"
 # Interval between tag generation cycles (e.g. "2s", "1500ms")
 interval = "2s"
 # Randomize interval between min_interval and max_interval
-random_interval = false
-min_interval = "1s"
-max_interval = "4s"
+random_interval = true
+min_interval = "3s"
+max_interval = "10s"
 
 # AFI Security Mode: "random" (mal offen, mal geschlossen), "open" (entsichert / "C2"), "closed" (gesichert / "07")
 afi_mode = "random"
@@ -48,11 +48,11 @@ barcodes = [
 type = "minivault"
 
 [clienttls.minivault]
-baseurl = "https://localhost:8759/api/v1"
+baseurl = "https://minivault.grpc-system.k8s.ub.unibas.ch/api/v1"
 parenttoken = "%%PARENT_TOKEN%%"
 tokentype = "client_cert"
 tokenpolicies = ["wsbroker.client"]
 certtype = "client_cert"
 uris = ["wsbroker:client:mediathek:mockreader:01", "wsbroker:channel:mediathek01", "wsbroker:channel:gates"]
-ca = ["certs/minivault.ca.pem"]
+ca = ["certs/minivault_switch.ca.pem"]
 usesystempool = false
