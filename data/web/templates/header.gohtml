@@ -1,12 +1,12 @@
 <!-- Header Bar with Navigation -->
 <header class="navbar w-full max-w-7xl mx-auto flex flex-wrap items-center justify-between mb-4 bg-base-100 border border-base-200 shadow-sm rounded-2xl px-4 sm:px-5 py-2.5 sm:py-3 gap-3 min-h-0 text-base-content relative z-30">
-    <div class="flex items-center space-x-3.5">
+    <div class="flex items-center space-x-3.5 flex-1 min-w-0">
         <!-- Dynamisches Icon & Gradient -->
         <div class="w-11 h-11 rounded-xl bg-primary text-primary-content flex items-center justify-center shadow-lg shadow-primary/25 shrink-0">
-            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else}}bolt.svg{{end}}" class="w-6 h-6 brightness-0 invert" alt="{{if .IsLoan}}{{tr "navigation.loan"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else}}{{tr "navigation.appTitle"}}{{end}}" />
+            <img src="{{.StaticPath}}/img/icons/{{if .IsLoan}}book-open.svg{{else if .IsEncode}}tag.svg{{else if .IsInventory}}archive.svg{{else}}bolt.svg{{end}}" class="w-6 h-6 brightness-0 invert" alt="{{if .IsLoan}}{{tr "navigation.loan"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else if .IsInventory}}{{tr "navigation.inventory"}}{{else}}{{tr "navigation.appTitle"}}{{end}}" />
         </div>
 
-        <div>
+        <div class="min-w-0 flex-1">
             <!-- Breadcrumbs Navigation -->
             {{if .Channel}}
             <nav class="breadcrumbs text-xs text-base-content/70 py-0 mb-0.5" aria-label="{{tr "navigation.breadcrumb"}}">
@@ -18,7 +18,7 @@
                         </a>
                     </li>
                     <li>
-                        {{if or .IsLoan .IsEncode}}
+                        {{if or .IsLoan .IsEncode .IsInventory}}
                         <a href="./" id="nav-channel-btn" class="inline-flex items-center gap-1 hover:text-primary transition-colors font-medium" title="Zum Channel {{.Channel}} (Desk)">
                             <span class="app-icon icon-channel w-3 h-3 shrink-0" aria-hidden="true"></span>
                             <span>{{.Channel}}</span>
@@ -32,8 +32,8 @@
                     </li>
                     <li class="font-semibold text-base-content">
                         <span class="inline-flex items-center gap-1">
-                            <span class="app-icon {{if .IsLoan}}icon-book-open{{else if .IsEncode}}icon-tag{{else}}icon-home{{end}} w-3 h-3 shrink-0" aria-hidden="true"></span>
-                            <span>{{if .IsLoan}}{{tr "navigation.loanReturn"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else}}{{tr "navigation.desk"}}{{end}}</span>
+                            <span class="app-icon {{if .IsLoan}}icon-book-open{{else if .IsEncode}}icon-tag{{else if .IsInventory}}icon-archive{{else}}icon-home{{end}} w-3 h-3 shrink-0" aria-hidden="true"></span>
+                            <span>{{if .IsLoan}}{{tr "navigation.loanReturn"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else if .IsInventory}}{{tr "navigation.inventory"}}{{else}}{{tr "navigation.desk"}}{{end}}</span>
                         </span>
                     </li>
                 </ul>
@@ -42,7 +42,7 @@
 
             <!-- Titel & Status Badge -->
             <h1 class="text-xl font-bold tracking-tight flex items-center gap-2.5">
-                {{if .IsLoan}}{{tr "navigation.loanReturn"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else}}{{tr "navigation.appTitle"}}{{end}}
+                {{if .IsLoan}}{{tr "navigation.loanReturn"}}{{else if .IsEncode}}{{tr "navigation.encode"}}{{else if .IsInventory}}{{tr "navigation.inventory"}}{{else}}{{tr "navigation.appTitle"}}{{end}}
                 {{if .Channel}}
                 <span id="field-status-badge" class="badge badge-sm badge-outline transition-all">{{tr "common.ready"}}</span>
                 {{else}}
@@ -59,7 +59,7 @@
     </div>
 
     <!-- Top Right Actions & Theme Selector -->
-    <div class="flex items-center space-x-3">
+    <div class="flex items-center space-x-3 shrink-0">
         <select id="language-selector" class="select select-sm" aria-label="Language / Sprache / Langue / Lingua">
             <option value="de" {{if eq (lang) "de"}}selected{{end}}>Deutsch</option>
             <option value="en" {{if eq (lang) "en"}}selected{{end}}>English</option>

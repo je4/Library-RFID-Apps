@@ -59,6 +59,9 @@ func TestViewModels(t *testing.T) {
 	if deskData.IsEncode() {
 		t.Errorf("DeskData.IsEncode() = true, want false")
 	}
+	if deskData.IsInventory() {
+		t.Errorf("DeskData.IsInventory() = true, want false")
+	}
 
 	loanData := LoanData{}
 	if !loanData.IsLoan() {
@@ -66,6 +69,9 @@ func TestViewModels(t *testing.T) {
 	}
 	if loanData.IsEncode() {
 		t.Errorf("LoanData.IsEncode() = true, want false")
+	}
+	if loanData.IsInventory() {
+		t.Errorf("LoanData.IsInventory() = true, want false")
 	}
 
 	encodeData := EncodeData{
@@ -79,10 +85,24 @@ func TestViewModels(t *testing.T) {
 	if !encodeData.IsEncode() {
 		t.Errorf("EncodeData.IsEncode() = false, want true")
 	}
+	if encodeData.IsInventory() {
+		t.Errorf("EncodeData.IsInventory() = true, want false")
+	}
 	if encodeData.DefaultISIL != "CH-000001" {
 		t.Errorf("EncodeData.DefaultISIL = %q, want %q", encodeData.DefaultISIL, "CH-000001")
 	}
 	if encodeData.DefaultAFI != "07" {
 		t.Errorf("EncodeData.DefaultAFI = %q, want %q", encodeData.DefaultAFI, "07")
+	}
+
+	inventoryData := InventoryData{}
+	if inventoryData.IsLoan() {
+		t.Errorf("InventoryData.IsLoan() = true, want false")
+	}
+	if inventoryData.IsEncode() {
+		t.Errorf("InventoryData.IsEncode() = true, want false")
+	}
+	if !inventoryData.IsInventory() {
+		t.Errorf("InventoryData.IsInventory() = false, want true")
 	}
 }

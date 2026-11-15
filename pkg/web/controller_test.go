@@ -2852,6 +2852,15 @@ func TestController_WSActivityEvent(t *testing.T) {
 	if !strings.Contains(pageHTML, "js/modules/audio.js") || !strings.Contains(pageHTML, "playSuccessSound") {
 		t.Errorf("expected inventory audio cues to use the shared audio module")
 	}
+	if !strings.Contains(pageHTML, "archive.svg") {
+		t.Errorf("expected header icon to use archive.svg in inventory page")
+	}
+	if !strings.Contains(pageHTML, "Inventur") {
+		t.Errorf("expected header title to contain 'Inventur' in inventory page")
+	}
+	if !strings.Contains(pageHTML, `id="nav-channel-btn"`) {
+		t.Errorf("expected breadcrumb link back to desk channel in inventory page")
+	}
 
 	subChan := hub.Subscribe("channel-1")
 	defer hub.Unsubscribe(subChan)

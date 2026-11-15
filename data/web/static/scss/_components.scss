@@ -51,3 +51,12 @@
         transform: scale(1.45);
     }
 }
+
+// Breadcrumbs Navigation Scrollbar Fix
+.breadcrumbs {
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+}
