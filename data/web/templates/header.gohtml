@@ -480,6 +480,12 @@
         </div>
         {{end}}
 
+        <!-- Gate Alarm Indicator / Button -->
+        <button id="nav-gate-alarm-btn" type="button" class="btn btn-sm btn-ghost btn-circle relative text-base-content/70 hover:text-error" title="{{tr "gateAlarm.navHint"}}" aria-label="{{tr "gateAlarm.navHint"}}">
+            <span class="app-icon icon-bell w-4 h-4 shrink-0" aria-hidden="true"></span>
+            <span id="nav-gate-alarm-indicator" class="hidden absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-error ring-2 ring-base-100 animate-pulse"></span>
+        </button>
+
         {{if .Channel}}
         <!-- Audio Feedback Toggle Button -->
         <button id="sound-toggle" type="button" class="btn btn-sm btn-ghost flex items-center gap-1.5" title="{{tr "audio.enable"}}" aria-pressed="false">
@@ -497,3 +503,5 @@
         {{end}}
     </div>
 </header>
+
+{{template "gate_alarm.gohtml" .}}

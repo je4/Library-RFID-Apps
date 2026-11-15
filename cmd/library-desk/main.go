@@ -81,6 +81,7 @@ func main() {
 		ClientName:    conf.Name,
 		WSBroker:      conf.WSBroker,
 		Channels:      conf.Channels,
+		GateChannels:  conf.GateChannels,
 		DefaultISIL:   conf.DefaultISIL,
 		DefaultAFI:    conf.DefaultAFI,
 		ThemeLight:    conf.Themes.Light,
@@ -104,8 +105,22 @@ func main() {
 	if conf.ReadLimit > 0 {
 		brokerCfg.ReadLimit = conf.ReadLimit
 	}
-	if len(conf.Channels) > 0 {
-		brokerCfg.InitialChannels = conf.Channels
+	var allChannels []string
+	channelSet := make(map[string]bool)
+	for _, ch := range conf.Channels {
+		if ch != "" && !channelSet[ch] {
+			channelSet[ch] = true
+			allChannels = append(allChannels, ch)
+		}
+	}
+	for _, ch := range conf.GateChannels {
+		if ch != "" && !channelSet[ch] {
+			channelSet[ch] = true
+			allChannels = append(allChannels, ch)
+		}
+	}
+	if len(allChannels) > 0 {
+		brokerCfg.InitialChannels = allChannels
 	}
 	if conf.ClientTLS.Type != "" || conf.ClientTLS.File != nil || conf.ClientTLS.Vault != nil || conf.ClientTLS.Dev != nil || conf.ClientTLS.Env != nil || conf.ClientTLS.ACME != nil {
 		brokerCfg.TLSCertLoader = &conf.ClientTLS
@@ -239,6 +254,9 @@ func main() {
 	fmt.Printf(" Client:    %s\n", conf.Name)
 	fmt.Printf(" Broker:    %s\n", conf.WSBroker)
 	fmt.Printf(" Channels:  %v\n", conf.Channels)
+	if len(conf.GateChannels) > 0 {
+		fmt.Printf(" Gate Ch.:  %v\n", conf.GateChannels)
+	}
 	fmt.Printf(" Web UI:    %s (%s/desk)\n", extAddr, extAddr)
 	fmt.Printf(" Alma SOAP: %s/TagService\n", extAddr)
 	fmt.Printf(" SSE Stream:%s/events\n", extAddr)

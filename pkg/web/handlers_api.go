@@ -240,3 +240,41 @@ func (ctrl *Controller) handleAPIEncodeClear(c *gin.Context) {
 	res, statusCode := ctrl.executeWriteTag(c.Request.Context(), channel, payload)
 	c.JSON(statusCode, res)
 }
+
+func (ctrl *Controller) handleAPIGetGateAlarms(c *gin.Context) {
+	if ctrl.gateAlarmService == nil {
+		c.JSON(http.StatusOK, gin.H{
+			"status": "ok",
+			"alarms": []GateAlarmItem{},
+			"count":  0,
+		})
+		return
+	}
+	alarms := ctrl.gateAlarmService.GetAlarms()
+	c.JSON(http.StatusOK, gin.H{
+		"status": "ok",
+		"alarms": alarms,
+		"count":  len(alarms),
+	})
+}
+
+func (ctrl *Controller) handleAPIClearGateAlarms(c *gin.Context) {
+	if ctrl.gateAlarmService != nil {
+		ctrl.gateAlarmService.ClearAlarms()
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "message": "all gate alarms cleared"})
+}
+
+func (ctrl *Controller) handleAPIAckGateAlarm(c *gin.Context) {
+	var payload struct {
+		ID string `json:"id"`
+	}
+	_ = c.ShouldBindJSON(&payload)
+	if payload.ID == "" {
+		payload.ID = c.Query("id")
+	}
+	if ctrl.gateAlarmService != nil && payload.ID != "" {
+		ctrl.gateAlarmService.AcknowledgeAlarm(payload.ID)
+	}
+	c.JSON(http.StatusOK, gin.H{"status": "ok", "id": payload.ID})
+}

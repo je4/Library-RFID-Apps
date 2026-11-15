@@ -50,6 +50,7 @@ type DeskAppConfig struct {
 	Name          string                    `toml:"name"`
 	WSBroker      string                    `toml:"wsbroker"`
 	Channels      []string                  `toml:"channels"`
+	GateChannels  []string                  `toml:"gate_channels"`
 	DefaultISIL   string                    `toml:"default_isil"`
 	DefaultAFI    string                    `toml:"default_afi"`
 	MaxTags       int                       `toml:"max_tags"`

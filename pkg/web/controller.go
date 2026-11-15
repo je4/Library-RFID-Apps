@@ -28,6 +28,7 @@ type Config struct {
 	ClientName    string
 	WSBroker      string
 	Channels      []string
+	GateChannels  []string
 	DefaultISIL   string
 	DefaultAFI    string
 	ThemeLight    string
@@ -53,6 +54,7 @@ type Controller struct {
 	encodeService     *EncodeService
 	inventoryService  *InventoryService
 	catalogService    *catalogService
+	gateAlarmService  *GateAlarmService
 }
 
 // NewController creates and initializes the Web Controller instance.
@@ -89,6 +91,8 @@ func NewController(cfg Config) (*Controller, error) {
 		)
 	}
 
+	gateAlarmService := NewGateAlarmService(cfg.GateChannels, 100, cfg.Logger)
+
 	ctrl := &Controller{
 		cfg:              cfg,
 		router:           router,
@@ -97,6 +101,7 @@ func NewController(cfg Config) (*Controller, error) {
 		rfidClient:       cfg.RFIDClient,
 		encodeService:    encodeService,
 		inventoryService: invService,
+		gateAlarmService: gateAlarmService,
 	}
 	if cfg.CatalogSearch != nil {
 		ctrl.catalogService = newCatalogService(cfg.CatalogSearch)
@@ -209,6 +214,9 @@ func (ctrl *Controller) init() error {
 			if ctrl.cfg.Inventory.Enabled {
 				channelGroup.GET("/inventory/events", ctrl.handleSSE)
 			}
+			channelGroup.GET("/gate-alarms", ctrl.handleAPIGetGateAlarms)
+			channelGroup.POST("/gate-alarms/clear", ctrl.handleAPIClearGateAlarms)
+			channelGroup.POST("/gate-alarms/ack", ctrl.handleAPIAckGateAlarm)
 			channelGroup.POST("/tags/clear", ctrl.handleClearTags)
 		}
 
@@ -225,8 +233,11 @@ func (ctrl *Controller) init() error {
 	}
 
 	if !ctrl.cfg.SOAPOnly {
-		// Global events and tags clear routes
+		// Global events, alarms, and tags clear routes
 		ctrl.router.GET("/events", ctrl.handleSSE)
+		ctrl.router.GET("/gate-alarms", ctrl.handleAPIGetGateAlarms)
+		ctrl.router.POST("/gate-alarms/clear", ctrl.handleAPIClearGateAlarms)
+		ctrl.router.POST("/gate-alarms/ack", ctrl.handleAPIAckGateAlarm)
 		ctrl.router.POST("/tags/clear", ctrl.handleClearTags)
 
 		// REST API v1 routes
@@ -239,6 +250,9 @@ func (ctrl *Controller) init() error {
 			api.POST("/loan/afi", ctrl.handleAPILoanAFI)
 			api.POST("/encode/write", ctrl.handleAPIEncodeWrite)
 			api.POST("/encode/clear", ctrl.handleAPIEncodeClear)
+			api.GET("/gate-alarms", ctrl.handleAPIGetGateAlarms)
+			api.POST("/gate-alarms/clear", ctrl.handleAPIClearGateAlarms)
+			api.POST("/gate-alarms/ack", ctrl.handleAPIAckGateAlarm)
 			if ctrl.cfg.Inventory.Enabled {
 				api.GET("/inventory/session", ctrl.handleAPIInventorySession)
 				api.POST("/inventory/session", ctrl.handleAPIInventoryStartSession)
@@ -297,9 +311,14 @@ func (ctrl *Controller) GracefulStop() {
 	}
 }
 
+// GateAlarmService returns the GateAlarmService instance.
+func (ctrl *Controller) GateAlarmService() *GateAlarmService {
+	return ctrl.gateAlarmService
+}
+
 func (ctrl *Controller) isValidChannel(ch string) bool {
-	if len(ctrl.cfg.Channels) == 0 {
+	if len(ctrl.cfg.Channels) == 0 && len(ctrl.cfg.GateChannels) == 0 {
 		return true
 	}
-	return slices.Contains(ctrl.cfg.Channels, ch)
+	return slices.Contains(ctrl.cfg.Channels, ch) || slices.Contains(ctrl.cfg.GateChannels, ch)
 }

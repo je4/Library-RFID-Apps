@@ -68,6 +68,7 @@
                 'inventory_tag',
                 'inventory_stats',
                 'inventory_session',
+                'gate_alarm',
             ];
             globalEventNames.forEach((evtName) => {
                 source.addEventListener(evtName, (evt) => {

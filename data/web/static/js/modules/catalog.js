@@ -192,7 +192,7 @@ function load(target) {
 }
 
 export function initCatalog() {
-    for (const id of ['tags-table-body', 'loan-table-body', 'inventory-table-body']) {
+    for (const id of ['tags-table-body', 'loan-table-body', 'inventory-table-body', 'gate-alarm-modal-tbody']) {
         const body = document.getElementById(id);
         if (!body) continue;
         body.querySelectorAll('[data-catalog-barcode]').forEach(load);

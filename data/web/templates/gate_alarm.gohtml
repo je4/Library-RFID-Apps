@@ -1,0 +1,89 @@
+<!-- Gate Alarm Notification Toast / Floating Alert -->
+<div id="gate-alarm-toast" class="hidden fixed top-4 right-4 z-50 max-w-lg w-[calc(100vw-2rem)] sm:w-auto shadow-2xl transition-all duration-300">
+    <div role="alert" class="alert alert-error shadow-2xl border border-error-content/20 flex items-center justify-between gap-3 text-error-content p-3.5 rounded-2xl">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+            <div class="w-9 h-9 rounded-xl bg-error-content/20 flex items-center justify-center shrink-0">
+                <span class="app-icon icon-bell w-5 h-5 animate-pulse text-error-content" aria-hidden="true"></span>
+            </div>
+            <div class="min-w-0 flex-1">
+                <h3 class="font-bold text-sm tracking-tight flex items-center gap-2" id="gate-alarm-toast-title">
+                    <span>{{tr "gateAlarm.title"}}</span>
+                    <span id="gate-alarm-toast-badge" class="badge badge-xs bg-error-content text-error font-mono font-bold">1</span>
+                </h3>
+                <p class="text-xs opacity-90 truncate mt-0.5" id="gate-alarm-toast-subtitle">
+                    {{tr "gateAlarm.subtitle"}}
+                </p>
+            </div>
+        </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+            <button id="gate-alarm-show-details-btn" type="button" class="btn btn-xs btn-neutral text-white font-semibold shadow-sm">
+                {{tr "gateAlarm.showDetails"}}
+            </button>
+            <button id="gate-alarm-dismiss-toast-btn" type="button" class="btn btn-xs btn-ghost btn-circle text-error-content/80 hover:text-error-content" title="{{tr "common.close"}}" aria-label="{{tr "common.close"}}">
+                ✕
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Gate Alarm Details Dialog / Modal -->
+<dialog id="gate-alarm-modal" class="modal modal-bottom sm:modal-middle" aria-labelledby="gate-alarm-modal-heading">
+    <div class="modal-box w-11/12 max-w-6xl 2xl:max-w-7xl p-5 sm:p-6 bg-base-100 border border-error/30 shadow-2xl rounded-2xl">
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between pb-3.5 border-b border-base-200">
+            <div class="flex items-center gap-3">
+                <div class="w-11 h-11 rounded-xl bg-error text-error-content flex items-center justify-center shadow-lg shadow-error/25 shrink-0">
+                    <span class="app-icon icon-bell w-6 h-6 animate-pulse" aria-hidden="true"></span>
+                </div>
+                <div>
+                    <h2 id="gate-alarm-modal-heading" class="text-lg font-bold text-error flex items-center gap-2">
+                        <span>{{tr "gateAlarm.modalTitle"}}</span>
+                        <span id="gate-alarm-modal-count" class="badge badge-error badge-sm text-error-content font-mono font-bold">0</span>
+                    </h2>
+                    <p class="text-xs text-base-content/70 mt-0.5" id="gate-alarm-modal-description">
+                        {{tr "gateAlarm.modalDescription"}}
+                    </p>
+                </div>
+            </div>
+            <form method="dialog">
+                <button class="btn btn-sm btn-ghost btn-circle" aria-label="{{tr "common.close"}}">✕</button>
+            </form>
+        </div>
+
+        <!-- Alarm Trigger List Table -->
+        <div class="overflow-x-auto my-4 max-h-[60vh] rounded-xl border border-base-200">
+            <table class="table table-zebra table-sm w-full text-left border-collapse">
+                <thead class="bg-base-200 text-base-content/80 font-bold text-xs sticky top-0 z-10">
+                    <tr class="text-[11px] font-semibold uppercase tracking-wider text-base-content/70">
+                        <th scope="col" class="py-2.5 px-3.5 whitespace-nowrap">{{tr "inventory.scanTime"}}</th>
+                        <th scope="col" class="py-2.5 px-3.5 whitespace-nowrap">{{tr "gateAlarm.gate"}}</th>
+                        <th scope="col" class="py-2.5 px-3.5 whitespace-nowrap">{{tr "item.id"}} / {{tr "tag.uid"}}</th>
+                        <th scope="col" class="py-2.5 px-3.5 min-w-[200px]">{{tr "catalog.title"}}</th>
+                        <th scope="col" class="py-2.5 px-3.5 text-center whitespace-nowrap">{{tr "afi.label"}}</th>
+                    </tr>
+                </thead>
+                <tbody id="gate-alarm-modal-tbody" class="text-xs">
+                    <tr id="gate-alarm-empty-row">
+                        <td colspan="5" class="text-center py-8 text-base-content/50 italic">
+                            {{tr "gateAlarm.empty"}}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Modal Action Footer -->
+        <div class="modal-action flex items-center justify-between mt-2 pt-3 border-t border-base-200">
+            <button id="btn-clear-gate-alarms" type="button" class="btn btn-sm btn-ghost text-error hover:bg-error/10 flex items-center gap-1.5">
+                <span class="app-icon icon-trash w-3.5 h-3.5 shrink-0" aria-hidden="true"></span>
+                <span>{{tr "gateAlarm.clearAll"}}</span>
+            </button>
+            <form method="dialog">
+                <button class="btn btn-sm btn-primary px-5">{{tr "common.close"}}</button>
+            </form>
+        </div>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>{{tr "common.close"}}</button>
+    </form>
+</dialog>

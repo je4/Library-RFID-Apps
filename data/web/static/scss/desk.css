@@ -1289,6 +1289,10 @@
   mask-image: url("../img/icons/arrow-right.svg");
   -webkit-mask-image: url("../img/icons/arrow-right.svg");
 }
+.app-icon.icon-bell {
+  mask-image: url("../img/icons/bell.svg");
+  -webkit-mask-image: url("../img/icons/bell.svg");
+}
 .app-icon.icon-bolt {
   mask-image: url("../img/icons/bolt.svg");
   -webkit-mask-image: url("../img/icons/bolt.svg");
@@ -1741,3 +1745,5 @@ footer.footer {
   border-color: rgba(51, 65, 85, 0.85);
   box-shadow: 0 20px 40px -4px rgba(0, 0, 0, 0.6), 0 8px 20px -2px rgba(0, 0, 0, 0.4);
 }
+
+/*# sourceMappingURL=desk.css.map */

@@ -9,6 +9,7 @@ import { initThemeSelector } from './modules/theme-selector.js';
 import { initEncodeController } from './modules/encode-controller.js';
 import { initShortcuts } from './modules/shortcuts.js';
 import { initCatalog } from './modules/catalog.js';
+import { initGateAlarm } from './modules/gate-alarm.js';
 
 export function initDesk() {
     document.getElementById('language-selector')?.addEventListener('change', event => {
@@ -26,6 +27,7 @@ export function initDesk() {
     initEncodeController();
     initShortcuts();
     initCatalog();
+    initGateAlarm();
 }
 
 if (document.readyState === 'loading') {

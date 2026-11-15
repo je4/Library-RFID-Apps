@@ -6,6 +6,7 @@
 
 import { playBeep, playSuccessSound, playWarningSound, playErrorSound } from './audio.js';
 import { applyFilter, updateLoanTableEnhancements } from './table-actions.js';
+import { handleGateAlarmEvent } from './gate-alarm.js';
 import { t } from './i18n.js';
 
 const MAX_TAG_EVENTS = 100;
@@ -189,6 +190,8 @@ export function handleSSEMessage(evt) {
         onLoanTagsReceived();
     } else if (eventName === 'barcode_read') {
         onBarcodeReceived(evt.detail?.data);
+    } else if (eventName === 'gate_alarm') {
+        handleGateAlarmEvent(evt.detail?.data);
     }
 }
 

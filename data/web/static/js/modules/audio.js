@@ -193,6 +193,35 @@ export function playErrorSound() {
     }
 }
 
+/**
+ * Urgent siren / alarm pattern for gate security violations (AFI closed)
+ */
+export function playAlarmSound() {
+    if (!beepEnabled) return;
+    try {
+        const ctx = getAudioContext();
+        const t0 = ctx.currentTime;
+        
+        // 3-pulse urgent siren
+        for (let i = 0; i < 3; i++) {
+            const pulseTime = t0 + (i * 0.18);
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(880, pulseTime);
+            osc.frequency.linearRampToValueAtTime(587, pulseTime + 0.12);
+            gain.gain.setValueAtTime(0.14, pulseTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, pulseTime + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(pulseTime);
+            osc.stop(pulseTime + 0.15);
+        }
+    } catch (e) {
+        console.debug('Alarm sound error:', e);
+    }
+}
+
 export function initAudio() {
     // Restore persistent sound preference across pages
     const saved = getStorage(STORAGE_KEY);

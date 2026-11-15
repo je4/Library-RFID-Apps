@@ -135,6 +135,20 @@ func (ctrl *Controller) HandleTagRead(tag *libraryclient.TagReadEvent) {
 		tag.Channel = ctrl.cfg.Channels[0]
 	}
 
+	// Check for gate alarms on monitored gate channels (AFI secured / closed)
+	if ctrl.gateAlarmService != nil && ctrl.gateAlarmService.IsGateChannel(tag.Channel) {
+		if _, payload, isAlarm := ctrl.gateAlarmService.ProcessTagRead(tag); isAlarm && payload != nil {
+			if dataBytes, err := json.Marshal(payload); err == nil {
+				// Broadcast gate alarm globally to all connected clients across all channels & pages
+				ctrl.hub.Broadcast(&desk.SSEMessage{
+					Event: "gate_alarm",
+					Data:  string(dataBytes),
+					ID:    payload.IncidentID,
+				}, "")
+			}
+		}
+	}
+
 	if ctrl.inventoryService != nil {
 		ctrl.inventoryService.ProcessTagRead(tag)
 	}
