@@ -222,6 +222,14 @@ func (s *readerScopedClient) OnWriteAFIResponseForReader(readerID string, handle
 	return s.parent.OnWriteAFIResponseForReader(readerID, handler)
 }
 
+func (s *readerScopedClient) OnGateStatus(handler GateStatusHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnGateStatusForReader(s.readerID, handler)
+}
+
+func (s *readerScopedClient) OnGateStatusForReader(readerID string, handler GateStatusHandler) wsbrokerclient.UnsubscribeFunc {
+	return s.parent.OnGateStatusForReader(readerID, handler)
+}
+
 func (s *readerScopedClient) OnAnyRFIDEvent(handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc {
 	return s.parent.OnAnyRFIDEventForReader(s.readerID, handler)
 }
@@ -240,6 +248,18 @@ func (s *readerScopedClient) SubscribeTagsForReader(ctx context.Context, channel
 		targetReader = readerID
 	}
 	return s.parent.SubscribeTagsForReader(ctx, channel, targetReader)
+}
+
+func (s *readerScopedClient) SubscribeGateStatus(ctx context.Context, channel string) (<-chan *GateStatusEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	return s.parent.SubscribeGateStatusForReader(ctx, channel, s.readerID)
+}
+
+func (s *readerScopedClient) SubscribeGateStatusForReader(ctx context.Context, channel string, readerID string) (<-chan *GateStatusEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	targetReader := s.readerID
+	if strings.TrimSpace(readerID) != "" {
+		targetReader = readerID
+	}
+	return s.parent.SubscribeGateStatusForReader(ctx, channel, targetReader)
 }
 
 // Barcode Methods

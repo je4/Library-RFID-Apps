@@ -14,6 +14,7 @@ func TestReExports_BackwardCompatibility(t *testing.T) {
 	// Verify constants
 	assert.Equal(t, libraryclient.EventTagRead, EventTagRead)
 	assert.Equal(t, libraryclient.EventTagsCleared, EventTagsCleared)
+	assert.Equal(t, libraryclient.EventGateStatus, EventGateStatus)
 	assert.Equal(t, libraryclient.AFISecured, AFISecured)
 	assert.Equal(t, libraryclient.AFIUnsecured, AFIUnsecured)
 

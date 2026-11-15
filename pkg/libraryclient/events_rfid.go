@@ -21,6 +21,7 @@ const (
 	EventWriteTagResponse       = "rfid/write_tag_response"
 	EventWriteAFI               = "rfid/write_afi"
 	EventWriteAFIResponse       = "rfid/write_afi_response"
+	EventGateStatus             = "rfid.gate.status"
 )
 
 // Standard ISO 28560 AFI (Application Family Identifier) security byte constants.
@@ -40,6 +41,9 @@ func init() {
 	wsbrokerclient.RegisterPayload[WriteTagRequest](EventWriteTag)
 	wsbrokerclient.RegisterPayload[WriteAFIResponseData](EventWriteAFIResponse)
 	wsbrokerclient.RegisterPayload[WriteAFIRequest](EventWriteAFI)
+	wsbrokerclient.RegisterPayload[GateStatusData](EventGateStatus)
+	wsbrokerclient.RegisterPayload[GateStatusData]("rfid/gate_status")
+	wsbrokerclient.RegisterPayload[GateStatusData]("rfid/people_counter")
 }
 
 // NormalizeAFI normalizes an AFI hex string for comparison (trimmed and uppercase, with single-digit hex padded to 2 chars).
@@ -808,6 +812,116 @@ func (r *WriteAFIResponseData) Summary() string {
 	return fmt.Sprintf("[AFI WRITE FAILED] Error: %s%s", r.GetError(), readerStr)
 }
 
+// GateAddress identifies the hardware bus and port address of a gate antenna or detector.
+type GateAddress struct {
+	PortType   int `json:"portType"`
+	BusAddress int `json:"busAddress"`
+}
+
+// GateCounter represents the raw people counter values for a gate antenna / detector.
+type GateCounter struct {
+	Address           GateAddress `json:"address"`
+	Detector1Counter1 int         `json:"detector1Counter1"`
+	Detector1Counter2 int         `json:"detector1Counter2"`
+	Detector2Counter1 int         `json:"detector2Counter1"`
+	Detector2Counter2 int         `json:"detector2Counter2"`
+}
+
+// GateDiagnostic represents diagnostic error and RF detection flags for a gate antenna.
+type GateDiagnostic struct {
+	Address       GateAddress `json:"address"`
+	InternalError int         `json:"internalError"`
+	RFDetect      int         `json:"rfDetect"`
+}
+
+// GateStatusData represents periodic gate diagnostics and people counter metrics per gate reader.
+type GateStatusData struct {
+	ReaderID    string           `json:"readerId,omitempty"`
+	Counters    []GateCounter    `json:"counters,omitempty"`
+	Diagnostics []GateDiagnostic `json:"diagnostics,omitempty"`
+	Status      string           `json:"status,omitempty"`
+	Time        *time.Time       `json:"time,omitempty"`
+}
+
+// UnmarshalJSON treats the optional gate status timestamp as best-effort.
+func (d *GateStatusData) UnmarshalJSON(data []byte) error {
+	type gateStatusDataAlias GateStatusData
+	var payload struct {
+		*gateStatusDataAlias
+		Time json.RawMessage `json:"time"`
+	}
+	payload.gateStatusDataAlias = (*gateStatusDataAlias)(d)
+	if err := json.Unmarshal(data, &payload); err != nil {
+		return err
+	}
+
+	d.Time = nil
+	rawTime := strings.TrimSpace(string(payload.Time))
+	if rawTime == "" || rawTime == "null" {
+		return nil
+	}
+
+	var gateTime time.Time
+	if err := json.Unmarshal(payload.Time, &gateTime); err == nil {
+		d.Time = &gateTime
+	}
+	return nil
+}
+
+// GetReaderID returns the logical reader identifier.
+func (e *GateStatusData) GetReaderID() string {
+	return e.ReaderID
+}
+
+// WithReaderID sets the logical reader identifier on the payload.
+func (e *GateStatusData) WithReaderID(readerID string) *GateStatusData {
+	e.ReaderID = readerID
+	return e
+}
+
+// IsSuccess returns true if the status equals "ok" or is empty.
+func (e *GateStatusData) IsSuccess() bool {
+	return e.Status == "" || strings.EqualFold(e.Status, "ok")
+}
+
+// GateStatusEvent represents a typed wsbroker event containing GateStatusData.
+type GateStatusEvent = wsbrokerclient.Event[GateStatusData]
+
+// PeopleCounterData and PeopleCounterEvent provide aliases for GateStatusData and GateStatusEvent.
+type (
+	PeopleCounterData  = GateStatusData
+	PeopleCounterEvent = GateStatusEvent
+)
+
+// Summary returns a concise human-readable description of the gate status event.
+func (e *GateStatusData) Summary() string {
+	readerName := e.ReaderID
+	if readerName == "" {
+		readerName = "unknown"
+	}
+	var sb strings.Builder
+	sb.WriteString(fmt.Sprintf("[GATE STATUS] Reader: %s | Counters: %d", readerName, len(e.Counters)))
+	if len(e.Counters) > 0 {
+		sb.WriteString(" [")
+		for i, c := range e.Counters {
+			if i > 0 {
+				sb.WriteString(", ")
+			}
+			sb.WriteString(fmt.Sprintf("c1=%d, c2=%d", c.Detector1Counter1, c.Detector1Counter2))
+			if c.Detector2Counter1 > 0 || c.Detector2Counter2 > 0 {
+				sb.WriteString(fmt.Sprintf(", d2_c1=%d, d2_c2=%d", c.Detector2Counter1, c.Detector2Counter2))
+			}
+		}
+		sb.WriteString("]")
+	}
+	status := e.Status
+	if status == "" {
+		status = "ok"
+	}
+	sb.WriteString(fmt.Sprintf(" | Diagnostics: %d | Status: %s", len(e.Diagnostics), status))
+	return sb.String()
+}
+
 // Handler function signatures for RFID events.
 type (
 	// TagReadHandler receives tag read scan events.
@@ -824,6 +938,12 @@ type (
 
 	// WriteAFIResponseHandler receives AFI byte write responses.
 	WriteAFIResponseHandler func(evt *WriteAFIResponse)
+
+	// GateStatusHandler receives gate status and people counter events.
+	GateStatusHandler func(evt *GateStatusEvent)
+
+	// PeopleCounterHandler is an alias for GateStatusHandler.
+	PeopleCounterHandler = GateStatusHandler
 
 	// AnyRFIDEventHandler receives any parsed RFID event payload.
 	AnyRFIDEventHandler func(rfidEvt any)

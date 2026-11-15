@@ -46,6 +46,8 @@ type Client interface {
 	OnWriteTagResponseForReader(readerID string, handler WriteTagResponseHandler) wsbrokerclient.UnsubscribeFunc
 	OnWriteAFIResponse(handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc
 	OnWriteAFIResponseForReader(readerID string, handler WriteAFIResponseHandler) wsbrokerclient.UnsubscribeFunc
+	OnGateStatus(handler GateStatusHandler) wsbrokerclient.UnsubscribeFunc
+	OnGateStatusForReader(readerID string, handler GateStatusHandler) wsbrokerclient.UnsubscribeFunc
 	OnAnyRFIDEvent(handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc
 	OnAnyRFIDEventForReader(readerID string, handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc
 
@@ -73,6 +75,8 @@ type Client interface {
 	BroadcastAFI(ctx context.Context, channel string, req WriteAFIRequest) error
 	SubscribeTags(ctx context.Context, channel string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error)
 	SubscribeTagsForReader(ctx context.Context, channel string, readerID string) (<-chan *TagReadEvent, wsbrokerclient.UnsubscribeFunc, error)
+	SubscribeGateStatus(ctx context.Context, channel string) (<-chan *GateStatusEvent, wsbrokerclient.UnsubscribeFunc, error)
+	SubscribeGateStatusForReader(ctx context.Context, channel string, readerID string) (<-chan *GateStatusEvent, wsbrokerclient.UnsubscribeFunc, error)
 
 	// Barcode Event Handlers
 	OnBarcodeRead(handler BarcodeReadHandler) wsbrokerclient.UnsubscribeFunc
@@ -103,12 +107,13 @@ type LibraryClient struct {
 
 	mu sync.RWMutex
 	// RFID handlers
-	tagReadHandlers  []TagReadHandler
-	clearedHandlers  []TagsClearedHandler
-	rfidMetaHandlers []DeviceMetadataHandler
-	writeTagHandlers []WriteTagResponseHandler
-	writeAFIHandlers []WriteAFIResponseHandler
-	anyRFIDHandlers  []AnyRFIDEventHandler
+	tagReadHandlers    []TagReadHandler
+	clearedHandlers    []TagsClearedHandler
+	rfidMetaHandlers   []DeviceMetadataHandler
+	writeTagHandlers   []WriteTagResponseHandler
+	writeAFIHandlers   []WriteAFIResponseHandler
+	gateStatusHandlers []GateStatusHandler
+	anyRFIDHandlers    []AnyRFIDEventHandler
 
 	// Barcode handlers
 	barcodeReadHandlers []BarcodeReadHandler

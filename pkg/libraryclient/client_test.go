@@ -398,3 +398,91 @@ func TestLibraryClient_Unsubscribe(t *testing.T) {
 	fakeBroker.emitIncomingEvent(tagEvt)
 	assert.Equal(t, 1, count)
 }
+
+func TestLibraryClient_GateStatusDispatch(t *testing.T) {
+	fakeBroker := newFakeBroker("test-client")
+	client, err := New(fakeBroker)
+	require.NoError(t, err)
+
+	var gateStatusReceived *GateStatusEvent
+	var gateReaderScopedReceived *GateStatusEvent
+	var anyRFIDReceived []any
+
+	client.OnGateStatus(func(evt *GateStatusEvent) {
+		gateStatusReceived = evt
+	})
+	client.OnGateStatusForReader("gate-01", func(evt *GateStatusEvent) {
+		gateReaderScopedReceived = evt
+	})
+	client.OnAnyRFIDEvent(func(evt any) {
+		anyRFIDReceived = append(anyRFIDReceived, evt)
+	})
+
+	rawEvt, err := wsbrokerclient.NewRawEvent(EventGateStatus, "rfid-daemon", "test-client", GateStatusData{
+		ReaderID: "gate-01",
+		Counters: []GateCounter{
+			{
+				Address:           GateAddress{PortType: 1, BusAddress: 1},
+				Detector1Counter1: 12,
+				Detector1Counter2: 8,
+			},
+		},
+		Diagnostics: []GateDiagnostic{
+			{
+				Address:       GateAddress{PortType: 1, BusAddress: 1},
+				InternalError: 0,
+				RFDetect:      1,
+			},
+		},
+		Status: "ok",
+	})
+	require.NoError(t, err)
+
+	fakeBroker.emitIncomingEvent(rawEvt)
+
+	require.NotNil(t, gateStatusReceived)
+	assert.Equal(t, "gate-01", gateStatusReceived.Data.GetReaderID())
+	assert.Len(t, gateStatusReceived.Data.Counters, 1)
+	assert.Equal(t, 12, gateStatusReceived.Data.Counters[0].Detector1Counter1)
+
+	require.NotNil(t, gateReaderScopedReceived)
+	assert.Equal(t, "gate-01", gateReaderScopedReceived.Data.GetReaderID())
+
+	assert.Len(t, anyRFIDReceived, 1)
+}
+
+func TestLibraryClient_GateStatusSubscription(t *testing.T) {
+	fakeBroker := newFakeBroker("test-client")
+	client, err := New(fakeBroker)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch, unsub, err := client.SubscribeGateStatus(ctx, "rfid")
+	require.NoError(t, err)
+	defer unsub()
+
+	rawEvt, err := wsbrokerclient.NewRawEvent(EventGateStatus, "rfid-daemon", "test-client", GateStatusData{
+		ReaderID: "gate-01",
+		Counters: []GateCounter{
+			{
+				Address:           GateAddress{PortType: 1, BusAddress: 1},
+				Detector1Counter1: 100,
+			},
+		},
+	})
+	require.NoError(t, err)
+	rawEvt.Channel = "rfid"
+
+	fakeBroker.emitIncomingEvent(rawEvt)
+
+	select {
+	case evt := <-ch:
+		require.NotNil(t, evt)
+		assert.Equal(t, "gate-01", evt.Data.GetReaderID())
+		assert.Equal(t, 100, evt.Data.Counters[0].Detector1Counter1)
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for gate status event on channel")
+	}
+}

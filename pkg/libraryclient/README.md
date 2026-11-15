@@ -101,6 +101,7 @@ if err != nil {
 | `EventWriteTagResponse` | `rfid/write_tag_response` | `WriteTagResponseData` |
 | `EventWriteAFI` | `rfid/write_afi` | `WriteAFIRequest` |
 | `EventWriteAFIResponse` | `rfid/write_afi_response` | `WriteAFIResponseData` |
+| `EventGateStatus` | `rfid.gate.status` | `GateStatusData` |
 | `EventBarcodeRead` | `barcode/read` | `BarcodeReadData` |
 | `EventBarcodeGetDeviceMetadata` | `barcode/get_device_metadata` | `BarcodeDeviceMetadataRequest` |
 | `EventBarcodeDeviceMetadataResponse` | `barcode/device_metadata_response` | `BarcodeDeviceMetadataResponseData` |

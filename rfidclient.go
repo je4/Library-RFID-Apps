@@ -31,12 +31,21 @@ type (
 	WriteAFIResponseData       = libraryclient.WriteAFIResponseData
 	WriteAFIResponse           = libraryclient.WriteAFIResponse
 	TagAFIResult               = libraryclient.TagAFIResult
+	GateAddress                = libraryclient.GateAddress
+	GateCounter                = libraryclient.GateCounter
+	GateDiagnostic             = libraryclient.GateDiagnostic
+	GateStatusData             = libraryclient.GateStatusData
+	GateStatusEvent            = libraryclient.GateStatusEvent
+	PeopleCounterData          = libraryclient.PeopleCounterData
+	PeopleCounterEvent         = libraryclient.PeopleCounterEvent
 
 	TagReadHandler          = libraryclient.TagReadHandler
 	TagsClearedHandler      = libraryclient.TagsClearedHandler
 	DeviceMetadataHandler   = libraryclient.DeviceMetadataHandler
 	WriteTagResponseHandler = libraryclient.WriteTagResponseHandler
 	WriteAFIResponseHandler = libraryclient.WriteAFIResponseHandler
+	GateStatusHandler       = libraryclient.GateStatusHandler
+	PeopleCounterHandler    = libraryclient.PeopleCounterHandler
 	AnyRFIDEventHandler     = libraryclient.AnyRFIDEventHandler
 )
 
@@ -50,6 +59,7 @@ const (
 	EventWriteTagResponse       = libraryclient.EventWriteTagResponse
 	EventWriteAFI               = libraryclient.EventWriteAFI
 	EventWriteAFIResponse       = libraryclient.EventWriteAFIResponse
+	EventGateStatus             = libraryclient.EventGateStatus
 
 	AFISecured   = libraryclient.AFISecured
 	AFIUnsecured = libraryclient.AFIUnsecured

@@ -176,6 +176,35 @@ func (c *LibraryClient) OnWriteAFIResponseForReader(readerID string, handler Wri
 	})
 }
 
+// OnGateStatus registers a listener for gate status and people counter events.
+func (c *LibraryClient) OnGateStatus(handler GateStatusHandler) wsbrokerclient.UnsubscribeFunc {
+	if handler == nil {
+		return func() {}
+	}
+	c.mu.Lock()
+	c.gateStatusHandlers = append(c.gateStatusHandlers, handler)
+	c.mu.Unlock()
+
+	return func() {
+		c.mu.Lock()
+		defer c.mu.Unlock()
+		c.gateStatusHandlers = removeHandler(c.gateStatusHandlers, handler)
+	}
+}
+
+// OnGateStatusForReader registers a listener for gate status events from a specific reader ID.
+func (c *LibraryClient) OnGateStatusForReader(readerID string, handler GateStatusHandler) wsbrokerclient.UnsubscribeFunc {
+	if handler == nil {
+		return func() {}
+	}
+	trimmedID := strings.TrimSpace(readerID)
+	return c.OnGateStatus(func(evt *GateStatusEvent) {
+		if trimmedID == "" || strings.EqualFold(evt.Data.GetReaderID(), trimmedID) {
+			handler(evt)
+		}
+	})
+}
+
 // OnAnyRFIDEvent registers a global listener for all RFID-related events.
 func (c *LibraryClient) OnAnyRFIDEvent(handler AnyRFIDEventHandler) wsbrokerclient.UnsubscribeFunc {
 	if handler == nil {
@@ -367,6 +396,57 @@ func (c *LibraryClient) SubscribeTagsForReader(ctx context.Context, channel stri
 	return tagCh, unsub, nil
 }
 
+// SubscribeGateStatus creates a channel delivering stream-based GateStatusEvent objects from a given channel.
+func (c *LibraryClient) SubscribeGateStatus(ctx context.Context, channel string) (<-chan *GateStatusEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	statusCh := make(chan *GateStatusEvent, 64)
+	unsub := c.OnGateStatus(func(evt *GateStatusEvent) {
+		if channel == "" || strings.EqualFold(evt.Channel, channel) {
+			select {
+			case statusCh <- evt:
+			case <-ctx.Done():
+			default:
+				if c.logger != nil {
+					c.logger.Warn().Msg("gate status stream channel buffer full, dropping event")
+				}
+			}
+		}
+	})
+
+	go func() {
+		<-ctx.Done()
+		unsub()
+		close(statusCh)
+	}()
+
+	return statusCh, unsub, nil
+}
+
+// SubscribeGateStatusForReader creates a channel delivering stream-based GateStatusEvent objects filtered for a specific reader ID.
+func (c *LibraryClient) SubscribeGateStatusForReader(ctx context.Context, channel string, readerID string) (<-chan *GateStatusEvent, wsbrokerclient.UnsubscribeFunc, error) {
+	statusCh := make(chan *GateStatusEvent, 64)
+	trimmedID := strings.TrimSpace(readerID)
+	unsub := c.OnGateStatusForReader(trimmedID, func(evt *GateStatusEvent) {
+		if channel == "" || strings.EqualFold(evt.Channel, channel) {
+			select {
+			case statusCh <- evt:
+			case <-ctx.Done():
+			default:
+				if c.logger != nil {
+					c.logger.Warn().Msg("gate status stream channel buffer full, dropping event")
+				}
+			}
+		}
+	})
+
+	go func() {
+		<-ctx.Done()
+		unsub()
+		close(statusCh)
+	}()
+
+	return statusCh, unsub, nil
+}
+
 // SubscribeBarcodes creates a channel delivering stream-based BarcodeReadEvent objects from a given channel.
 func (c *LibraryClient) SubscribeBarcodes(ctx context.Context, channel string) (<-chan *BarcodeReadEvent, wsbrokerclient.UnsubscribeFunc, error) {
 	bcCh := make(chan *BarcodeReadEvent, 64)
@@ -430,6 +510,7 @@ func (c *LibraryClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 	rfidMetaHandlers := append([]DeviceMetadataHandler(nil), c.rfidMetaHandlers...)
 	writeTagHandlers := append([]WriteTagResponseHandler(nil), c.writeTagHandlers...)
 	writeAFIHandlers := append([]WriteAFIResponseHandler(nil), c.writeAFIHandlers...)
+	gateStatusHandlers := append([]GateStatusHandler(nil), c.gateStatusHandlers...)
 	anyRFIDHandlers := append([]AnyRFIDEventHandler(nil), c.anyRFIDHandlers...)
 
 	bcReadHandlers := append([]BarcodeReadHandler(nil), c.barcodeReadHandlers...)
@@ -513,6 +594,20 @@ func (c *LibraryClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 		dispatchData = typed
 		isRFID = true
 
+	case event.EventType(EventGateStatus), "rfid/gate_status", "rfid/people_counter":
+		typed, err := wsbrokerclient.ToTyped[GateStatusData](evt)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to unmarshal GateStatusEvent")
+		}
+		if typed.Data.ReaderID == "" && evt.Source != "" {
+			typed.Data.ReaderID = evt.Source
+		}
+		for _, h := range gateStatusHandlers {
+			h(typed)
+		}
+		dispatchData = typed
+		isRFID = true
+
 	case event.EventType(EventBarcodeRead):
 		typed, err := wsbrokerclient.ToTyped[BarcodeReadData](evt)
 		if err != nil {
@@ -566,6 +661,28 @@ func (c *LibraryClient) HandleEvent(evt *wsbrokerclient.RawEvent) (any, error) {
 					}
 					dispatchData = typed
 					isBarcode = true
+				}
+			} else if _, hasCounters := rawMap["counters"]; hasCounters {
+				if typed, err := wsbrokerclient.ToTyped[GateStatusData](evt); err == nil {
+					if typed.Data.ReaderID == "" && evt.Source != "" {
+						typed.Data.ReaderID = evt.Source
+					}
+					for _, h := range gateStatusHandlers {
+						h(typed)
+					}
+					dispatchData = typed
+					isRFID = true
+				}
+			} else if _, hasDiag := rawMap["diagnostics"]; hasDiag {
+				if typed, err := wsbrokerclient.ToTyped[GateStatusData](evt); err == nil {
+					if typed.Data.ReaderID == "" && evt.Source != "" {
+						typed.Data.ReaderID = evt.Source
+					}
+					for _, h := range gateStatusHandlers {
+						h(typed)
+					}
+					dispatchData = typed
+					isRFID = true
 				}
 			}
 		}

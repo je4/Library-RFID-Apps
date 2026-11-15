@@ -174,3 +174,78 @@ func TestBarcode_Models(t *testing.T) {
 	assert.Contains(t, meta.Summary(), "honeywell-01")
 	assert.Contains(t, meta.GetDescription(), "honeywell-1300g on COM3")
 }
+
+func TestRFID_GateStatusData(t *testing.T) {
+	rawJSON := `{
+		"counters": [
+			{
+				"address": {
+					"portType": 1,
+					"busAddress": 1
+				},
+				"detector1Counter1": 10,
+				"detector1Counter2": 15,
+				"detector2Counter1": 0,
+				"detector2Counter2": 0
+			},
+			{
+				"address": {
+					"portType": 1,
+					"busAddress": 2
+				},
+				"detector1Counter1": 20,
+				"detector1Counter2": 25,
+				"detector2Counter1": 5,
+				"detector2Counter2": 2
+			}
+		],
+		"diagnostics": [
+			{
+				"address": {
+					"portType": 1,
+					"busAddress": 1
+				},
+				"internalError": 0,
+				"rfDetect": 1
+			}
+		],
+		"readerId": "gate-reader-01",
+		"status": "ok",
+		"time": "2026-11-15T12:00:00Z"
+	}`
+
+	var data GateStatusData
+	err := json.Unmarshal([]byte(rawJSON), &data)
+	assert.NoError(t, err)
+
+	assert.Equal(t, "gate-reader-01", data.GetReaderID())
+	assert.True(t, data.IsSuccess())
+	assert.Len(t, data.Counters, 2)
+	assert.Equal(t, 1, data.Counters[0].Address.PortType)
+	assert.Equal(t, 1, data.Counters[0].Address.BusAddress)
+	assert.Equal(t, 10, data.Counters[0].Detector1Counter1)
+	assert.Equal(t, 15, data.Counters[0].Detector1Counter2)
+	assert.Equal(t, 20, data.Counters[1].Detector1Counter1)
+	assert.Equal(t, 25, data.Counters[1].Detector1Counter2)
+	assert.Equal(t, 5, data.Counters[1].Detector2Counter1)
+	assert.Equal(t, 2, data.Counters[1].Detector2Counter2)
+
+	assert.Len(t, data.Diagnostics, 1)
+	assert.Equal(t, 1, data.Diagnostics[0].Address.BusAddress)
+	assert.Equal(t, 0, data.Diagnostics[0].InternalError)
+	assert.Equal(t, 1, data.Diagnostics[0].RFDetect)
+
+	assert.NotNil(t, data.Time)
+	assert.Equal(t, 2026, data.Time.Year())
+
+	summary := data.Summary()
+	assert.Contains(t, summary, "[GATE STATUS]")
+	assert.Contains(t, summary, "gate-reader-01")
+	assert.Contains(t, summary, "Counters: 2")
+	assert.Contains(t, summary, "c1=10, c2=15")
+	assert.Contains(t, summary, "Diagnostics: 1")
+
+	// WithReaderID check
+	data.WithReaderID("gate-02")
+	assert.Equal(t, "gate-02", data.GetReaderID())
+}
