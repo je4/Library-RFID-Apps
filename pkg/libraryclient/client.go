@@ -105,23 +105,22 @@ type LibraryClient struct {
 	config *clientConfig
 	logger zLogger.ZLogger
 
-	mu sync.RWMutex
 	// RFID handlers
-	tagReadHandlers    []TagReadHandler
-	clearedHandlers    []TagsClearedHandler
-	rfidMetaHandlers   []DeviceMetadataHandler
-	writeTagHandlers   []WriteTagResponseHandler
-	writeAFIHandlers   []WriteAFIResponseHandler
-	gateStatusHandlers []GateStatusHandler
-	anyRFIDHandlers    []AnyRFIDEventHandler
+	tagReadHandlers    HandlerRegistry[TagReadHandler]
+	clearedHandlers    HandlerRegistry[TagsClearedHandler]
+	rfidMetaHandlers   HandlerRegistry[DeviceMetadataHandler]
+	writeTagHandlers   HandlerRegistry[WriteTagResponseHandler]
+	writeAFIHandlers   HandlerRegistry[WriteAFIResponseHandler]
+	gateStatusHandlers HandlerRegistry[GateStatusHandler]
+	anyRFIDHandlers    HandlerRegistry[AnyRFIDEventHandler]
 
 	// Barcode handlers
-	barcodeReadHandlers []BarcodeReadHandler
-	barcodeMetaHandlers []BarcodeDeviceMetadataHandler
-	anyBarcodeHandlers  []AnyBarcodeEventHandler
+	barcodeReadHandlers HandlerRegistry[BarcodeReadHandler]
+	barcodeMetaHandlers HandlerRegistry[BarcodeDeviceMetadataHandler]
+	anyBarcodeHandlers  HandlerRegistry[AnyBarcodeEventHandler]
 
 	// Global handlers
-	anyHandlers []AnyEventHandler
+	anyHandlers HandlerRegistry[AnyEventHandler]
 
 	brokerUnsub wsbrokerclient.UnsubscribeFunc
 	closeOnce   sync.Once

@@ -133,6 +133,12 @@ func (r *BarcodeDeviceMetadataResponseData) GetReaderID() string {
 	return r.ReaderID
 }
 
+// WithReaderID sets the logical reader identifier on the response.
+func (r *BarcodeDeviceMetadataResponseData) WithReaderID(readerID string) *BarcodeDeviceMetadataResponseData {
+	r.ReaderID = readerID
+	return r
+}
+
 // BarcodeDeviceMetadataResponse represents a typed wsbroker event containing BarcodeDeviceMetadataResponseData.
 type BarcodeDeviceMetadataResponse = wsbrokerclient.Event[BarcodeDeviceMetadataResponseData]
 

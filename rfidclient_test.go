@@ -51,4 +51,12 @@ func TestReExports_BackwardCompatibility(t *testing.T) {
 	ctx := context.Background()
 	assert.NotNil(t, ctx)
 	require.NotNil(t, cfg)
+
+	// Verify generic HandlerRegistry alias
+	var reg HandlerRegistry[TagReadHandler]
+	assert.Equal(t, 0, reg.Len())
+	unsub := reg.Register(func(evt *TagReadEvent) {})
+	assert.Equal(t, 1, reg.Len())
+	unsub()
+	assert.Equal(t, 0, reg.Len())
 }

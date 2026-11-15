@@ -486,3 +486,95 @@ func TestLibraryClient_GateStatusSubscription(t *testing.T) {
 		t.Fatal("timed out waiting for gate status event on channel")
 	}
 }
+
+func TestLibraryClient_HandlerRegistry_Generics(t *testing.T) {
+	var reg HandlerRegistry[func(int)]
+	assert.Equal(t, 0, reg.Len())
+
+	calls1, calls2 := 0, 0
+	h1 := func(n int) { calls1 += n }
+	h2 := func(n int) { calls2 += n }
+
+	unsub1 := reg.Register(h1)
+	unsub2 := reg.Register(h2)
+	assert.Equal(t, 2, reg.Len())
+
+	for _, h := range reg.Snapshot() {
+		h(5)
+	}
+	assert.Equal(t, 5, calls1)
+	assert.Equal(t, 5, calls2)
+
+	unsub1()
+	assert.Equal(t, 1, reg.Len())
+
+	for _, h := range reg.Snapshot() {
+		h(3)
+	}
+	assert.Equal(t, 5, calls1) // unchanged
+	assert.Equal(t, 8, calls2)
+
+	unsub2()
+	assert.Equal(t, 0, reg.Len())
+
+	// Registering nil is safe
+	unsubNil := reg.Register(nil)
+	assert.NotNil(t, unsubNil)
+	unsubNil()
+}
+
+func TestLibraryClient_GenericSubscribeHelper(t *testing.T) {
+	fakeBroker := newFakeBroker("test-client")
+	client, err := New(fakeBroker)
+	require.NoError(t, err)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	ch, unsub, err := Subscribe(ctx, "rfid", client.OnTagRead)
+	require.NoError(t, err)
+	defer unsub()
+
+	rawEvt, err := wsbrokerclient.NewRawEvent(EventTagRead, "rfid-daemon", "test-client", TagReadData{
+		UID:      "GEN-01",
+		ItemID:   "BOOK-999",
+		ReaderID: "desk-1",
+	})
+	require.NoError(t, err)
+	rawEvt.Channel = "rfid"
+
+	fakeBroker.emitIncomingEvent(rawEvt)
+
+	select {
+	case evt := <-ch:
+		require.NotNil(t, evt)
+		assert.Equal(t, "GEN-01", evt.Data.UID)
+		assert.Equal(t, "BOOK-999", evt.Data.ItemID)
+		assert.Equal(t, "desk-1", evt.Data.GetReaderID())
+	case <-time.After(1 * time.Second):
+		t.Fatal("timed out waiting for tag read event on generic subscribe channel")
+	}
+}
+
+func TestLibraryClient_ReaderSourceFallback(t *testing.T) {
+	fakeBroker := newFakeBroker("test-client")
+	client, err := New(fakeBroker)
+	require.NoError(t, err)
+
+	var receivedTag *TagReadEvent
+	client.OnTagRead(func(evt *TagReadEvent) {
+		receivedTag = evt
+	})
+
+	// Event without ReaderID in payload, but with Source set to "rfid-source-01"
+	rawEvt, err := wsbrokerclient.NewRawEvent(EventTagRead, "rfid-source-01", "test-client", TagReadData{
+		UID:    "TAG-WITHOUT-READER",
+		ItemID: "ITEM-01",
+	})
+	require.NoError(t, err)
+
+	fakeBroker.emitIncomingEvent(rawEvt)
+
+	require.NotNil(t, receivedTag)
+	assert.Equal(t, "rfid-source-01", receivedTag.Data.GetReaderID())
+}

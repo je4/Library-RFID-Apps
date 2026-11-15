@@ -283,6 +283,12 @@ func (r *DeviceMetadataResponseData) GetReaderID() string {
 	return r.ReaderID
 }
 
+// WithReaderID sets the logical reader identifier on the response.
+func (r *DeviceMetadataResponseData) WithReaderID(readerID string) *DeviceMetadataResponseData {
+	r.ReaderID = readerID
+	return r
+}
+
 // DeviceMetadataResponse represents a typed wsbroker event containing DeviceMetadataResponseData.
 type DeviceMetadataResponse = wsbrokerclient.Event[DeviceMetadataResponseData]
 
@@ -485,6 +491,12 @@ func (r *WriteTagResponseData) GetReaderID() string {
 	return r.ReaderID
 }
 
+// WithReaderID sets the logical reader identifier on the response.
+func (r *WriteTagResponseData) WithReaderID(readerID string) *WriteTagResponseData {
+	r.ReaderID = readerID
+	return r
+}
+
 // WriteTagResponse represents a typed wsbroker event containing WriteTagResponseData.
 type WriteTagResponse = wsbrokerclient.Event[WriteTagResponseData]
 
@@ -673,6 +685,12 @@ type WriteAFIResponseData struct {
 // GetReaderID returns the logical reader identifier.
 func (r *WriteAFIResponseData) GetReaderID() string {
 	return r.ReaderID
+}
+
+// WithReaderID sets the logical reader identifier on the response.
+func (r *WriteAFIResponseData) WithReaderID(readerID string) *WriteAFIResponseData {
+	r.ReaderID = readerID
+	return r
 }
 
 // WriteAFIResponse represents a typed wsbroker event containing WriteAFIResponseData.

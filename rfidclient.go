@@ -5,7 +5,10 @@
 package rfidclient
 
 import (
+	"context"
+
 	"github.com/je4/Library-RFID-Apps/pkg/libraryclient"
+	"github.com/je4/utils/v2/pkg/zLogger"
 	"github.com/je4/wsbrokerclient"
 )
 
@@ -47,6 +50,8 @@ type (
 	GateStatusHandler       = libraryclient.GateStatusHandler
 	PeopleCounterHandler    = libraryclient.PeopleCounterHandler
 	AnyRFIDEventHandler     = libraryclient.AnyRFIDEventHandler
+	ReaderIdentifiable      = libraryclient.ReaderIdentifiable
+	HandlerRegistry[H any]  = libraryclient.HandlerRegistry[H]
 )
 
 // Re-exported event constants and AFI security constants.
@@ -88,6 +93,16 @@ var (
 	IsAFIUnsecured                    = libraryclient.IsAFIUnsecured
 	AFISecurityStatus                 = libraryclient.AFISecurityStatus
 )
+
+// Subscribe is a generic helper forwarding to libraryclient.Subscribe.
+func Subscribe[T any, H ~func(*wsbrokerclient.Event[T])](
+	ctx context.Context,
+	channel string,
+	register func(handler H) wsbrokerclient.UnsubscribeFunc,
+	logger ...zLogger.ZLogger,
+) (<-chan *wsbrokerclient.Event[T], wsbrokerclient.UnsubscribeFunc, error) {
+	return libraryclient.Subscribe(ctx, channel, register, logger...)
+}
 
 // DefaultWSBrokerConfig returns standard WSBroker configuration with defaults.
 func DefaultWSBrokerConfig() wsbrokerclient.Config {
