@@ -314,6 +314,51 @@ Modifies or toggles the AFI (Application Family Identifier / EAS theft bit) on t
 
 ---
 
+### 2.9 `rfid.gate.status`
+* **Type:** Asynchronous Broadcast / Periodic Telemetry & Alarm Stream
+* **Direction:** `rfid-headless` &rarr; Applications / GateSaver
+* **Payload Type:** `GateStatusData` (also aliased as `PeopleCounterData`)
+
+Emitted periodically or on security alarms / passageway triggers by RFID gate antennas (e.g. FEIG ISC.ANTG / CPR74 / MAX.U1002 / MAX.U500).
+
+#### JSON Payload Schema
+```json
+{
+  "readerId": "gate-main-entrance",
+  "name": "Main Entrance Gate",
+  "ip": "192.168.1.100",
+  "port": 10001,
+  "mac": "00:50:C2:AB:CD:EF",
+  "state": "OK",
+  "alarm": false,
+  "transponderTotal": 42,
+  "transponders": ["E004015099887766"],
+  "counter": {
+    "in": 1250,
+    "out": 1180
+  },
+  "diagnostic": {
+    "noiseLevel": 12,
+    "reflectedPower": 0.4
+  }
+}
+```
+
+#### Field Descriptions
+| Field | Type | Description |
+|---|---|---|
+| `readerId` | string | Logical reader identifier configured for the gate. |
+| `name` | string | Human-readable name or location of the gate. |
+| `ip` / `port` / `mac` | string / int / string | Network connection endpoints and hardware address. |
+| `state` | string | Operational state string (e.g. `OK`, `ALARM`, `DEGRADED`, `OFFLINE`). |
+| `alarm` | boolean | `true` if an unauthorized tag or EAS violation triggered an acoustic/optical alarm. |
+| `transponderTotal` | int | Total number of transponders detected in the passage field. |
+| `transponders` | string[] | Array of transponder UIDs detected during the event interval. |
+| `counter` | object | Directional passage counter (`in` and `out` counts). |
+| `diagnostic` | object | Gate health telemetry including RF noise levels and reflected power. |
+
+---
+
 ## 3. Summary of Standardized Event Names
 
 | Subsystem | Standard Event Constant | Wire Event String | Payload Data Structure |
@@ -329,3 +374,4 @@ Modifies or toggles the AFI (Application Family Identifier / EAS theft bit) on t
 | **RFID** | `EventWriteTagResponse` | `rfid/write_tag_response` | `WriteTagResponseData` |
 | **RFID** | `EventWriteAFI` | `rfid/write_afi` | `WriteAFIRequest` |
 | **RFID** | `EventWriteAFIResponse` | `rfid/write_afi_response` | `WriteAFIResponseData` |
+| **RFID** | `EventGateStatus` | `rfid.gate.status` | `GateStatusData` |

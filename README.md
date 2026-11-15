@@ -74,6 +74,7 @@ All communication between headless daemons and client applications uses a unifie
 | `EventWriteTagResponse` | `rfid/write_tag_response` | `WriteTagResponseData` | Tag write outcome |
 | `EventWriteAFI` | `rfid/write_afi` | `WriteAFIRequest` | Toggle AFI (theft / EAS protection) |
 | `EventWriteAFIResponse` | `rfid/write_afi_response` | `WriteAFIResponseData` | AFI write outcome |
+| `EventGateStatus` | `rfid.gate.status` | `GateStatusData` | Security gate state, alarms & people counter |
 
 ---
 
