@@ -23,7 +23,7 @@ afi_secured_probability = 0.5
 
 # Automatically send rfid/tags_cleared event after tag_duration
 send_clear_event = true
-tag_duration = "1s"
+tag_duration = "5s"
 
 # Default Library ISIL and Country
 isil = "CH-001596-0"
