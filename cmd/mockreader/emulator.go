@@ -149,6 +149,16 @@ func (r *MockReader) GenerateNextTag() *libraryclient.TagReadData {
 
 	idx := atomic.AddUint64(&r.tagIndex, 1) - 1
 	barcode := barcodes[idx%uint64(len(barcodes))]
+	return r.GenerateTagForBarcode(barcode)
+}
+
+// GenerateTagForBarcode constructs a simulated TagReadData payload for a specific barcode/itemID.
+func (r *MockReader) GenerateTagForBarcode(barcode string) *libraryclient.TagReadData {
+	now := time.Now().UTC()
+	parts := 1
+	partNo := 1
+	usageType := 1
+
 	uid := GenerateUIDFromBarcode(barcode)
 	afi := r.config.DetermineAFI(r.NextRandomFloat())
 
@@ -177,6 +187,39 @@ func (r *MockReader) GenerateNextTag() *libraryclient.TagReadData {
 		AFI:        libraryclient.NormalizeAFI(afi),
 		Time:       &now,
 	}
+}
+
+// SendBarcodes sends mock-UID TagRead events for a list of barcodes.
+// If clearBefore is true, an empty reader (tags_cleared) event is emitted first.
+func (r *MockReader) SendBarcodes(ctx context.Context, barcodes []string, clearBefore bool) error {
+	if clearBefore {
+		if err := r.EmitTagsCleared(ctx); err != nil {
+			r.logger.Warn().Err(err).Msg("failed to emit initial tags_cleared event")
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+
+	var errs []error
+	for _, bc := range barcodes {
+		trimmed := strings.TrimSpace(bc)
+		if trimmed == "" {
+			continue
+		}
+		tag := r.GenerateTagForBarcode(trimmed)
+		if err := r.EmitTagRead(ctx, tag); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	if len(errs) > 0 {
+		return errors.Combine(errs...)
+	}
+	return nil
+}
+
+// SendEmpty sends an empty reader (tags_cleared) event to all configured channels.
+func (r *MockReader) SendEmpty(ctx context.Context) error {
+	return r.EmitTagsCleared(ctx)
 }
 
 // GenerateUIDFromBarcode creates a deterministic, valid-looking 16-character hex ISO 15693 UID.

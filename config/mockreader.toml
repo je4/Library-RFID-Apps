@@ -1,6 +1,6 @@
 name = "mediathek:mockreader:01"
 wsbroker = "websocket-broker.k8s-tls.ub.unibas.ch"
-channels = ["gates"]
+channels = ["mediathek01","gates"]
 read_limit = 1048576
 
 # Reader Hardware Simulation

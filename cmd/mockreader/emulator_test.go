@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"net"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -417,4 +418,106 @@ func TestLifecycle_RunAndStop(t *testing.T) {
 
 	events := broker.getSentEvents()
 	assert.NotEmpty(t, events)
+}
+
+func TestGenerateTagForBarcode(t *testing.T) {
+	conf := &MockReaderConfig{
+		Name:     "test:mockreader",
+		ReaderID: "reader-01",
+		Channels: []string{"mediathek01"},
+		ISIL:     "CH-001596-0",
+		Country:  "CH",
+		AFIMode:  "closed",
+		CRCOk:    true,
+	}
+	require.NoError(t, conf.applyDefaults())
+
+	broker := newMockBroker("test:mockreader")
+	emulator, err := NewMockReader(conf, broker, nil)
+	require.NoError(t, err)
+	defer emulator.Close()
+
+	tag := emulator.GenerateTagForBarcode("31145000012345")
+	require.NotNil(t, tag)
+	assert.Equal(t, "31145000012345", tag.ItemID)
+	assert.True(t, strings.HasPrefix(tag.UID, "E004"))
+	assert.Equal(t, "reader-01", tag.ReaderID)
+	assert.Equal(t, "CH-001596-0", tag.ISIL)
+	assert.Equal(t, "CH", tag.Country)
+	assert.Equal(t, libraryclient.AFISecured, tag.AFI)
+	assert.True(t, tag.CRCOk)
+}
+
+func TestSendBarcodes_WithClearBefore(t *testing.T) {
+	conf := &MockReaderConfig{
+		Name:     "test:mockreader",
+		ReaderID: "reader-01",
+		Channels: []string{"mediathek01", "gates"},
+	}
+	require.NoError(t, conf.applyDefaults())
+
+	broker := newMockBroker("test:mockreader")
+	emulator, err := NewMockReader(conf, broker, nil)
+	require.NoError(t, err)
+	defer emulator.Close()
+
+	barcodes := []string{"BC-100", "BC-200"}
+	err = emulator.SendBarcodes(context.Background(), barcodes, true)
+	require.NoError(t, err)
+
+	events := broker.getSentEvents()
+	// Expect 2 channels * 1 clear event + 2 channels * 2 tag read events = 6 events total
+	require.Len(t, events, 6)
+
+	// Events 0 and 1 must be tags_cleared for each channel
+	assert.Equal(t, event.EventType(libraryclient.EventTagsCleared), events[0].Type)
+	assert.Equal(t, "mediathek01", events[0].Channel)
+	assert.Equal(t, event.EventType(libraryclient.EventTagsCleared), events[1].Type)
+	assert.Equal(t, "gates", events[1].Channel)
+
+	// Events 2 and 3 must be tag_read for BC-100
+	assert.Equal(t, event.EventType(libraryclient.EventTagRead), events[2].Type)
+	assert.Equal(t, "mediathek01", events[2].Channel)
+	var tag1 libraryclient.TagReadData
+	err = json.Unmarshal(events[2].Data, &tag1)
+	require.NoError(t, err)
+	assert.Equal(t, "BC-100", tag1.ItemID)
+	assert.True(t, strings.HasPrefix(tag1.UID, "E004"))
+
+	assert.Equal(t, event.EventType(libraryclient.EventTagRead), events[3].Type)
+	assert.Equal(t, "gates", events[3].Channel)
+
+	// Events 4 and 5 must be tag_read for BC-200
+	assert.Equal(t, event.EventType(libraryclient.EventTagRead), events[4].Type)
+	assert.Equal(t, "mediathek01", events[4].Channel)
+	var tag2 libraryclient.TagReadData
+	err = json.Unmarshal(events[4].Data, &tag2)
+	require.NoError(t, err)
+	assert.Equal(t, "BC-200", tag2.ItemID)
+	assert.True(t, strings.HasPrefix(tag2.UID, "E004"))
+
+	assert.Equal(t, event.EventType(libraryclient.EventTagRead), events[5].Type)
+	assert.Equal(t, "gates", events[5].Channel)
+}
+
+func TestSendEmpty(t *testing.T) {
+	conf := &MockReaderConfig{
+		Name:     "test:mockreader",
+		ReaderID: "reader-01",
+		Channels: []string{"mediathek01"},
+	}
+	require.NoError(t, conf.applyDefaults())
+
+	broker := newMockBroker("test:mockreader")
+	emulator, err := NewMockReader(conf, broker, nil)
+	require.NoError(t, err)
+	defer emulator.Close()
+
+	err = emulator.SendEmpty(context.Background())
+	require.NoError(t, err)
+
+	events := broker.getSentEvents()
+	require.Len(t, events, 1)
+	assert.Equal(t, event.EventType(libraryclient.EventTagsCleared), events[0].Type)
+	assert.Equal(t, "mediathek01", events[0].Channel)
 }
